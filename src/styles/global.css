@@ -1,0 +1,248 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}
+
+body {
+  background: #0d0d0d;
+  color: #e0e0e0;
+}
+
+/* App container */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #0d0d0d;
+}
+
+/* Terminal container - responsive and fills available space */
+.terminal-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 0; /* Important for flex child */
+}
+
+/* Ensure xterm fills container and text wraps properly */
+.terminal-container .xterm {
+  height: 100%;
+}
+
+.terminal-container .xterm-viewport {
+  overflow-y: auto !important;
+}
+
+.terminal-container .xterm-screen {
+  width: 100% !important;
+}
+
+/* Make links show pointer cursor */
+.terminal-container .xterm a {
+  cursor: pointer !important;
+}
+
+.terminal-container .xterm-link-layer {
+  pointer-events: auto;
+}
+
+/* Hint bar at bottom */
+.hint-bar {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.hint-bar button {
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hint-bar button:hover {
+  background: #222;
+  color: #fff;
+  border-color: #666;
+}
+
+.hint-bar button code {
+  color: #4ec9b0;
+}
+
+.hint-bar .hint-esc {
+  margin-left: auto;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.hint-bar .hint-esc code {
+  color: #dcdcaa;
+  background: #333;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  margin: 0 0.25rem;
+}
+
+/* Viewer overlay */
+.viewer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 48px; /* Leave room for hint bar */
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.viewer-content {
+  max-width: 90%;
+  max-height: 90%;
+  position: relative;
+}
+
+.viewer-content img,
+.viewer-content video {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+/* Removed - ESC hint is now in bottom bar */
+
+.viewer-nav {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.viewer-description {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ccc;
+  text-align: center;
+  max-width: 80%;
+}
+
+/* Content overlay (contact, imprint) */
+.content-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  overflow: auto;
+}
+
+.content-box {
+  max-width: 600px;
+  padding: 2rem;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+.content-box h1 {
+  color: #4ec9b0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.content-box h2 {
+  color: #9cdcfe;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.content-box p {
+  margin-bottom: 1rem;
+}
+
+.content-box a {
+  color: #4ec9b0;
+  text-decoration: none;
+}
+
+.content-box a:hover {
+  text-decoration: underline;
+}
+
+.content-box hr {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 1.5rem 0;
+}
+
+.content-box ul {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Removed - ESC hint is now in bottom bar */
+
+/* 3D viewer canvas */
+.three-viewer {
+  width: 100%;
+  height: 80vh;
+}
+
+/* Image stack controls */
+.image-stack-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.image-stack-controls button {
+  background: #222;
+  border: 1px solid #444;
+  color: #ccc;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.image-stack-controls button:hover {
+  background: #333;
+}
+
+.image-stack-counter {
+  color: #888;
+  padding: 0.5rem 1rem;
+}

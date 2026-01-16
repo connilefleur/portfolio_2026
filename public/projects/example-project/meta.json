@@ -1,0 +1,16 @@
+{
+  "id": "example-project",
+  "title": "Example Project",
+  "category": "experimental",
+  "description": "This is an example project to demonstrate the portfolio structure. Replace this with your own projects.",
+  "year": 2026,
+  "tags": ["example", "demo"],
+  "media": [
+    {
+      "id": "placeholder",
+      "type": "image",
+      "src": "placeholder.svg",
+      "description": "Placeholder image - replace with your own content"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#1a1a2e"/>
+  <rect x="100" y="100" width="600" height="400" fill="#252545" rx="20"/>
+  <text x="400" y="280" font-family="monospace" font-size="32" fill="#4ec9b0" text-anchor="middle">Example Project</text>
+  <text x="400" y="340" font-family="monospace" font-size="18" fill="#888" text-anchor="middle">Replace this with your own content</text>
+  <text x="400" y="380" font-family="monospace" font-size="14" fill="#666" text-anchor="middle">See PROJECT_TEMPLATE.md for instructions</text>
+</svg>

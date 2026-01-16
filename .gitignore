@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+public/projects-index.json
+
+# Debug state (can be removed after issue is resolved)
+# .debug-state/
+
+# Optional: Uncomment if you don't want to track projects in git
+# public/projects/
