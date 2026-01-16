@@ -1,168 +1,131 @@
-# Session Handoff - Terminal Portfolio Project
+# Session Handoff - Terminal Portfolio
 
-## Repository Location
-**GitHub:** https://github.com/connilefleur/portfolio_2026
+## Current State (January 2025)
 
-## Before Starting Work
-Always sync with the latest changes:
-```bash
-cd /Users/conradloeffler/Desktop/Connilefleur_Portfolio
-git pull origin main
-```
+### Project Overview
+A terminal-style portfolio website built with React, TypeScript, and xterm.js. Visitors interact with the site through terminal commands to browse projects, view media, and access information.
 
-## After Making Changes
-Push updates to keep the repository current:
-```bash
-git add .
-git commit -m "Description of changes"
-git push origin main
-```
+### Key Features Implemented
 
----
+#### 1. Terminal Interface
+- Full-screen terminal emulator using xterm.js
+- Clickable commands (cyan underlined text)
+- Command history with arrow keys
+- Tab completion
+- ANSI color support
 
-## Project Overview
-A fullscreen terminal-style portfolio website built with React + TypeScript + Vite. Users interact via terminal commands to view projects, contact info, etc.
+#### 2. ANSI Art System
+- **Logo**: Dynamic "connilefleur" logo generated on page load using ANSI art generator
+- **Generator**: `ansi <text>` command generates ASCII art from any text (max 20 chars)
+- **Location**: 
+  - Generator: `src/utils/ansi/generator.ts`
+  - Logo: `src/components/Terminal/ansi/logo.ts`
 
-## Current State
+#### 3. Theme System
+- **Dark mode only** (light mode removed)
+- All colors centralized in `src/config/theme.ts`
+- All text outside terminal is white (#ffffff)
+- Terminal uses RGB colors for syntax highlighting
+- CSS variables for easy color updates
 
-### What's Working
-- Terminal renders and accepts typed input
-- All commands work when typed (`help`, `projects`, `project <name>`, `contact`, `imprint`, `clear`, etc.)
-- Command output displays with cyan underlined styling (visual indication of clickable links)
-- Bottom hint bar with clickable buttons
-- ESC key closes overlays/viewers globally
-- Responsive layout with proper text wrapping
-- Project viewer (images, video, 3D models)
-- Static build works
+#### 4. Custom Font
+- **Gerstner-Programm** font family
+- All weights and styles loaded (Light, Regular, Medium, Bold + Italics)
+- Location: `/public/fonts/`
+- Used everywhere except terminal (terminal uses monospace fonts)
 
-### What's NOT Working (Main Bug)
-**Clickable commands in terminal output are not functional.**
+#### 5. Commands Structure
+Commands are organized by functionality:
+- **Core**: `help`, `open`, `close`, `clear`
+- **Navigation**: `contact`, `imprint`
+- **System**: `whoami`, `uname`, `neofetch`
+- **ANSI**: `ansi <text>`
 
-When typing `help` or `projects`, the output shows commands styled with cyan + underline (indicating they should be links), but:
-- Cursor does NOT change to pointer on hover
-- Clicking does NOT execute the command
-- The user must still type commands manually
+#### 6. Project System
+- Projects in `/public/projects/` folders
+- Each project has `meta.json` manifest
+- Supports: images, videos, 3D models (GLB/GLTF), image stacks
+- Build-time discovery script generates `projects-index.json`
 
----
+### File Structure
 
-## The Bug - Technical Details
-
-### Expected Behavior
-1. User types `help`
-2. Terminal shows list of commands with cyan underline styling
-3. Hover → cursor becomes pointer
-4. Click → command executes automatically
-
-### Actual Behavior
-1. Commands display with cyan + underline (styling works)
-2. Cursor stays as text cursor
-3. Clicks have no effect
-
-### Root Cause Analysis
-xterm.js manages its own canvas-based rendering and event handling. Our click handlers are being overridden or the DOM element detection isn't working properly within xterm's rendering structure.
-
-### HTML Structure (from browser inspection)
-```html
-<span style="background-color: rgb(38, 79, 120); letter-spacing: -0.00240385px;" 
-      class="xterm-underline-1 xterm-decoration-top xterm-fg-6">imprint</span>
-```
-
-Key classes: `xterm-underline-1`, `xterm-fg-6` (cyan)
-
----
-
-## Approaches Already Tried (Don't Repeat)
-
-1. **OSC 8 Hyperlinks** - xterm.js didn't recognize/render them
-2. **registerLinkProvider API** - Pattern matching didn't trigger
-3. **WebLinksAddon** - Only works for URLs, not custom commands
-4. **Manual coordinate calculation** - Coordinate mismatches with xterm internals
-5. **Direct DOM element detection** - Current approach, not working
-
-### Current Implementation (in Terminal.tsx)
-- Commands are output with ANSI codes: `\x1b[36m\x1b[4m${cmd}\x1b[0m`
-- A `Set<string>` tracks known clickable commands
-- Click/mousemove handlers attached to container try to find `<span>` elements with xterm classes
-- Detection logic checks `e.target.closest()` for underline classes
-
----
-
-## Key Files to Examine
-
-| File | Purpose |
-|------|---------|
-| `src/components/Terminal/Terminal.tsx` | Main terminal component, click handlers |
-| `src/components/Terminal/commands/index.ts` | Command definitions, output formatting |
-| `src/styles/global.css` | Terminal styling |
-| `.debug-state/` | Detailed debugging notes |
-| `browser-log.txt` | Console output from debugging |
-
----
-
-## Suggested Next Steps
-
-1. **Add more console.log debugging** to verify:
-   - Is `handleClick` being called?
-   - What is `e.target` returning?
-   - Are the class names matching expectations?
-
-2. **Try alternative detection**:
-   - Query all spans with underline class on click
-   - Calculate click position vs element bounds
-   - Use MutationObserver to track when xterm renders elements
-
-3. **Consider xterm.js alternatives**:
-   - Switch to a simpler terminal-like UI (custom React component)
-   - Use xterm's `registerMarker` + `registerDecoration` APIs
-
-4. **Check xterm.js documentation**:
-   - Look for newer link/click APIs
-   - Review GitHub issues for similar problems
-
----
-
-## Dev Commands
-
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Discover projects (generates manifest)
-npm run discover
-```
-
----
-
-## Tech Stack
-- React 18 + TypeScript
-- Vite 5
-- @xterm/xterm + @xterm/addon-fit
-- Three.js (for 3D viewer, lazy loaded)
-- Plain CSS
-
----
-
-## File Structure
 ```
 src/
-├── App.tsx                 # Main app, global ESC handler
 ├── components/
 │   ├── Terminal/
-│   │   ├── Terminal.tsx    # xterm integration, click handlers
-│   │   ├── HintBar.tsx     # Bottom bar with buttons
-│   │   └── commands/
-│   │       └── index.ts    # Command definitions
-│   └── Viewer/
-│       ├── Viewer.tsx      # Media display router
-│       └── ...viewers      # Image, Video, 3D viewers
+│   │   ├── ansi/
+│   │   │   ├── index.ts
+│   │   │   └── logo.ts          # Connilefleur logo generator
+│   │   ├── commands/
+│   │   │   ├── index.ts         # Command registry & executor
+│   │   │   ├── core/            # Essential commands
+│   │   │   ├── navigation/      # Contact, imprint
+│   │   │   ├── system/          # System info commands
+│   │   │   └── ansi/            # ANSI art command
+│   │   ├── Terminal.tsx         # Main terminal component
+│   │   └── HintBar.tsx         # Bottom hint bar
+│   └── Viewer/                  # Media viewers
+├── config/
+│   └── theme.ts                 # All colors (dark mode only)
+├── hooks/
+│   ├── useTheme.ts              # Theme application
+│   ├── useProjects.ts           # Project loading
+│   ├── useViewer.ts             # Viewer state
+│   └── useContent.ts            # Content overlays
 ├── styles/
-│   └── global.css          # All styles
-└── types/
-    └── terminal.ts         # TypeScript interfaces
+│   ├── fonts.css                # Font declarations
+│   └── global.css               # Global styles
+└── utils/
+    └── ansi/
+        ├── generator.ts         # ANSI art generator
+        └── index.ts
 ```
+
+### Color System
+
+All colors in `src/config/theme.ts`:
+- **Background**: Dark (#0d0d0d, #1a1a1a, #222222)
+- **Text**: White (#ffffff) everywhere outside terminal
+- **Terminal**: RGB colors for syntax highlighting
+- **Buttons**: White text, transparent backgrounds
+
+### Known Issues / Notes
+
+1. **Logo Display**: Logo uses ANSI generator, displays on page load
+2. **Focus Outline**: Fixed - buttons blur on ESC to prevent outline
+3. **Terminal Theme**: Uses xterm.js with dark theme colors
+4. **Font**: Gerstner-Programm used everywhere except terminal (monospace)
+
+### Build & Development
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start dev server (http://localhost:5173)
+npm run build        # Build for production (generates dist/)
+npm run discover     # Regenerate projects index
+npm run preview      # Preview production build
+```
+
+### Recent Changes
+
+- Removed light/dark mode toggle (dark mode only)
+- Simplified theme system
+- Added ANSI art generator
+- Reorganized commands into folders by functionality
+- Added Gerstner-Programm font
+- All text colors set to white outside terminal
+- Logo displays on page load using ANSI generator
+
+### Next Steps / TODO
+
+- Test ANSI art generator with different fonts/styles
+- Consider adding more command aliases
+- Optimize font loading
+- Add more terminal commands if needed
+
+### Important Files
+
+- **Theme**: `src/config/theme.ts` - Change all colors here
+- **Commands**: `src/components/Terminal/commands/` - Add new commands here
+- **ANSI Generator**: `src/utils/ansi/generator.ts` - Extend font patterns here
+- **Logo**: `src/components/Terminal/ansi/logo.ts` - Update logo display

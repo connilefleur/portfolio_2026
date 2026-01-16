@@ -51,7 +51,7 @@ export function Viewer({ project, mediaIndex, onClose, onNext, onPrev }: ViewerP
         return <ImageStackViewer sources={getSrcArray(media)} description={media.description} />;
       case '3d-model':
         return (
-          <Suspense fallback={<div style={{ color: '#888' }}>Loading 3D viewer...</div>}>
+          <Suspense fallback={<div style={{ color: '#ffffff' }}>Loading 3D viewer...</div>}>
             <ThreeDViewer src={getSrc(media)} description={media.description} />
           </Suspense>
         );

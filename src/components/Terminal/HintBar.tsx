@@ -13,9 +13,6 @@ export function HintBar({ hasViewer }: HintBarProps) {
       <button onClick={() => inject('help')}>
         <code>help</code>
       </button>
-      <button onClick={() => inject('projects')}>
-        <code>projects</code>
-      </button>
       <button onClick={() => inject('contact')}>
         <code>contact</code>
       </button>

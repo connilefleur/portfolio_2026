@@ -1,10 +1,8 @@
 # Contact
 
-**Email:** your.email@example.com
+**Email:** connilefleur@protonmail.com
 
-**GitHub:** [github.com/yourusername](https://github.com/yourusername)
-
-**LinkedIn:** [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
+**Instagram:** connilefleur
 
 ---
 

@@ -6,9 +6,11 @@ import { ContentOverlay } from './components/Viewer/ContentOverlay';
 import { useProjects } from './hooks/useProjects';
 import { useViewer } from './hooks/useViewer';
 import { useContent } from './hooks/useContent';
+import { useTheme } from './hooks/useTheme';
 import { CommandAction } from './types/terminal';
 
 export default function App() {
+  useTheme(); // Apply theme colors
   const { projects, loading, getProject } = useProjects();
   const { 
     viewer, 
@@ -26,8 +28,16 @@ export default function App() {
       if (e.key === 'Escape') {
         if (activeContent) {
           hideContent();
+          // Remove focus from any active element to prevent focus outline
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
         } else if (viewer) {
           closeViewer();
+          // Remove focus from any active element to prevent focus outline
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
         }
       }
     };
@@ -60,7 +70,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#666' }}>Loading...</p>
+        <p style={{ color: '#ffffff' }}>Loading...</p>
       </div>
     );
   }

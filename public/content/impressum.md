@@ -2,9 +2,9 @@
 
 ## Contact Information
 
-**Name:** Your Name  
-**Address:** Your Street 123, 12345 City, Country  
-**Email:** your.email@example.com
+**Name:** Conrad Löffler 
+**Address:** Teckstraße 15, Tübingen-Pfrondorf  
+**Email:** connilefleur@protonmail.com
 
 ## Liability for Content
 

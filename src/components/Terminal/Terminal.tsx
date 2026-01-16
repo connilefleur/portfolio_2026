@@ -3,8 +3,10 @@ import { Terminal as XTerm, ITerminalOptions } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { executeCommand, commands } from './commands';
+import { getConnilefleurArt } from './ansi';
 import { Project } from '../../types/projects';
 import { ViewerState, CommandAction } from '../../types/terminal';
+import { theme } from '../../config/theme';
 
 interface TerminalProps {
   projects: Project[];
@@ -14,17 +16,42 @@ interface TerminalProps {
 
 const PROMPT = '\x1b[32mvisitor\x1b[0m@\x1b[34mportfolio\x1b[0m:~$ ';
 
-// Store valid clickable commands
-const clickableCommands = new Set<string>();
+// Map display text -> command to execute (allows different display vs execution)
+const clickableCommands = new Map<string, string>();
+// Track disabled command text (for re-render persistence)
+const disabledCommands = new Set<string>();
 
-// Parse [cmd:xxx] patterns and return display text
+// Parse [cmd:xxx] or [cmd:display|command] patterns and return display text
+// [cmd:help] -> displays "help", executes "help"
+// [cmd:example-project|project example-project] -> displays "example-project", executes "project example-project"
 function parseClickableCommands(text: string): string {
-  return text.replace(/\[cmd:([^\]]+)\]/g, (_match, cmd) => {
+  return text.replace(/\[cmd:([^\]]+)\]/g, (_match, content) => {
+    let displayText: string;
+    let command: string;
+    
+    if (content.includes('|')) {
+      // Format: display|command
+      const parts = content.split('|');
+      displayText = parts[0];
+      command = parts[1];
+    } else {
+      // Format: command (display same as command)
+      displayText = content;
+      command = content;
+    }
+    
     // Register this command as clickable
-    clickableCommands.add(cmd);
+    clickableCommands.set(displayText, command);
     // Style: cyan + underline
-    return `\x1b[36m\x1b[4m${cmd}\x1b[0m`;
+    return `\x1b[36m\x1b[4m${displayText}\x1b[0m`;
   });
+}
+
+// Apply disabled styling to an element
+function applyDisabledStyle(el: HTMLElement) {
+  el.style.setProperty('text-decoration', 'none', 'important');
+  el.style.setProperty('color', 'inherit', 'important');
+  el.style.setProperty('cursor', 'text', 'important');
 }
 
 export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
@@ -43,6 +70,45 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
   const handleCommand = useCallback((input: string) => {
     const result = executeCommand(input, { projects, currentViewer });
     const terminal = terminalRef.current;
+    const container = containerRef.current;
+    
+    // Handle clear command specially - reset to initial state
+    if (result.action?.type === 'clear') {
+      if (terminal) {
+        terminal.reset();
+        clickableCommands.clear();
+        disabledCommands.clear();
+        // Show logo and welcome message again
+        const logo = getConnilefleurArt();
+        const logoLines = logo.split('\n');
+        logoLines.forEach((line) => {
+          terminal.writeln(line);
+        });
+        terminal.writeln('');
+        const openLine = parseClickableCommands("  Type or click [cmd:open] to browse projects.");
+        terminal.writeln(openLine);
+        const helpLine = parseClickableCommands("  Type or click [cmd:help] for more commands.");
+        terminal.writeln(helpLine);
+        terminal.writeln('');
+      }
+      return;
+    }
+    
+    // Mark current clickable commands as disabled (for persistence across re-renders)
+    clickableCommands.forEach((_cmd, displayText) => {
+      disabledCommands.add(displayText);
+    });
+    
+    // Remove styling from old clickable commands using inline styles
+    if (container) {
+      const oldLinks = container.querySelectorAll('[class*="xterm-underline"]');
+      oldLinks.forEach(el => {
+        applyDisabledStyle(el as HTMLElement);
+      });
+    }
+    
+    // Clear previous clickable commands so only the latest output is clickable
+    clickableCommands.clear();
     
     if (result.output && terminal) {
       const lines = result.output.split('\n');
@@ -57,7 +123,7 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
     }
   }, [projects, currentViewer, onAction]);
 
-  // Initialize terminal
+  // Initialize terminal (only once, but with current theme)
   useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
 
@@ -71,27 +137,27 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
 
       const options: ITerminalOptions = {
         theme: {
-          background: '#0d0d0d',
-          foreground: '#e0e0e0',
-          cursor: '#4ec9b0',
-          cursorAccent: '#0d0d0d',
-          selectionBackground: '#264f78',
-          black: '#0d0d0d',
-          red: '#f44747',
-          green: '#4ec9b0',
-          yellow: '#dcdcaa',
-          blue: '#569cd6',
-          magenta: '#c586c0',
-          cyan: '#9cdcfe',
-          white: '#e0e0e0',
-          brightBlack: '#666666',
-          brightRed: '#f44747',
-          brightGreen: '#4ec9b0',
-          brightYellow: '#dcdcaa',
-          brightBlue: '#569cd6',
-          brightMagenta: '#c586c0',
-          brightCyan: '#9cdcfe',
-          brightWhite: '#ffffff',
+          background: theme.terminal.background,
+          foreground: theme.terminal.foreground,
+          cursor: theme.terminal.cursor,
+          cursorAccent: theme.terminal.cursorAccent,
+          selectionBackground: theme.terminal.selectionBackground,
+          black: theme.terminal.black,
+          red: theme.terminal.red,
+          green: theme.terminal.green,
+          yellow: theme.terminal.yellow,
+          blue: theme.terminal.blue,
+          magenta: theme.terminal.magenta,
+          cyan: theme.terminal.cyan,
+          white: theme.terminal.white,
+          brightBlack: theme.terminal.brightBlack,
+          brightRed: theme.terminal.brightRed,
+          brightGreen: theme.terminal.brightGreen,
+          brightYellow: theme.terminal.brightYellow,
+          brightBlue: theme.terminal.brightBlue,
+          brightMagenta: theme.terminal.brightMagenta,
+          brightCyan: theme.terminal.brightCyan,
+          brightWhite: theme.terminal.brightWhite,
         },
         fontFamily: "'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace",
         fontSize: 14,
@@ -108,6 +174,20 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
 
       terminal.open(container);
       
+      // Ensure background is set immediately on all xterm elements
+      const xtermElement = container.querySelector('.xterm') as HTMLElement;
+      if (xtermElement) {
+        xtermElement.style.backgroundColor = theme.terminal.background;
+      }
+      const viewport = container.querySelector('.xterm-viewport') as HTMLElement;
+      if (viewport) {
+        viewport.style.backgroundColor = theme.terminal.background;
+      }
+      const screen = container.querySelector('.xterm-screen') as HTMLElement;
+      if (screen) {
+        screen.style.backgroundColor = theme.terminal.background;
+      }
+      
       setTimeout(() => {
         try {
           fitAddon.fit();
@@ -119,10 +199,19 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
       terminalRef.current = terminal;
       fitAddonRef.current = fitAddon;
 
-      // Welcome message
+      // Display logo first - write each line separately for proper formatting
+      const logo = getConnilefleurArt();
+      const logoLines = logo.split('\n');
+      logoLines.forEach((line) => {
+        terminal.writeln(line);
+      });
       terminal.writeln('');
-      terminal.writeln("  Welcome to the Portfolio Terminal");
-      terminal.writeln("  Type 'help' to see available commands, or click commands in output.");
+
+      // Welcome message with clickable commands
+      const openLine = parseClickableCommands("  Type or click [cmd:open] to browse projects.");
+      terminal.writeln(openLine);
+      const helpLine = parseClickableCommands("  Type or click [cmd:help] for more commands.");
+      terminal.writeln(helpLine);
       terminal.writeln('');
       writePrompt();
 
@@ -136,74 +225,78 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
       };
       window.addEventListener('resize', handleResize);
 
-      // Click handler - detect clicks on underlined text (commands)
-      const handleClick = (e: MouseEvent) => {
+      // Click handler - use mousedown + capture phase to intercept before xterm.js stops propagation
+      const handleMouseDown = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
         
-        // Check if clicked element or parent has xterm-underline class
-        const underlinedElement = target.closest('.xterm-underline-1, .xterm-underline-2, .xterm-underline-3, [class*="xterm-underline"]');
+        // Only handle if within the terminal container
+        if (!container.contains(target)) {
+          return;
+        }
         
-        if (underlinedElement) {
-          const text = underlinedElement.textContent?.trim();
-          console.log('Clicked underlined text:', text);
+        // Check if clicked element has xterm-underline class (indicates a clickable command)
+        if (target.classList.toString().includes('xterm-underline')) {
+          const text = target.textContent?.trim();
           
           if (text && clickableCommands.has(text)) {
-            console.log('Executing command:', text);
+            const command = clickableCommands.get(text)!;
             e.preventDefault();
             e.stopPropagation();
-            injectCommandRef.current(text);
+            setTimeout(() => {
+              injectCommandRef.current(command);
+            }, 0);
             return;
           }
         }
         
-        // Also check if we clicked directly on a span with cyan color (xterm-fg-6 or similar)
-        if (target.tagName === 'SPAN' && target.classList.toString().includes('xterm-fg-')) {
-          const text = target.textContent?.trim();
-          console.log('Clicked colored span:', text);
+        // Also check parent for underline class
+        const underlinedParent = target.closest('[class*="xterm-underline"]') as HTMLElement;
+        if (underlinedParent) {
+          const text = underlinedParent.textContent?.trim();
           
           if (text && clickableCommands.has(text)) {
-            console.log('Executing command:', text);
+            const command = clickableCommands.get(text)!;
             e.preventDefault();
             e.stopPropagation();
-            injectCommandRef.current(text);
+            setTimeout(() => {
+              injectCommandRef.current(command);
+            }, 0);
             return;
           }
         }
       };
 
-      // Mousemove handler to show pointer cursor on clickable text
-      const handleMouseMove = (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        
-        const underlinedElement = target.closest('.xterm-underline-1, .xterm-underline-2, .xterm-underline-3, [class*="xterm-underline"]');
-        
-        let isOverLink = false;
-        
-        if (underlinedElement) {
-          const text = underlinedElement.textContent?.trim();
-          if (text && clickableCommands.has(text)) {
-            isOverLink = true;
-          }
-        }
-        
-        // Also check colored spans
-        if (!isOverLink && target.tagName === 'SPAN' && target.classList.toString().includes('xterm-fg-')) {
-          const text = target.textContent?.trim();
-          if (text && clickableCommands.has(text)) {
-            isOverLink = true;
-          }
-        }
+      // Use capture phase (true) to intercept events before xterm.js can stop them
+      document.addEventListener('mousedown', handleMouseDown, true);
 
-        container.style.cursor = isOverLink ? 'pointer' : '';
-      };
-
-      container.addEventListener('click', handleClick);
-      container.addEventListener('mousemove', handleMouseMove);
+      // MutationObserver to handle xterm re-renders - disable old commands when they reappear
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement) {
+              // Check if this node or its children have underline class
+              const underlinedElements = node.classList?.toString().includes('xterm-underline') 
+                ? [node] 
+                : Array.from(node.querySelectorAll('[class*="xterm-underline"]'));
+              
+              underlinedElements.forEach((el) => {
+                const text = el.textContent?.trim();
+                // If this text is in disabledCommands and NOT in current clickableCommands, disable it
+                if (text && disabledCommands.has(text) && !clickableCommands.has(text)) {
+                  applyDisabledStyle(el as HTMLElement);
+                }
+              });
+            }
+          });
+        });
+      });
+      
+      observer.observe(container, { childList: true, subtree: true });
 
       (container as HTMLDivElement & { _cleanup?: () => void })._cleanup = () => {
         window.removeEventListener('resize', handleResize);
-        container.removeEventListener('click', handleClick);
-        container.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mousedown', handleMouseDown, true);
+        observer.disconnect();
         terminal.dispose();
         terminalRef.current = null;
       };
@@ -216,6 +309,7 @@ export function Terminal({ projects, currentViewer, onAction }: TerminalProps) {
       if (cleanup) cleanup();
     };
   }, [writePrompt]);
+
 
   // Handle keyboard input
   useEffect(() => {
