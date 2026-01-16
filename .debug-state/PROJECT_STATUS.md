@@ -1,7 +1,7 @@
 # Project Status Summary
 
 ## Repository
-**GitHub:** https://github.com/Connilefleur/Connilefleur_Portfolio
+**GitHub:** https://github.com/connilefleur/portfolio_2026
 
 Always pull latest before working:
 ```bash

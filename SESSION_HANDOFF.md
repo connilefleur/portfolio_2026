@@ -1,7 +1,7 @@
 # Session Handoff - Terminal Portfolio Project
 
 ## Repository Location
-**GitHub:** https://github.com/Connilefleur/Connilefleur_Portfolio
+**GitHub:** https://github.com/connilefleur/portfolio_2026
 
 ## Before Starting Work
 Always sync with the latest changes:
