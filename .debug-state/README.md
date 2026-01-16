@@ -1,31 +1,25 @@
-# Debug State for AI Assistant Continuity
+# Debug State Documentation
 
-This folder contains state information for debugging the clickable commands issue in the xterm.js terminal. Use this to continue debugging in a new chat session.
+This folder contains detailed notes about the ongoing debugging effort for the clickable commands feature.
 
-## Files
+## Quick Summary
+**Problem:** Commands in terminal output have underline styling but are not clickable.
 
-| File | Purpose |
-|------|---------|
+## Files in This Folder
+
+| File | Contents |
+|------|----------|
 | `CURRENT_ISSUE.md` | Problem description and expected vs actual behavior |
-| `APPROACHES_TRIED.md` | All approaches attempted and their results |
-| `CONSOLE_LOGS.md` | Relevant browser console output |
-| `CURRENT_IMPLEMENTATION.md` | Current code structure and key functions |
-| `NEXT_STEPS.md` | Suggested next debugging steps |
-| `PROJECT_STATUS.md` | Overall project status and what's working |
+| `APPROACHES_TRIED.md` | What we've attempted and why it didn't work |
+| `CURRENT_IMPLEMENTATION.md` | How the current code works |
+| `CONSOLE_LOGS.md` | Browser console output from debugging |
+| `NEXT_STEPS.md` | Suggested approaches to try next |
+| `PROJECT_STATUS.md` | Overall project status checklist |
 
-## How to Use in New Chat
+## For the Next Session
 
-Prompt for new AI assistant:
-```
-I'm debugging a clickable commands issue in an xterm.js terminal. 
-Please read the files in .debug-state/ folder to understand the current state,
-then help me continue debugging from where we left off.
-```
-
-## Quick Context
-
-**Goal:** Make commands in terminal output clickable (e.g., when user types `help`, the listed commands should be clickable links)
-
-**Current Blocker:** Click events are captured but DOM element detection for underlined text isn't triggering command execution
-
-**Key File:** `src/components/Terminal/Terminal.tsx`
+1. Read `SESSION_HANDOFF.md` in the project root first
+2. Pull latest from GitHub: `git pull origin main`
+3. Review these debug files for context
+4. Check `browser-log.txt` for recent console output
+5. Continue debugging from `NEXT_STEPS.md`

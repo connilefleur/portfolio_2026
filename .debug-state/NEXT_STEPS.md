@@ -1,53 +1,57 @@
-# Next Steps to Try
+# Next Steps for Debugging Clickable Commands
 
-## 1. Test Current DOM Detection Approach
-- Refresh browser
-- Type `help`
-- Click on underlined command
-- Check console for `Clicked underlined text:` log
-- If no log appears, the click handler may not be reaching the underlined elements
+## Priority Order
 
-## 2. Debug DOM Event Propagation
-Add logging at the start of click handler:
-```javascript
+### 1. Verify Event Handlers Are Firing
+Add console.log at the start of `handleClick` and `handleMouseMove` in `Terminal.tsx`:
+```typescript
 const handleClick = (e: MouseEvent) => {
-  console.log('Click event target:', e.target);
-  console.log('Target classList:', (e.target as HTMLElement).classList?.toString());
-  console.log('Target tagName:', (e.target as HTMLElement).tagName);
+  console.log('=== CLICK EVENT ===');
+  console.log('e.target:', e.target);
+  console.log('e.target.classList:', (e.target as HTMLElement).classList);
   // ... rest of handler
 };
 ```
 
-## 3. Check if xterm.js Prevents Event Propagation
-xterm.js may be capturing/preventing click events. Try:
-- Adding click listener to `document` instead of container
-- Using capture phase: `container.addEventListener('click', handleClick, true)`
+### 2. Check xterm's Event Interception
+xterm.js may be capturing mouse events before they bubble. Try:
+- Using `{ capture: true }` when adding event listeners
+- Adding listeners to the xterm viewport element directly
 
-## 4. Alternative: Use xterm.js onRender + DOM Mutation Observer
-Instead of click detection, modify the DOM after render:
-- Watch for DOM changes using MutationObserver
-- Find underlined spans and attach click handlers directly to them
-
-## 5. Alternative: Completely Different UX
-If xterm.js click detection proves too difficult:
-- Show numbered list: `1. help  2. projects  3. contact`
-- User types the number to execute
-- Simpler, more terminal-authentic UX
-
-## 6. Check xterm.js GitHub Issues
-Search for:
-- "click event" in xterm.js issues
-- "custom link handler"
-- "OSC 8" support
-
-## 7. Try xterm-addon-web-links with Custom Matcher
-```javascript
-import { WebLinksAddon } from '@xterm/addon-web-links';
-
-const webLinksAddon = new WebLinksAddon((event, uri) => {
-  // Custom handler
-}, {
-  // Custom URL matcher regex
-});
-terminal.loadAddon(webLinksAddon);
+### 3. Alternative DOM Query Approach
+Instead of using `e.target.closest()`, query all matching spans:
+```typescript
+const spans = containerRef.current?.querySelectorAll('.xterm-underline-1');
+// Check if click coordinates fall within any span's bounding rect
 ```
+
+### 4. Consider xterm.js registerDecoration API
+This is a newer API that might work better for interactive elements:
+```typescript
+const marker = terminal.registerMarker(0);
+const decoration = terminal.registerDecoration({ marker });
+decoration.element?.addEventListener('click', handler);
+```
+
+### 5. Fallback: Custom Terminal UI
+If xterm.js continues to block click detection, consider:
+- Building a simpler React-based terminal component
+- Using a different terminal library (react-terminal-ui, etc.)
+- Keeping xterm for input only, render output in custom elements
+
+## Debugging Commands
+
+```bash
+# Start dev server with hot reload
+npm run dev
+
+# Open browser dev tools
+# Console tab → check for our debug logs
+# Elements tab → inspect the underlined span elements
+```
+
+## Key Questions to Answer
+1. Is `handleClick` being called when clicking on terminal?
+2. What does `e.target` return - the span, a parent, or the canvas?
+3. Are class names `xterm-underline-1` and `xterm-fg-6` present?
+4. Is the click position within the visible terminal area?
