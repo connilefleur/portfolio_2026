@@ -25,8 +25,9 @@ Thumbs.db
 # Generated files
 public/projects-index.json
 
-# Debug state (can be removed after issue is resolved)
-# .debug-state/
+# Debug files
+browser-log.txt
+*.log
 
 # Optional: Uncomment if you don't want to track projects in git
 # public/projects/
