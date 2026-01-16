@@ -8,7 +8,7 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Gerstner-Programm', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-family: 'Doto', sans-serif;
 }
 
 /* CSS Variables are set by useTheme hook */
@@ -34,6 +34,21 @@ body {
   overflow: hidden;
   width: 100%;
   min-height: 0; /* Important for flex child */
+}
+
+/* Responsive terminal font size for mobile */
+@media (max-width: 768px) {
+  .terminal-container .xterm {
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-container .xterm {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
 }
 
 /* Ensure xterm fills container and text wraps properly */
@@ -73,7 +88,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   flex-shrink: 0;
-  font-family: 'Gerstner-Programm', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-family: 'Doto', sans-serif;
 }
 
 .hint-bar button {
@@ -82,7 +97,7 @@ body {
   color: var(--color-button-text);
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
-  font-family: 'Gerstner-Programm', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-family: 'Doto', sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -113,12 +128,46 @@ body {
   font-size: 0.85rem;
 }
 
+.hint-bar .hint-esc {
+  margin-left: auto;
+  color: #ffffff;
+  font-size: 0.85rem;
+}
+
 .hint-bar .hint-esc code {
   color: #ffffff;
   background: var(--color-bg-tertiary);
   padding: 0.15rem 0.4rem;
   border-radius: 3px;
   margin: 0 0.25rem;
+}
+
+.hint-bar .hint-esc-button {
+  margin-left: auto;
+  background: var(--color-button-bg);
+  border: 1px solid var(--color-button-border);
+  color: var(--color-button-text);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-family: 'Doto', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.hint-bar .hint-esc-button:hover {
+  background: var(--color-button-bg-hover);
+  color: var(--color-button-text-hover);
+  border-color: var(--color-border-hover);
+}
+
+.hint-bar .hint-esc-button:focus {
+  outline: none;
+}
+
+.hint-bar .hint-esc-button:active {
+  outline: none;
 }
 
 /* Viewer overlay */
@@ -263,4 +312,77 @@ body {
 .image-stack-counter {
   color: #ffffff;
   padding: 0.5rem 1rem;
+}
+
+/* Mobile game controls */
+.mobile-game-controls {
+  position: fixed;
+  bottom: 48px; /* Above hint bar */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.mobile-controls-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+.mobile-controls-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mobile-control-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  color: #ffffff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+  touch-action: manipulation;
+}
+
+.mobile-control-btn:active {
+  background: var(--color-button-bg-hover);
+  border-color: var(--color-border-hover);
+  transform: scale(0.95);
+}
+
+.mobile-control-btn:focus {
+  outline: none;
+}
+
+.mobile-control-rotate {
+  margin-top: 0.5rem;
+  width: 80px !important;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .mobile-control-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.8rem;
+  }
+  
+  .mobile-control-rotate {
+    width: 100px !important;
+    height: 50px;
+  }
 }

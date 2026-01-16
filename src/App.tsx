@@ -1,11 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Terminal } from './components/Terminal/Terminal';
 import { HintBar } from './components/Terminal/HintBar';
+import { MobileGameControls } from './components/Terminal/MobileGameControls';
 import { Viewer } from './components/Viewer/Viewer';
-import { ContentOverlay } from './components/Viewer/ContentOverlay';
 import { useProjects } from './hooks/useProjects';
 import { useViewer } from './hooks/useViewer';
-import { useContent } from './hooks/useContent';
 import { useTheme } from './hooks/useTheme';
 import { CommandAction } from './types/terminal';
 
@@ -20,20 +19,31 @@ export default function App() {
     prevMedia,
     currentProject 
   } = useViewer(getProject);
-  const { activeContent, showContent, hideContent, getContent } = useContent();
+  const [hasGame, setHasGame] = useState(false);
+  const [currentGameId, setCurrentGameId] = useState<string | undefined>();
 
   // Global ESC key handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (activeContent) {
-          hideContent();
-          // Remove focus from any active element to prevent focus outline
-          if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
+        // Exit game first if active
+        if (hasGame) {
+          const exitGame = (window as unknown as { exitGame?: () => void }).exitGame;
+          if (exitGame) {
+            exitGame();
+            setHasGame(false);
           }
-        } else if (viewer) {
+          return;
+        }
+        if (viewer) {
           closeViewer();
+          // Refresh terminal after viewer closes
+          setTimeout(() => {
+            const refreshTerminal = (window as unknown as { refreshTerminal?: () => void }).refreshTerminal;
+            if (refreshTerminal) {
+              refreshTerminal();
+            }
+          }, 100);
           // Remove focus from any active element to prevent focus outline
           if (document.activeElement instanceof HTMLElement) {
             document.activeElement.blur();
@@ -44,7 +54,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeContent, viewer, hideContent, closeViewer]);
+  }, [viewer, closeViewer, hasGame]);
 
   const handleAction = useCallback((action: CommandAction) => {
     switch (action.type) {
@@ -53,19 +63,12 @@ export default function App() {
         break;
       case 'close-viewer':
         closeViewer();
-        hideContent();
-        break;
-      case 'show-overlay':
-        showContent(action.overlay);
-        break;
-      case 'close-overlay':
-        hideContent();
         break;
       case 'clear':
         // Terminal handles this internally
         break;
     }
-  }, [openViewer, closeViewer, showContent, hideContent]);
+  }, [openViewer, closeViewer]);
 
   if (loading) {
     return (
@@ -81,6 +84,10 @@ export default function App() {
         projects={projects}
         currentViewer={viewer}
         onAction={handleAction}
+        onGameStateChange={(hasGame, gameId) => {
+          setHasGame(hasGame);
+          setCurrentGameId(gameId);
+        }}
       />
       
       {viewer && currentProject && (
@@ -93,14 +100,15 @@ export default function App() {
         />
       )}
       
-      {activeContent && (
-        <ContentOverlay
-          content={getContent(activeContent)}
-          onClose={hideContent}
-        />
-      )}
+      <HintBar hasViewer={!!viewer || hasGame} />
       
-      <HintBar hasViewer={!!viewer || !!activeContent} />
+      <MobileGameControls 
+        isActive={hasGame}
+        gameId={currentGameId}
+        onKeyPress={() => {
+          // Keys are handled by global event listener in Terminal
+        }}
+      />
     </div>
   );
 }

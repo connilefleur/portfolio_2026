@@ -6,6 +6,7 @@
  * - navigation/: Navigation commands (contact, imprint)
  * - system/: System information commands (whoami, uname, neofetch)
  * - ansi/: ANSI art related commands
+ * - games/: Terminal games (snake, tetris)
  */
 
 import { CommandHandler, CommandResult, CommandContext } from '../../../types/terminal';
@@ -28,6 +29,10 @@ import { neofetch } from './system/neofetch';
 // ANSI commands
 import { ansi } from './ansi/ansi';
 
+// Game commands
+import { snake } from './games/snake';
+import { tetris } from './games/tetris';
+
 // All commands registry
 export const commands: Record<string, CommandHandler> = {
   help,
@@ -40,12 +45,15 @@ export const commands: Record<string, CommandHandler> = {
   uname,
   neofetch,
   ansi,
+  snake,
+  tetris,
 };
 
 /**
  * Parse and execute a command
+ * Returns CommandResult or Promise<CommandResult> for async commands
  */
-export function executeCommand(input: string, context: CommandContext): CommandResult {
+export function executeCommand(input: string, context: CommandContext): CommandResult | Promise<CommandResult> {
   const trimmed = input.trim();
   if (!trimmed) {
     return { output: '' };

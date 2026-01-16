@@ -61,9 +61,7 @@ export function Viewer({ project, mediaIndex, onClose, onNext, onPrev }: ViewerP
   };
 
   return (
-    <div className="viewer-overlay" onClick={(e) => {
-      if (e.target === e.currentTarget) onClose();
-    }}>
+    <div className="viewer-overlay">
       {renderMedia()}
       
       {hasMultiple && (

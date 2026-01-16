@@ -7,15 +7,14 @@ export interface CommandResult {
 export type CommandAction = 
   | { type: 'open-viewer'; projectId: string; mediaIndex?: number }
   | { type: 'close-viewer' }
-  | { type: 'show-overlay'; overlay: 'contact' | 'imprint' }
-  | { type: 'close-overlay' }
-  | { type: 'clear' };
+  | { type: 'clear' }
+  | { type: 'start-game'; gameId: string; gameHandler: GameHandler; gameName?: string };
 
 export interface CommandHandler {
   name: string;
   description: string;
   usage?: string;
-  execute: (args: string[], context: CommandContext) => CommandResult;
+  execute: (args: string[], context: CommandContext) => CommandResult | Promise<CommandResult>;
 }
 
 export interface CommandContext {
@@ -26,4 +25,11 @@ export interface CommandContext {
 export interface ViewerState {
   projectId: string;
   mediaIndex: number;
+}
+
+export interface GameHandler {
+  onKey: (key: string, ev: KeyboardEvent) => void;
+  onExit: () => void;
+  onClick?: () => void; // Click/tap to start/pause
+  render: (terminal: import('@xterm/xterm').Terminal) => void;
 }

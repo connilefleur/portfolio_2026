@@ -17,6 +17,9 @@ export const help: CommandHandler = {
   [cmd:neofetch]          System information with style
   [cmd:ansi]              Generate ANSI art from text
 
+  [cmd:snake]             Play Snake game
+  [cmd:tetris]            Play Tetris game
+
 Press ESC to close any open viewer or overlay.`
   })
 };
