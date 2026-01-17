@@ -51,9 +51,8 @@ const fontPattern: Record<string, string[]> = {
 export function generateAnsiArt(text: string, color: string = '\x1b[36m', maxWidth?: number): string {
   const upperText = text.toUpperCase();
   
-  // Use full 5-line pattern on both mobile and desktop
-  // The compact 3-line pattern was cutting off important parts of characters
-  const isMobile = false; // Disabled: typeof window !== 'undefined' && window.innerWidth < 768;
+  // Check if mobile to use smaller spacing for ANSI art
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
   // Base character dimensions
   const baseCharWidth = 5;

@@ -1,0 +1,143 @@
+/**
+ * Viewer and overlay styles
+ */
+
+/* Viewer overlay */
+.viewer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 48px; /* Leave room for hint bar */
+  background: var(--color-overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.viewer-content {
+  max-width: 90%;
+  max-height: 90%;
+  position: relative;
+}
+
+.viewer-content img,
+.viewer-content video {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.viewer-nav {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  color: #ffffff;
+  font-size: 0.85rem;
+}
+
+.viewer-description {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffffff;
+  text-align: center;
+  max-width: 80%;
+}
+
+/* Content overlay (contact, imprint) */
+.content-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  background: var(--color-overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  overflow: auto;
+}
+
+.content-box {
+  max-width: 600px;
+  padding: 2rem;
+  color: var(--color-overlay-text);
+  line-height: 1.6;
+}
+
+.content-box h1 {
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.content-box h2 {
+  color: #ffffff;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.content-box p {
+  margin-bottom: 1rem;
+}
+
+.content-box a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.content-box a:hover {
+  text-decoration: underline;
+}
+
+.content-box hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1.5rem 0;
+}
+
+.content-box ul {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* 3D viewer canvas */
+.three-viewer {
+  width: 100%;
+  height: 80vh;
+}
+
+/* Image stack controls */
+.image-stack-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.image-stack-controls button {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.image-stack-controls button:hover {
+  background: var(--color-button-bg-hover);
+}
+
+.image-stack-counter {
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+}

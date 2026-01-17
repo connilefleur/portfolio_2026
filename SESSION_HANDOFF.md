@@ -15,18 +15,20 @@ A terminal-style portfolio website built with React, TypeScript, and xterm.js. V
 - Tab completion
 - ANSI color support
 - Game mode support with real-time keyboard input
-- Responsive font sizing (16px mobile, 14px desktop)
+- Responsive font sizing (15px mobile, 14px desktop)
+- macOS Terminal-style padding (12px/16px desktop, 10px/12px mobile)
 - Async command support (for contact/imprint)
 
 #### 2. ANSI Art System
 - **Logo**: Dynamic "connilefleur" logo generated on page load using ANSI art generator
 - **Generator**: `ansi <text>` command generates ASCII art from any text (max 20 chars)
 - **Responsive**: Line wrapping when text doesn't fit terminal width
-- **Mobile**: Uses full 5-line pattern (compact 3-line was causing display issues)
+- **Mobile Sizing**: Logo is half the size on mobile (8px font during logo, 16px for text)
+- **Desktop Sizing**: Logo uses full width and wraps naturally
 - **Location**: 
   - Generator: `src/utils/ansi/generator.ts`
   - Logo: `src/components/Terminal/ansi/logo.ts`
-- **Status**: ✅ Fixed - Logo displays correctly on mobile and desktop with proper wrapping
+- **Status**: ✅ Working - Logo displays correctly on mobile (smaller) and desktop (larger)
 
 #### 3. Theme System
 - **Dark mode only** (light mode removed)
@@ -40,7 +42,6 @@ A terminal-style portfolio website built with React, TypeScript, and xterm.js. V
 - Variable weight (100-900)
 - Loaded via `@import` in `src/styles/fonts.css`
 - Used everywhere including terminal
-- **Removed**: Gerstner-Programm font files deleted from `/public/fonts/`
 
 #### 5. Commands Structure
 Commands are organized by functionality:
@@ -62,27 +63,33 @@ Commands are organized by functionality:
 - **Tetris**: Full Tetris implementation with levels, line clearing, next piece preview
 - **Features**:
   - Lightweight rendering (~15 FPS game loop, ~6-7 FPS for Snake updates)
-  - Responsive width (adapts to terminal/screen size)
+  - Responsive width (full width on mobile, max 30/10 on desktop)
   - Games start paused - click/tap to start
   - Click/tap to pause/resume during gameplay
   - Click/tap to restart when game over
-  - ESC to exit (attempts to restore terminal to pre-game state)
+  - ESC to exit (resets terminal to initial state)
+- **Mobile Layout**: 
+  - Games use full terminal width on mobile
+  - Games take ~40% of screen height (top portion)
+  - Controls in bottom 50% of screen
 - **Mobile Controls**: Virtual arrow keys displayed below game on mobile/tablet
   - Snake: Arrow keys only
   - Tetris: Arrow keys + rotate button (↻)
-  - Positioned centered above hint bar
+  - Full-width layout with larger buttons for better touch targets
 - **Location**: `src/components/Terminal/commands/games/`
+  - Shared utilities: `src/components/Terminal/commands/games/shared/types.ts`
 
 #### 8. Mobile Support
 - **Responsive Design**: Games and ANSI art adapt to screen size
-- **Mobile Game Controls**: Virtual arrow keys for touch devices
+- **Mobile Game Controls**: Virtual arrow keys for touch devices (full-width layout)
 - **ESC Button**: Shows as button on both desktop and mobile in hint bar
 - **Touch Handling**: Proper tap detection (distinguishes taps from scrolls/drags)
-- **Font Sizing**: Larger font on mobile (16px) for better tap targets
+- **Font Sizing**: 15px on mobile (tablets), 14px on small mobile for better wrapping
+- **Text Wrapping**: Welcome and help text use manual line breaks on mobile
 
 #### 9. Overlay System
 - **Viewers**: Project media viewers (images, videos, 3D models, image stacks)
-- **Content**: Contact and imprint now display directly in terminal (no overlays)
+- **Content**: Contact and imprint display directly in terminal (no overlays)
 - **Close Behavior**: Only ESC key/button closes overlays (no click-to-close on empty space)
 - **ESC Button**: Embedded in "Press [ESC] to close" text on desktop, separate button on mobile
 
@@ -96,16 +103,22 @@ src/
 │   │   │   ├── index.ts
 │   │   │   └── logo.ts          # Connilefleur logo generator
 │   │   ├── commands/
-│   │   │   ├── index.ts         # Command registry & executor (supports async)
+│   │   │   ├── index.ts         # Command registry & executor
 │   │   │   ├── core/            # Essential commands
 │   │   │   ├── navigation/      # Contact, imprint (terminal display)
 │   │   │   ├── system/          # System info commands
 │   │   │   ├── ansi/            # ANSI art command
 │   │   │   └── games/           # Terminal games
+│   │   │       ├── shared/      # Shared game utilities
+│   │   │       │   └── types.ts # Point interface, calculateGameDimensions()
 │   │   │       ├── snake.ts     # Snake game
-│   │   │       └── tetris.ts   # Tetris game
-│   │   ├── Terminal.tsx         # Main terminal component (game mode, async commands, links)
-│   │   ├── HintBar.tsx         # Bottom hint bar (ESC button for desktop/mobile)
+│   │   │       └── tetris.ts    # Tetris game
+│   │   ├── utils/
+│   │   │   └── clickableCommands.ts # Clickable command parsing & management
+│   │   ├── hooks/               # Custom hooks (for future use)
+│   │   ├── constants.ts         # Shared constants (PROMPT)
+│   │   ├── Terminal.tsx         # Main terminal component
+│   │   ├── HintBar.tsx         # Bottom hint bar (ESC button)
 │   │   └── MobileGameControls.tsx # Virtual arrow keys for mobile
 │   └── Viewer/                  # Media viewers (projects only)
 ├── config/
@@ -113,11 +126,13 @@ src/
 ├── hooks/
 │   ├── useTheme.ts              # Theme application
 │   ├── useProjects.ts           # Project loading
-│   ├── useViewer.ts             # Viewer state
-│   └── useContent.ts            # Content overlays (deprecated for contact/imprint)
+│   └── useViewer.ts             # Viewer state
 ├── styles/
 │   ├── fonts.css                # Font declarations (Doto from Google Fonts)
-│   └── global.css               # Global styles (responsive terminal fonts)
+│   ├── global.css               # Base styles and imports
+│   ├── terminal.css             # Terminal-specific styles
+│   ├── components.css           # Component styles (hint bar, mobile controls)
+│   └── viewer.css               # Viewer and overlay styles
 └── utils/
     ├── ansi/
     │   ├── generator.ts         # ANSI art generator (responsive, line wrapping)
@@ -135,7 +150,32 @@ All colors in `src/config/theme.ts`:
 
 ### Known Issues
 
-1. **⚠️ Game Exit Terminal State Restoration**: When exiting a game with ESC, the terminal should return to the exact state it was in before the game was launched (showing previous history). Currently, the scroll position restoration doesn't work correctly. See `.debug-state/CURRENT_ISSUE.md` for details.
+**None** - All features working as expected.
+
+---
+
+### Recent Changes (Latest Session)
+
+#### Code Organization
+- ✅ Extracted clickable commands utilities to separate file
+- ✅ Created shared game utilities (Point interface, dimension calculation)
+- ✅ Organized styles into separate files by concern
+- ✅ Created constants file for shared values
+- ✅ Games now use shared dimension calculation
+
+#### Visual & UX Improvements
+- ✅ **ANSI Logo**: Mobile version is half the size of desktop (8px font during logo rendering)
+- ✅ **Welcome Text**: Better wrapping on mobile with manual line breaks
+- ✅ **Help Text**: Formatted with `[ ]` brackets, better wrapping
+- ✅ **Text Alignment**: All text aligns to left edge consistently
+- ✅ **Spacing**: Consistent vertical spacing between all elements
+- ✅ **macOS Terminal Padding**: Added padding for better readability (12px/16px desktop, 10px/12px mobile)
+
+#### Game Improvements
+- ✅ **Mobile Layout**: Games use full terminal width, take ~40% of screen height
+- ✅ **Mobile Controls**: Full-width layout with larger buttons (70px height, 2rem font)
+- ✅ **Game Exit**: Clean reset to initial state (logo + welcome message)
+- ✅ **Touch Targets**: Improved button sizes and spacing for mobile
 
 ### Build & Development
 
@@ -147,22 +187,15 @@ npm run discover     # Regenerate projects index
 npm run preview      # Preview production build
 ```
 
-### Recent Changes (Latest Session)
+### Next Steps / Focus Areas
 
-- **ANSI Logo Fixed**: Fixed logo wrapping issues on mobile - now uses full 5-line pattern
-- **Contact/Imprint**: Moved from overlays to terminal display with clickable links
-- **External Links**: Added support for clickable email (mailto) and Instagram links in terminal
-- **Overlay Close Behavior**: Removed click-to-close on empty space, only ESC key/button closes
-- **ESC Button**: Embedded in text on desktop ("Press [ESC] to close"), separate button on mobile
-- **Logo Display**: Logo and welcome message only appear on initial page load
-- **Clear Command**: No longer shows logo, just clears terminal
-- **Game Exit**: Attempts to restore terminal state (work in progress)
-- **Terminal History**: Preserved when exiting games (command remains in history)
+**Current Focus**: Visual appearance and styling
+- Colors and theme refinement
+- Project viewer styling and presentation
+- Overall visual polish
 
-### Next Steps / TODO
-
-- **URGENT**: Fix game exit terminal state restoration - properly restore terminal to pre-game state
-- Consider adding more command aliases
+**Future Considerations**:
+- Add more command aliases
 - Optimize font loading (currently using @import)
 - Add more terminal games if desired
 - Consider adding game high scores/persistence
@@ -172,13 +205,16 @@ npm run preview      # Preview production build
 - **Theme**: `src/config/theme.ts` - Change all colors here
 - **Commands**: `src/components/Terminal/commands/` - Add new commands here (supports async)
 - **Games**: `src/components/Terminal/commands/games/` - Add new games here
+- **Game Utilities**: `src/components/Terminal/commands/games/shared/types.ts` - Shared game code
 - **ANSI Generator**: `src/utils/ansi/generator.ts` - Extend font patterns, responsive logic
 - **Logo**: `src/components/Terminal/ansi/logo.ts` - Logo display
-- **Terminal**: `src/components/Terminal/Terminal.tsx` - Game mode, keyboard handling, async commands, links
+- **Terminal**: `src/components/Terminal/Terminal.tsx` - Main terminal component
+- **Clickable Commands**: `src/components/Terminal/utils/clickableCommands.ts` - Command parsing
+- **Constants**: `src/components/Terminal/constants.ts` - Shared constants
 - **Mobile Controls**: `src/components/Terminal/MobileGameControls.tsx` - Virtual arrow keys
 - **Hint Bar**: `src/components/Terminal/HintBar.tsx` - ESC button (desktop/mobile)
+- **Styles**: `src/styles/` - Organized by concern (terminal, components, viewer)
 - **Fonts**: `src/styles/fonts.css` - Google Fonts import for Doto
-- **Global Styles**: `src/styles/global.css` - Responsive terminal fonts, mobile game controls
 
 ### Game Implementation Details
 
@@ -186,8 +222,9 @@ npm run preview      # Preview production build
 - **Game State**: Tracked in Terminal component via `gameHandlerRef` and `currentGameIdRef`
 - **Keyboard Input**: Global handler in capture phase intercepts keys before terminal consumes them
 - **Mobile Controls**: Virtual buttons dispatch KeyboardEvent to window for game handlers
-- **Exit Behavior**: Games attempt to restore terminal to pre-game state (saves scroll position, but restoration needs work)
+- **Exit Behavior**: Games reset terminal to initial state (logo + welcome message)
 - **History**: Game commands remain in history after exit (can use arrow keys to recall)
+- **Dimensions**: Games use shared `calculateGameDimensions()` function for responsive sizing
 
 ### Command System
 
@@ -196,3 +233,10 @@ npm run preview      # Preview production build
 - **Clickable Commands**: Use `[cmd:command]` or `[cmd:display|command]` syntax
 - **External Links**: Use `[link:url|text]` or `[mailto:email|text]` syntax
 - **Command History**: All commands saved to history, accessible with arrow keys
+
+### Code Organization
+
+- **Utilities**: `src/components/Terminal/utils/` - Reusable terminal utilities
+- **Hooks**: `src/components/Terminal/hooks/` - Custom hooks (prepared for future use)
+- **Shared Game Code**: `src/components/Terminal/commands/games/shared/` - Common game utilities
+- **Styles**: Organized into `terminal.css`, `components.css`, `viewer.css` for better maintainability

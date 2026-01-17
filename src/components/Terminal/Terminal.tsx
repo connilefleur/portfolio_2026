@@ -4,6 +4,8 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { executeCommand, commands } from './commands';
 import { getConnilefleurArt } from './ansi';
+import { parseClickableCommands, applyDisabledStyle, clickableCommands, clickableLinks, disabledCommands, clearClickableCommands, clearActiveClickableCommands } from './utils/clickableCommands';
+import { PROMPT } from './constants';
 import { Project } from '../../types/projects';
 import { ViewerState, CommandAction, GameHandler } from '../../types/terminal';
 import { theme } from '../../config/theme';
@@ -13,67 +15,6 @@ interface TerminalProps {
   currentViewer: ViewerState | null;
   onAction: (action: CommandAction) => void;
   onGameStateChange?: (hasGame: boolean, gameId?: string) => void;
-}
-
-const PROMPT = '\x1b[32mvisitor\x1b[0m@\x1b[34mportfolio\x1b[0m:~$ ';
-
-// Map display text -> command to execute (allows different display vs execution)
-const clickableCommands = new Map<string, string>();
-// Map display text -> URL for external links
-const clickableLinks = new Map<string, string>();
-// Track disabled command text (for re-render persistence)
-const disabledCommands = new Set<string>();
-
-// Parse [cmd:xxx] or [cmd:display|command] patterns and return display text
-// [cmd:help] -> displays "help", executes "help"
-// [cmd:example-project|project example-project] -> displays "example-project", executes "project example-project"
-// Also parse [link:url|text] and [mailto:email|text] for external links
-function parseClickableCommands(text: string): string {
-  // Parse external links: [link:url|text] or [mailto:email|text]
-  text = text.replace(/\[(link|mailto):([^\|]+)\|([^\]]+)\]/g, (_match, type, urlOrEmail, displayText) => {
-    let url: string;
-    if (type === 'mailto') {
-      url = `mailto:${urlOrEmail}`;
-    } else {
-      url = urlOrEmail;
-    }
-    
-    // Register this link as clickable
-    clickableLinks.set(displayText, url);
-    // Style: cyan + underline
-    return `\x1b[36m\x1b[4m${displayText}\x1b[0m`;
-  });
-  
-  // Parse commands: [cmd:xxx] or [cmd:display|command]
-  text = text.replace(/\[cmd:([^\]]+)\]/g, (_match, content) => {
-    let displayText: string;
-    let command: string;
-    
-    if (content.includes('|')) {
-      // Format: display|command
-      const parts = content.split('|');
-      displayText = parts[0];
-      command = parts[1];
-    } else {
-      // Format: command (display same as command)
-      displayText = content;
-      command = content;
-    }
-    
-    // Register this command as clickable
-    clickableCommands.set(displayText, command);
-    // Style: cyan + underline
-    return `\x1b[36m\x1b[4m${displayText}\x1b[0m`;
-  });
-  
-  return text;
-}
-
-// Apply disabled styling to an element
-function applyDisabledStyle(el: HTMLElement) {
-  el.style.setProperty('text-decoration', 'none', 'important');
-  el.style.setProperty('color', 'inherit', 'important');
-  el.style.setProperty('cursor', 'text', 'important');
 }
 
 export function Terminal({ projects, currentViewer, onAction, onGameStateChange }: TerminalProps) {
@@ -88,7 +29,6 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
   const gameLoopRef = useRef<number | null>(null);
   const currentGameIdRef = useRef<string | null>(null);
   const initialLogoDisplayedRef = useRef(false);
-  const scrollPositionBeforeGameRef = useRef<number>(0);
 
   const writePrompt = useCallback(() => {
     const terminal = terminalRef.current;
@@ -126,17 +66,42 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       const currentTerminal = terminalRef.current;
       if (!currentTerminal) return;
 
+      // On mobile, temporarily reduce font size to make ANSI art half size
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const container = containerRef.current;
+      let originalFontSize: string | null = null;
+      
+      if (isMobile && container) {
+        const xtermElement = container.querySelector('.xterm') as HTMLElement;
+        if (xtermElement) {
+          // Save original font size
+          originalFontSize = window.getComputedStyle(xtermElement).fontSize;
+          // Set to half size for ANSI art
+          xtermElement.style.fontSize = '8px'; // Half of 16px
+        }
+      }
+      
       const logo = getConnilefleurArt(currentTerminal.cols);
       const logoLines = logo.split('\n');
       logoLines.forEach((line) => {
         currentTerminal.writeln(line);
       });
-      currentTerminal.writeln('');
+      
+      // Restore original font size after logo
+      if (isMobile && container && originalFontSize) {
+        setTimeout(() => {
+          const xtermElement = container.querySelector('.xterm') as HTMLElement;
+          if (xtermElement) {
+            xtermElement.style.fontSize = originalFontSize;
+          }
+        }, 10);
+      }
 
       // Welcome message with clickable commands
-      const openLine = parseClickableCommands("  Type or click [cmd:open] to browse projects.");
+      // Align to left edge (no leading spaces) to match ANSI art and tagline/subtitle
+      const openLine = parseClickableCommands("[ Type or click [cmd:open] to browse projects ]");
       currentTerminal.writeln(openLine);
-      const helpLine = parseClickableCommands("  Type or click [cmd:help] for more commands.");
+      const helpLine = parseClickableCommands("[ Type or click [cmd:help] for more commands ]");
       currentTerminal.writeln(helpLine);
       currentTerminal.writeln('');
       writePrompt();
@@ -182,30 +147,22 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     currentGameIdRef.current = null;
     const terminal = terminalRef.current;
     if (terminal) {
-      // Clear the game output from visible screen
-      terminal.write('\x1b[2J\x1b[H'); // Clear screen and move to top
+      // Reset terminal to initial state (like on page load)
+      terminal.reset();
       
-      // Restore scroll position to show history that was visible before game started
-      const savedScroll = scrollPositionBeforeGameRef.current;
-      const currentScroll = terminal.buffer.active.baseY;
-      const scrollDiff = savedScroll - currentScroll;
+      clearClickableCommands();
       
-      if (scrollDiff !== 0) {
-        // Scroll to restore the previous view
-        terminal.scrollLines(scrollDiff);
-      }
-      
-      clickableCommands.clear();
-      clickableLinks.clear();
-      disabledCommands.clear();
-      // Show prompt - command is already in history from before game started
-      writePrompt();
+      // Small delay to ensure terminal is ready after reset
+      setTimeout(() => {
+        // Show logo and welcome message (same as initial page load)
+        displayLogoAndWelcome(false);
+      }, 10);
     }
     // Notify parent that game is no longer active
     if (onGameStateChange) {
       onGameStateChange(false);
     }
-  }, [writePrompt, onGameStateChange]);
+  }, [displayLogoAndWelcome, onGameStateChange]);
 
   // Expose exitGame function globally for ESC button
   useEffect(() => {
@@ -227,9 +184,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     if (resolvedResult.action?.type === 'clear') {
       if (terminal) {
         terminal.reset();
-        clickableCommands.clear();
-        clickableLinks.clear();
-        disabledCommands.clear();
+        clearClickableCommands();
         // Just clear terminal, don't show logo - logo only appears on initial page load
         writePrompt();
       }
@@ -250,8 +205,8 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     }
     
     // Clear previous clickable commands and links so only the latest output is clickable
-    clickableCommands.clear();
-    clickableLinks.clear();
+    // Note: We don't clear disabledCommands here, only the active ones
+    clearActiveClickableCommands();
     
     if (resolvedResult.output && terminal) {
       const lines = resolvedResult.output.split('\n');
@@ -266,11 +221,8 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       if (resolvedResult.action.type === 'start-game') {
         const terminal = terminalRef.current;
         if (terminal) {
-          // Save scroll position before clearing (so we can restore it on exit)
-          // baseY is the scroll position - higher values mean scrolled up more
-          scrollPositionBeforeGameRef.current = terminal.buffer.active.baseY;
-          // Clear only the visible screen for the game, keep scrollback history
-          terminal.write('\x1b[2J\x1b[H'); // Clear screen and move to top
+          // Clear the terminal for the game
+          terminal.clear();
           
           gameHandlerRef.current = resolvedResult.action.gameHandler;
           currentGameIdRef.current = resolvedResult.action.gameId;
@@ -376,6 +328,13 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       
       // Expose terminal reference globally for ANSI art width calculation
       (window as any).__terminalRef = terminal;
+
+      // Fit terminal immediately to ensure proper sizing
+      try {
+        fitAddon.fit();
+      } catch (e) {
+        console.warn('FitAddon initial fit error:', e);
+      }
 
       // Fit terminal first, then display logo with correct dimensions
       // This ensures terminal.cols is accurate before generating the logo

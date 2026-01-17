@@ -6,36 +6,28 @@
 import { generateAnsiArt } from '../../../utils/ansi';
 
 export const getConnilefleurArt = (terminalCols?: number): string => {
-  // Calculate max width: use terminal width or estimate from screen
-  let maxWidth: number | undefined;
+  // Use full terminal width - let it wrap naturally when needed
+  // Don't restrict width, let ANSI art use full width and wrap when necessary
+  const maxWidth = terminalCols || undefined;
   
-  if (typeof window !== 'undefined') {
-    const isMobile = window.innerWidth < 768;
-    
-    if (terminalCols && terminalCols > 0) {
-      // Use terminal columns if available
-      // On mobile, use a higher percentage since font is larger and we need more space
-      const percentage = isMobile ? 0.90 : 0.85;
-      maxWidth = Math.floor(terminalCols * percentage);
-    } else {
-      // Fallback: estimate based on screen width and font size
-      const fontSize = isMobile ? 16 : 14;
-      // More accurate calculation: terminal chars are roughly 0.6 * font size in pixels
-      // On mobile, account for larger font and potential scaling issues
-      const charWidth = isMobile ? fontSize * 0.55 : fontSize * 0.6;
-      const charsPerScreen = Math.floor(window.innerWidth / charWidth);
-      const percentage = isMobile ? 0.90 : 0.85;
-      maxWidth = Math.floor(charsPerScreen * percentage);
-    }
-    
-    // Ensure reasonable width - allow wrapping on very small screens
-    // "connilefleur" is 12 chars, so we want to wrap if screen is narrow
-    maxWidth = Math.max(15, maxWidth);
-  }
+  // On mobile, we want the ANSI art to be half the size
+  // We'll pass a flag to the generator to use smaller spacing
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
+  // Generate logo - on mobile, we'll use CSS to scale it down
   const logo = generateAnsiArt('connilefleur', '\x1b[36m', maxWidth);
-  const tagline = '\x1b[33m  Creative Developer & Digital Artist\x1b[0m';
-  const subtitle = '\x1b[90m  Building beautiful digital experiences\x1b[0m';
   
-  return `${logo}\n${tagline}\n${subtitle}`;
+  // On mobile, use shorter text that wraps better
+  // All text aligns to left edge (no leading spaces) to match ANSI art
+  if (isMobile) {
+    // Mobile-friendly shorter versions that break at better points
+    const tagline = '\x1b[33mCreative Developer\n& Digital Artist\x1b[0m';
+    const subtitle = '\x1b[90mBuilding beautiful\ndigital experiences\x1b[0m';
+    return `${logo}\n${tagline}\n${subtitle}`;
+  } else {
+    // Desktop version - full text on one line
+    const tagline = '\x1b[33mCreative Developer & Digital Artist\x1b[0m';
+    const subtitle = '\x1b[90mBuilding beautiful digital experiences\x1b[0m';
+    return `${logo}\n${tagline}\n${subtitle}`;
+  }
 };

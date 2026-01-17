@@ -1,0 +1,74 @@
+/**
+ * Terminal-specific styles
+ */
+
+/* Terminal container - responsive and fills available space */
+.terminal-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 0; /* Important for flex child */
+  /* macOS Terminal-style padding for better readability */
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
+
+/* On smaller screens, reduce padding slightly */
+@media (max-width: 768px) {
+  .terminal-container {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-container {
+    padding: 8px 10px;
+  }
+}
+
+/* Ensure xterm fills container and text wraps properly */
+.terminal-container .xterm {
+  height: 100%;
+  width: 100%;
+  /* Ensure xterm respects container padding */
+  padding: 0;
+}
+
+/* Responsive terminal font size for mobile */
+/* Slightly smaller on mobile to improve text wrapping while maintaining accessibility */
+@media (max-width: 768px) {
+  .terminal-container .xterm {
+    font-size: 15px !important; /* Slightly smaller than 16px for better wrapping, still very accessible */
+    line-height: 1.2 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-container .xterm {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
+}
+
+.terminal-container .xterm-viewport {
+  overflow-y: auto !important;
+}
+
+.terminal-container .xterm-screen {
+  width: 100% !important;
+}
+
+/* Make links and clickable commands show pointer cursor */
+.terminal-container .xterm a {
+  cursor: pointer !important;
+}
+
+.terminal-container .xterm-link-layer {
+  pointer-events: auto;
+}
+
+/* Clickable command styling - underlined cyan text */
+.terminal-container [class*="xterm-underline"] {
+  cursor: pointer !important;
+}

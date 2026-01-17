@@ -34,29 +34,70 @@ git add . && git commit -m "message" && git push
 16. ✅ Static deployment ready
 17. ✅ Contact and imprint display in terminal (no overlays)
 18. ✅ Logo and welcome message only on initial page load
-19. ✅ Terminal history preserved when exiting games
+19. ✅ Game exit resets terminal to initial state cleanly
+20. ✅ ANSI logo properly sized (smaller on mobile than desktop)
+21. ✅ Welcome text wraps properly on mobile
+22. ✅ Games use full width on mobile with proper layout
+23. ✅ macOS Terminal-style padding for better readability
+24. ✅ Codebase organized with utilities and shared code
 
 ## What's Not Working
-1. ❌ Game exit doesn't properly restore terminal to pre-game state
-   - Issue: When exiting a game with ESC, terminal should return to the state before game started
-   - Current: Terminal either clears everything or leaves game output visible
-   - See: `.debug-state/CURRENT_ISSUE.md`
+**No known issues** - All features working as expected.
 
 ---
 
-## Files Modified
-- `src/components/Terminal/Terminal.tsx` - Main terminal component
-- `src/components/Terminal/commands/` - All command implementations
-- `src/components/Terminal/HintBar.tsx` - ESC button handling
-- `src/components/Viewer/` - Viewer components (no click-to-close)
-- `src/utils/ansi/generator.ts` - ANSI art generation
-- `src/styles/global.css` - Responsive styles
+## Recent Improvements (Latest Session)
+
+### Code Organization
+- ✅ Extracted clickable commands utilities to `src/components/Terminal/utils/clickableCommands.ts`
+- ✅ Created shared game utilities in `src/components/Terminal/commands/games/shared/types.ts`
+- ✅ Organized styles into separate files: `terminal.css`, `components.css`, `viewer.css`
+- ✅ Created constants file for shared values (`PROMPT`)
+- ✅ Games now use shared dimension calculation function
+
+### Visual & UX Improvements
+- ✅ ANSI logo: Mobile version is half the size of desktop (8px font during logo, 16px for text)
+- ✅ Welcome text: Better wrapping on mobile with manual line breaks
+- ✅ Help text: Better formatting with `[ ]` brackets and proper wrapping
+- ✅ Text alignment: All text aligns to left edge consistently
+- ✅ Spacing: Consistent vertical spacing between logo, welcome text, and help lines
+- ✅ macOS Terminal-style padding: 12px/16px on desktop, 10px/12px on mobile
+
+### Game Improvements
+- ✅ Games use full terminal width on mobile
+- ✅ Games take ~40% of screen height on mobile (top portion)
+- ✅ Mobile controls use full screen width with larger buttons
+- ✅ Game exit: Clean reset to initial state (logo + welcome)
+- ✅ Better touch targets on mobile controls
+
+---
+
+## Files Modified (Latest Session)
+- `src/components/Terminal/Terminal.tsx` - Updated to use extracted utilities
+- `src/components/Terminal/utils/clickableCommands.ts` - NEW: Extracted clickable command logic
+- `src/components/Terminal/constants.ts` - NEW: Shared constants
+- `src/components/Terminal/commands/games/shared/types.ts` - NEW: Shared game types and utilities
+- `src/components/Terminal/ansi/logo.ts` - Mobile sizing improvements
+- `src/components/Terminal/commands/games/snake.ts` - Uses shared utilities, full width on mobile
+- `src/components/Terminal/commands/games/tetris.ts` - Uses shared utilities, full width on mobile
+- `src/styles/global.css` - Reorganized, now imports separate style files
+- `src/styles/terminal.css` - NEW: Terminal-specific styles
+- `src/styles/components.css` - NEW: Component-specific styles
+- `src/styles/viewer.css` - NEW: Viewer-specific styles
 
 ## Original Requirements (from Description.txt)
-- Terminal-first UI
-- Clickable commands for ease of use
-- Projects open via terminal into viewers
-- Static deployment
+- Terminal-first UI ✅
+- Clickable commands for ease of use ✅
+- Projects open via terminal into viewers ✅
+- Static deployment ✅
+
+## Next Steps / Focus Areas
+- **Visual Appearance**: Colors, themes, and viewer styling
+- **Project Viewers**: Enhance visual presentation of project media
+- Consider adding more command aliases
+- Optimize font loading (currently using @import)
+- Add more terminal games if desired
+- Consider adding game high scores/persistence
 
 ## Last Updated
 January 2025

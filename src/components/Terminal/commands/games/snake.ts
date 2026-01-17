@@ -1,11 +1,7 @@
 import { CommandHandler } from '../../../../types/terminal';
 import { GameHandler } from '../../../../types/terminal';
 import { Terminal } from '@xterm/xterm';
-
-interface Point {
-  x: number;
-  y: number;
-}
+import { Point, calculateGameDimensions } from './shared/types';
 
 class SnakeGame {
   private terminal: Terminal | null = null;
@@ -26,13 +22,13 @@ class SnakeGame {
     if (this.initialized) return;
     
     this.terminal = terminal;
-    // Responsive width: use nearly full width on mobile, max 30 on desktop
-    // Ensure we have valid dimensions
+    // Responsive width: use full width on mobile, max 30 on desktop
     const cols = terminal.cols || 80;
     const rows = terminal.rows || 24;
-    const maxWidth = window.innerWidth < 768 ? Math.floor((cols - 4) / 2) : 30;
-    this.width = Math.max(10, Math.min(maxWidth, Math.floor((cols - 4) / 2)));
-    this.height = Math.max(10, Math.min(20, rows - 5));
+    const isMobile = window.innerWidth < 768;
+    const dimensions = calculateGameDimensions(cols, rows, isMobile, 30);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
     
     // Start snake in center
     const startX = Math.floor(this.width / 2);
@@ -107,9 +103,10 @@ class SnakeGame {
     // Reset game state
     const cols = this.terminal.cols || 80;
     const rows = this.terminal.rows || 24;
-    const maxWidth = window.innerWidth < 768 ? Math.floor((cols - 4) / 2) : 30;
-    this.width = Math.max(10, Math.min(maxWidth, Math.floor((cols - 4) / 2)));
-    this.height = Math.max(10, Math.min(20, rows - 5));
+    const isMobile = window.innerWidth < 768;
+    const dimensions = calculateGameDimensions(cols, rows, isMobile, 30);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
     
     // Start snake in center
     const startX = Math.floor(this.width / 2);

@@ -37,13 +37,13 @@ class TetrisGame {
     if (this.initialized) return;
     
     this.terminal = terminal;
-    // Responsive width: use nearly full width on mobile
-    // Ensure we have valid dimensions
+    // Responsive width: use full width on mobile, max 10 on desktop
     const cols = terminal.cols || 80;
     const rows = terminal.rows || 24;
-    const maxWidth = window.innerWidth < 768 ? Math.floor((cols - 4) / 2) : 10;
-    this.width = Math.max(10, Math.min(maxWidth, Math.floor((cols - 4) / 2)));
-    this.height = Math.max(10, Math.min(20, rows - 5));
+    const isMobile = window.innerWidth < 768;
+    const dimensions = calculateGameDimensions(cols, rows, isMobile, 10);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
     
     // Initialize board
     this.board = [];
@@ -185,8 +185,10 @@ class TetrisGame {
     // Reset game state
     const cols = this.terminal.cols || 80;
     const rows = this.terminal.rows || 24;
-    const maxWidth = window.innerWidth < 768 ? Math.floor((cols - 4) / 2) : 10;
-    this.width = Math.max(10, Math.min(maxWidth, Math.floor((cols - 4) / 2)));
+    const isMobile = window.innerWidth < 768;
+    const dimensions = calculateGameDimensions(cols, rows, isMobile, 10);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
     this.height = Math.max(10, Math.min(20, rows - 5));
     
     // Initialize board
