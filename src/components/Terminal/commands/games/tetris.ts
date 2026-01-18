@@ -33,39 +33,57 @@ class TetrisGame {
   private lastFallTime: number = 0;
   private fallInterval: number = 800; // Start slow for lightweight performance
 
+  private lastOrientation: 'portrait' | 'landscape' | null = null;
+
   init(terminal: Terminal) {
-    if (this.initialized) return;
-    
     this.terminal = terminal;
+    
+    // Check if orientation changed (need to recalculate dimensions)
+    const currentOrientation = typeof window !== 'undefined' && window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    const orientationChanged = this.lastOrientation !== null && this.lastOrientation !== currentOrientation;
+    
     // Responsive width: use full width on mobile, max 10 on desktop
     const cols = terminal.cols || 80;
     const rows = terminal.rows || 24;
     const isMobile = window.innerWidth < 768;
     const dimensions = calculateGameDimensions(cols, rows, isMobile, 10);
-    this.width = dimensions.width;
-    this.height = dimensions.height;
     
-    // Initialize board
-    this.board = [];
-    for (let y = 0; y < this.height; y++) {
-      this.board[y] = [];
-      for (let x = 0; x < this.width; x++) {
-        this.board[y][x] = 0;
+    // If dimensions changed or orientation changed, reset game
+    if (!this.initialized || orientationChanged || this.width !== dimensions.width || this.height !== dimensions.height) {
+      this.width = dimensions.width;
+      this.height = dimensions.height;
+      this.lastOrientation = currentOrientation;
+      
+      // Reset game state if already initialized (orientation change)
+      if (this.initialized && orientationChanged) {
+        this.restart();
+        return;
+      }
+      
+      // Initialize board (only on initial init)
+      if (!this.initialized) {
+        this.board = [];
+        for (let y = 0; y < this.height; y++) {
+          this.board[y] = [];
+          for (let x = 0; x < this.width; x++) {
+            this.board[y][x] = 0;
+          }
+        }
+        
+        this.score = 0;
+        this.level = 1;
+        this.lines = 0;
+        this.gameOver = false;
+        this.paused = true; // Start paused
+        this.lastFallTime = Date.now();
+        this.fallInterval = 800;
+        
+        // Spawn first pieces
+        this.nextPiece = this.getRandomPiece();
+        this.spawnPiece();
+        this.initialized = true;
       }
     }
-    
-    this.score = 0;
-    this.level = 1;
-    this.lines = 0;
-    this.gameOver = false;
-    this.paused = false;
-    this.lastFallTime = Date.now();
-    this.fallInterval = 800;
-    
-    // Spawn first pieces
-    this.nextPiece = this.getRandomPiece();
-    this.spawnPiece();
-    this.initialized = true;
   }
 
   getRandomPiece(): Tetromino {

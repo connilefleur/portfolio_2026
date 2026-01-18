@@ -6,28 +6,25 @@ interface MobileGameControlsProps {
   onKeyPress: (key: string) => void;
 }
 
-// Detect if device is mobile/tablet
-function isMobileDevice(): boolean {
+// Detect if device has touch capability
+// Simply check for touch support - if device has touch, show touch controls
+// If not, user can use keyboard
+function isTouchDevice(): boolean {
   if (typeof window === 'undefined') return false;
-  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  const isSmallScreen = window.innerWidth < 1024;
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  return hasTouch && (isSmallScreen || isMobileUA);
+  // Check for touch support - most reliable method
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 }
 
 export function MobileGameControls({ isActive, gameId, onKeyPress }: MobileGameControlsProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [hasTouch, setHasTouch] = useState(false);
 
   useEffect(() => {
-    setIsMobile(isMobileDevice());
-    const handleResize = () => {
-      setIsMobile(isMobileDevice());
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Check touch capability once on mount
+    // Touch capability doesn't change on resize, so we don't need to re-check
+    setHasTouch(isTouchDevice());
   }, []);
 
-  if (!isActive || !isMobile) {
+  if (!isActive || !hasTouch) {
     return null;
   }
 

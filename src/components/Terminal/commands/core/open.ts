@@ -12,23 +12,39 @@ export const open: CommandHandler = {
       }
 
       const list = context.projects.map(p => {
-        // Format: [cmd:displayText|commandToExecute] - display just project name, execute "open <id>"
-        return `  [cmd:${p.id}|open ${p.id}]`;
+        // Format: [cmd:displayText|commandToExecute] - display title, execute "open <id>"
+        const displayName = p.title || p.id;
+        return `  [cmd:${displayName}|open ${p.id}]`;
       }).join('\n');
 
       return { output: `open <project_name>\n\n${list}` };
     }
 
-    // Open specific project
-    const projectId = args[0];
-    const found = context.projects.find(p => p.id === projectId);
+    // Open specific project - match by id, title, or folder name
+    const searchTerm = args[0].toLowerCase();
+    const found = context.projects.find(p => 
+      p.id.toLowerCase() === searchTerm ||
+      p.id.toLowerCase().includes(searchTerm) ||
+      p.title.toLowerCase() === searchTerm ||
+      p.title.toLowerCase().includes(searchTerm) ||
+      (p._folder && p._folder.toLowerCase() === searchTerm)
+    );
 
     if (!found) {
+      // Try fuzzy matching
       const suggestions = context.projects
-        .filter(p => p.id.includes(projectId) || projectId.includes(p.id))
+        .filter(p => {
+          const id = p.id.toLowerCase();
+          const title = p.title.toLowerCase();
+          const folder = (p._folder || '').toLowerCase();
+          return id.includes(searchTerm) || 
+                 searchTerm.includes(id) ||
+                 title.includes(searchTerm) ||
+                 folder.includes(searchTerm);
+        })
         .map(p => p.id);
       
-      let output = `Project '${projectId}' not found.`;
+      let output = `Project '${args[0]}' not found.`;
       if (suggestions.length > 0) {
         output += `\n\nDid you mean: ${suggestions.join(', ')}?`;
       }

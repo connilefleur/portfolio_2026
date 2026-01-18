@@ -101,6 +101,20 @@
   justify-content: center;
 }
 
+/* Landscape mode: horizontal split - controls on right side */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-game-controls {
+    bottom: auto;
+    top: 50%;
+    right: 1rem;
+    left: auto;
+    transform: translateY(-50%);
+    padding: 0.5rem;
+    width: auto;
+    max-width: 200px;
+  }
+}
+
 .mobile-controls-grid {
   display: flex;
   flex-direction: column;
@@ -111,6 +125,15 @@
   max-width: 100%;
 }
 
+/* Landscape mode: compact vertical layout for side controls */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-controls-grid {
+    gap: 0.5rem;
+    width: auto;
+    max-width: 180px;
+  }
+}
+
 .mobile-controls-row {
   display: flex;
   gap: 0.75rem;
@@ -118,6 +141,14 @@
   justify-content: center;
   width: 100%;
   max-width: 100%;
+}
+
+/* Landscape mode: compact row layout */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-controls-row {
+    gap: 0.5rem;
+    width: auto;
+  }
 }
 
 .mobile-control-btn {
@@ -140,6 +171,16 @@
   touch-action: manipulation;
 }
 
+/* Landscape mode: smaller buttons for side panel */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-control-btn {
+    max-width: 60px;
+    height: 50px;
+    font-size: 1.4rem;
+    min-width: 60px;
+  }
+}
+
 .mobile-control-btn:active {
   background: var(--color-button-bg-hover);
   border-color: var(--color-border-hover);
@@ -155,11 +196,30 @@
   width: 100%;
 }
 
+/* Landscape mode: up button same size as others */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-control-up {
+    max-width: 60px;
+    width: 60px;
+  }
+}
+
 .mobile-control-rotate {
   margin-top: 0.5rem;
   max-width: 200px !important;
   width: auto !important;
   font-size: 1.4rem;
+}
+
+/* Landscape mode: rotate button compact */
+@media (orientation: landscape) and (max-height: 600px) {
+  .mobile-control-rotate {
+    margin-top: 0.25rem;
+    max-width: 60px !important;
+    width: 60px !important;
+    height: 50px;
+    font-size: 1.2rem;
+  }
 }
 
 @media (max-width: 768px) {

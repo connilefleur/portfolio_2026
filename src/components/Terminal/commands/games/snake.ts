@@ -18,34 +18,52 @@ class SnakeGame {
   private lastFrameTime: number = 0;
   private frameInterval: number = 150; // ~6-7 FPS for lightweight performance
 
+  private lastOrientation: 'portrait' | 'landscape' | null = null;
+
   init(terminal: Terminal) {
-    if (this.initialized) return;
-    
     this.terminal = terminal;
+    
+    // Check if orientation changed (need to recalculate dimensions)
+    const currentOrientation = typeof window !== 'undefined' && window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    const orientationChanged = this.lastOrientation !== null && this.lastOrientation !== currentOrientation;
+    
     // Responsive width: use full width on mobile, max 30 on desktop
     const cols = terminal.cols || 80;
     const rows = terminal.rows || 24;
     const isMobile = window.innerWidth < 768;
     const dimensions = calculateGameDimensions(cols, rows, isMobile, 30);
-    this.width = dimensions.width;
-    this.height = dimensions.height;
     
-    // Start snake in center
-    const startX = Math.floor(this.width / 2);
-    const startY = Math.floor(this.height / 2);
-    this.snake = [
-      { x: startX, y: startY },
-      { x: startX - 1, y: startY },
-      { x: startX - 2, y: startY }
-    ];
-    
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
-    this.score = 0;
-    this.gameOver = false;
-    this.spawnFood();
-    this.lastFrameTime = Date.now();
-    this.initialized = true;
+    // If dimensions changed or orientation changed, reset game
+    if (!this.initialized || orientationChanged || this.width !== dimensions.width || this.height !== dimensions.height) {
+      this.width = dimensions.width;
+      this.height = dimensions.height;
+      this.lastOrientation = currentOrientation;
+      
+      // Reset game state if already initialized (orientation change)
+      if (this.initialized && orientationChanged) {
+        this.restart();
+        return;
+      }
+      
+      // Start snake in center (only on initial init)
+      if (!this.initialized) {
+        const startX = Math.floor(this.width / 2);
+        const startY = Math.floor(this.height / 2);
+        this.snake = [
+          { x: startX, y: startY },
+          { x: startX - 1, y: startY },
+          { x: startX - 2, y: startY }
+        ];
+        
+        this.direction = { x: 1, y: 0 };
+        this.nextDirection = { x: 1, y: 0 };
+        this.score = 0;
+        this.gameOver = false;
+        this.spawnFood();
+        this.lastFrameTime = Date.now();
+        this.initialized = true;
+      }
+    }
   }
 
   spawnFood() {

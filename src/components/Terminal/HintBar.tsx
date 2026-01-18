@@ -4,34 +4,21 @@ interface HintBarProps {
   hasViewer: boolean;
 }
 
-// Detect if device is mobile/tablet (no physical keyboard)
-function isMobileDevice(): boolean {
+// Detect if device has touch capability
+// If device has touch, show button UI. If not, show text hint with button.
+function isTouchDevice(): boolean {
   if (typeof window === 'undefined') return false;
-  
-  // Check for touch device
-  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  
-  // Check screen size (tablets and phones)
-  const isSmallScreen = window.innerWidth < 1024;
-  
-  // Check user agent for mobile devices
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  return hasTouch && (isSmallScreen || isMobileUA);
+  // Check for touch support - most reliable method
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 }
 
 export function HintBar({ hasViewer }: HintBarProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [hasTouch, setHasTouch] = useState(false);
 
   useEffect(() => {
-    setIsMobile(isMobileDevice());
-    
-    const handleResize = () => {
-      setIsMobile(isMobileDevice());
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Check touch capability once on mount
+    // Touch capability doesn't change on resize, so we don't need to re-check
+    setHasTouch(isTouchDevice());
   }, []);
 
   const inject = (cmd: string) => {
@@ -73,7 +60,7 @@ export function HintBar({ hasViewer }: HintBarProps) {
       </button>
       {hasViewer && (
         <>
-          {!isMobile ? (
+          {!hasTouch ? (
             <span className="hint-esc">
               Press{' '}
               <button className="hint-esc-button" onClick={handleEsc}>
