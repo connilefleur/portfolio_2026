@@ -69,6 +69,15 @@ git add . && git commit -m "message" && git push
 - ✅ Mobile controls use full screen width with larger buttons
 - ✅ Game exit: Clean reset to initial state (logo + welcome)
 - ✅ Better touch targets on mobile controls
+- ✅ **Touch detection**: Uses touch capability instead of screen size (works on all iPads)
+- ✅ **Landscape mode**: Horizontal split layout (game left, controls right)
+- ✅ **Orientation handling**: Games automatically restart when device is rotated
+
+### Project System Improvements
+- ✅ **Auto-discovery**: Projects automatically detected from folders without meta.json
+- ✅ **File type detection**: Automatically categorizes images, videos, 3D models
+- ✅ **info.txt support**: Simple text file format for project metadata (year, client, description)
+- ✅ **Flexible matching**: Open command matches by folder name, project ID, or title
 
 ---
 

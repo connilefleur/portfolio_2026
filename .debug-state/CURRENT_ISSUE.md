@@ -8,6 +8,9 @@ All previously reported issues have been resolved:
 - ✅ **ANSI Logo Sizing**: Mobile logo is now smaller than desktop (half size)
 - ✅ **Text Wrapping**: Welcome text and help text wrap properly on mobile
 - ✅ **Game Layout**: Games use full width on mobile, taking top 50% of screen with controls in bottom 50%
+- ✅ **Mobile Controls on iPad**: Fixed touch detection to work on all iPad sizes (uses touch detection instead of screen size)
+- ✅ **Landscape Mode**: Games now use horizontal split in landscape orientation (game on left, controls on right)
+- ✅ **Terminal Display**: Fixed CSS import order issue that prevented terminal from displaying
 
 ---
 

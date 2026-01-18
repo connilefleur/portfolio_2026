@@ -81,11 +81,15 @@ Commands are organized by functionality:
 
 #### 8. Mobile Support
 - **Responsive Design**: Games and ANSI art adapt to screen size
-- **Mobile Game Controls**: Virtual arrow keys for touch devices (full-width layout)
+- **Touch Detection**: Uses touch capability instead of screen size (works on all devices including iPads)
+- **Mobile Game Controls**: Virtual arrow keys for touch devices
+  - **Portrait**: Full-width layout at bottom
+  - **Landscape**: Compact layout on right side (horizontal split)
 - **ESC Button**: Shows as button on both desktop and mobile in hint bar
 - **Touch Handling**: Proper tap detection (distinguishes taps from scrolls/drags)
 - **Font Sizing**: 15px on mobile (tablets), 14px on small mobile for better wrapping
 - **Text Wrapping**: Welcome and help text use manual line breaks on mobile
+- **Orientation Support**: Games automatically adapt to portrait/landscape orientation
 
 #### 9. Overlay System
 - **Viewers**: Project media viewers (images, videos, 3D models, image stacks)
@@ -176,6 +180,19 @@ All colors in `src/config/theme.ts`:
 - ✅ **Mobile Controls**: Full-width layout with larger buttons (70px height, 2rem font)
 - ✅ **Game Exit**: Clean reset to initial state (logo + welcome message)
 - ✅ **Touch Targets**: Improved button sizes and spacing for mobile
+- ✅ **Touch Detection**: Changed from screen-size-based to touch capability detection (works on all iPads)
+- ✅ **Landscape Mode**: Horizontal split layout - game on left (60% width), controls on right side
+- ✅ **Orientation Handling**: Games automatically restart when device orientation changes
+
+#### Project System Improvements
+- ✅ **Auto-Discovery**: Projects automatically detected from folders - just add media files
+- ✅ **File Type Detection**: Automatically categorizes images, videos, 3D models
+- ✅ **info.txt Support**: Simple text file format for project metadata
+  - Line 1: Year (4 digits) or Client name
+  - Line 2: Client name (if year on line 1)
+  - Line 3: Description
+  - Line 4+: Additional metadata (tags, role, etc.)
+- ✅ **Flexible Matching**: Open command matches by folder name, project ID, or title
 
 ### Build & Development
 
