@@ -22,39 +22,70 @@ export default function App() {
   const [hasGame, setHasGame] = useState(false);
   const [currentGameId, setCurrentGameId] = useState<string | undefined>();
 
+  // Function to handle ESC/back behavior
+  const handleEscape = useCallback(() => {
+    // Exit game first if active
+    if (hasGame) {
+      const exitGame = (window as unknown as { exitGame?: () => void }).exitGame;
+      if (exitGame) {
+        exitGame();
+        setHasGame(false);
+      }
+      return;
+    }
+    if (viewer) {
+      closeViewer();
+      // Refresh terminal after viewer closes
+      setTimeout(() => {
+        const refreshTerminal = (window as unknown as { refreshTerminal?: () => void }).refreshTerminal;
+        if (refreshTerminal) {
+          refreshTerminal();
+        }
+      }, 100);
+      // Remove focus from any active element to prevent focus outline
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }
+  }, [viewer, closeViewer, hasGame]);
+
   // Global ESC key handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // Exit game first if active
-        if (hasGame) {
-          const exitGame = (window as unknown as { exitGame?: () => void }).exitGame;
-          if (exitGame) {
-            exitGame();
-            setHasGame(false);
-          }
-          return;
-        }
-        if (viewer) {
-          closeViewer();
-          // Refresh terminal after viewer closes
-          setTimeout(() => {
-            const refreshTerminal = (window as unknown as { refreshTerminal?: () => void }).refreshTerminal;
-            if (refreshTerminal) {
-              refreshTerminal();
-            }
-          }, 100);
-          // Remove focus from any active element to prevent focus outline
-          if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-          }
-        }
+        handleEscape();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewer, closeViewer, hasGame]);
+  }, [handleEscape]);
+
+  // Browser back button handler (popstate)
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // If viewer or game is open, close it instead of navigating back
+      if (viewer || hasGame) {
+        e.preventDefault();
+        handleEscape();
+        // Push current state back to prevent navigation
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    // Push initial state
+    window.history.pushState({ viewer: false }, '', window.location.href);
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [viewer, hasGame, handleEscape]);
+
+  // Update history when viewer/game state changes
+  useEffect(() => {
+    if (viewer || hasGame) {
+      window.history.pushState({ viewer: true }, '', window.location.href);
+    }
+  }, [viewer, hasGame]);
 
   const handleAction = useCallback((action: CommandAction) => {
     switch (action.type) {

@@ -8,8 +8,6 @@ import { useRef, useCallback } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { commands } from '../commands';
 
-const PROMPT = '\x1b[32mvisitor\x1b[0m@\x1b[34mportfolio\x1b[0m:~$ ';
-
 export function useTerminalInput(
   terminalRef: React.MutableRefObject<XTerm | null>,
   writePrompt: () => void,

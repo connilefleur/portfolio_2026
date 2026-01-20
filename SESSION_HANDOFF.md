@@ -53,7 +53,10 @@ Commands are organized by functionality:
 
 #### 6. Project System
 - Projects in `/public/projects/` folders
-- Each project has `meta.json` manifest
+- **Auto-Discovery**: Just add a folder with media files - no meta.json required
+- **File Type Detection**: Automatically detects images, videos, 3D models
+- **info.txt Support**: Optional simple text file for metadata (year, client, description)
+- **Flexible Setup**: Can use meta.json (full control) or auto-discovery (quick setup)
 - Supports: images, videos, 3D models (GLB/GLTF), image stacks
 - Build-time discovery script generates `projects-index.json`
 - Overlays only used for project viewers (not for contact/imprint)
@@ -154,7 +157,7 @@ All colors in `src/config/theme.ts`:
 
 ### Known Issues
 
-**None** - All features working as expected.
+**None** - All features working as expected. All previously reported issues have been resolved.
 
 ---
 

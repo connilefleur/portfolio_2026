@@ -1,6 +1,7 @@
 import { CommandHandler } from '../../../../types/terminal';
 import { GameHandler } from '../../../../types/terminal';
 import { Terminal } from '@xterm/xterm';
+import { calculateGameDimensions } from './shared/types';
 
 interface Tetromino {
   shape: number[][];

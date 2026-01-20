@@ -10,6 +10,9 @@ export const clickableCommands = new Map<string, string>();
 export const clickableLinks = new Map<string, string>();
 // Track disabled command text (for re-render persistence)
 export const disabledCommands = new Set<string>();
+// Track which specific command instances are persistent (from initial welcome lines)
+// Format: "command-text:line-number" or just track by a unique identifier
+export const persistentCommandInstances = new Set<string>();
 
 /**
  * Parse [cmd:xxx] or [cmd:display|command] patterns and return display text
@@ -74,6 +77,7 @@ export function clearClickableCommands() {
   clickableCommands.clear();
   clickableLinks.clear();
   disabledCommands.clear();
+  // Don't clear persistentCommandInstances - they should persist across clears
 }
 
 /**

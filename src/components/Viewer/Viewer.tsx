@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, useRef, Suspense, lazy } from 'react';
 import { MediaItem, Project } from '../../types/projects';
 import { ImageViewer } from './ImageViewer';
 import { VideoViewer } from './VideoViewer';
@@ -15,16 +15,31 @@ interface ViewerProps {
   onPrev: () => void;
 }
 
-export function Viewer({ project, mediaIndex, onClose, onNext, onPrev }: ViewerProps) {
+export function Viewer({ project, mediaIndex, onNext, onPrev }: ViewerProps) {
   const media = project.media[mediaIndex];
   const hasMultiple = project.media.length > 1;
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Auto-focus the viewer overlay when it opens
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.focus();
+    }
+  }, []);
 
   // Handle keyboard navigation (ESC is handled globally in App)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      // Only handle if viewer is open and not typing in an input
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+      
       if (e.key === 'ArrowRight' && hasMultiple) {
+        e.preventDefault();
         onNext();
       } else if (e.key === 'ArrowLeft' && hasMultiple) {
+        e.preventDefault();
         onPrev();
       }
     };
@@ -44,7 +59,13 @@ export function Viewer({ project, mediaIndex, onClose, onNext, onPrev }: ViewerP
   const renderMedia = () => {
     switch (media.type) {
       case 'image':
-        return <ImageViewer src={getSrc(media)} description={media.description} />;
+        return (
+          <ImageViewer 
+            src={getSrc(media)} 
+            mobileSrc={media._mobileSrc}
+            description={media.description} 
+          />
+        );
       case 'video':
         return <VideoViewer src={getSrc(media)} description={media.description} />;
       case 'image-stack':
@@ -61,7 +82,12 @@ export function Viewer({ project, mediaIndex, onClose, onNext, onPrev }: ViewerP
   };
 
   return (
-    <div className="viewer-overlay">
+    <div 
+      className="viewer-overlay"
+      ref={overlayRef}
+      tabIndex={-1}
+      style={{ outline: 'none' }}
+    >
       {renderMedia()}
       
       {hasMultiple && (

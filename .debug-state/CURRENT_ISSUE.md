@@ -27,3 +27,12 @@ All previously reported issues have been resolved:
 
 ### Game Layout on Mobile (RESOLVED)
 **Solution**: Games use full terminal width on mobile, taking ~40% of screen height. Mobile controls use full width with larger buttons for better touch targets.
+
+### Mobile Controls on iPad (RESOLVED)
+**Solution**: Changed from screen-size-based detection to touch capability detection. Controls now appear on all touch devices (phones, tablets, iPads of any size) regardless of screen dimensions.
+
+### Landscape Mode Game Layout (RESOLVED)
+**Solution**: Games now detect landscape orientation and use horizontal split - game takes ~60% width on left, controls positioned on right side. Games automatically restart when orientation changes.
+
+### Terminal Display Issue (RESOLVED)
+**Solution**: Fixed CSS @import statements to be at the top of global.css (CSS requirement). Added immediate fitAddon.fit() call after terminal initialization for proper sizing.

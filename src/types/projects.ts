@@ -18,6 +18,7 @@ export interface MediaItem {
     modelFormat?: 'gltf' | 'glb' | 'obj';
   };
   _resolvedSrc?: string | string[];
+  _mobileSrc?: string; // Mobile-optimized version of the image
 }
 
 export interface Project {

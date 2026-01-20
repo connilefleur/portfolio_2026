@@ -19,15 +19,17 @@ export const getConnilefleurArt = (terminalCols?: number): string => {
   
   // On mobile, use shorter text that wraps better
   // All text aligns to left edge (no leading spaces) to match ANSI art
+  const name = '\x1b[36mConrad Loeffler\x1b[0m';
+  
   if (isMobile) {
     // Mobile-friendly shorter versions that break at better points
     const tagline = '\x1b[33mCreative Developer\n& Digital Artist\x1b[0m';
     const subtitle = '\x1b[90mBuilding beautiful\ndigital experiences\x1b[0m';
-    return `${logo}\n${tagline}\n${subtitle}`;
+    return `${logo}\n${name}\n${tagline}\n${subtitle}`;
   } else {
     // Desktop version - full text on one line
     const tagline = '\x1b[33mCreative Developer & Digital Artist\x1b[0m';
     const subtitle = '\x1b[90mBuilding beautiful digital experiences\x1b[0m';
-    return `${logo}\n${tagline}\n${subtitle}`;
+    return `${logo}\n${name}\n${tagline}\n${subtitle}`;
   }
 };

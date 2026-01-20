@@ -11,6 +11,7 @@ export const help: CommandHandler = {
   [cmd:contact]           Show contact information
   [cmd:imprint]           Show legal notice (Impressum)
   [cmd:clear]             Clear the terminal
+  [cmd:history]           Toggle limited history mode (current + 1 line only)
 
   [cmd:whoami]            Who are you?
   [cmd:uname]             System information
@@ -18,8 +19,6 @@ export const help: CommandHandler = {
   [cmd:ansi]              Generate ANSI art from text
 
   [cmd:snake]             Play Snake game
-  [cmd:tetris]            Play Tetris game
-
-Press ESC to close any open viewer or overlay.`
+  [cmd:tetris]            Play Tetris game`
   })
 };

@@ -22,6 +22,14 @@
   position: relative;
 }
 
+/* Fullscreen 3D viewer overrides */
+.viewer-content.three-viewer-fullscreen {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+}
+
 .viewer-content img,
 .viewer-content video {
   max-width: 100%;
@@ -109,10 +117,11 @@
   margin-bottom: 1rem;
 }
 
-/* 3D viewer canvas */
-.three-viewer {
+/* 3D viewer canvas - fullscreen */
+.three-viewer-fullscreen {
   width: 100%;
-  height: 80vh;
+  height: 100%;
+  position: relative;
 }
 
 /* Image stack controls */

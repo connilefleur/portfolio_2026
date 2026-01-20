@@ -82,17 +82,17 @@ git add . && git commit -m "message" && git push
 ---
 
 ## Files Modified (Latest Session)
-- `src/components/Terminal/Terminal.tsx` - Updated to use extracted utilities
-- `src/components/Terminal/utils/clickableCommands.ts` - NEW: Extracted clickable command logic
-- `src/components/Terminal/constants.ts` - NEW: Shared constants
-- `src/components/Terminal/commands/games/shared/types.ts` - NEW: Shared game types and utilities
-- `src/components/Terminal/ansi/logo.ts` - Mobile sizing improvements
-- `src/components/Terminal/commands/games/snake.ts` - Uses shared utilities, full width on mobile
-- `src/components/Terminal/commands/games/tetris.ts` - Uses shared utilities, full width on mobile
-- `src/styles/global.css` - Reorganized, now imports separate style files
-- `src/styles/terminal.css` - NEW: Terminal-specific styles
-- `src/styles/components.css` - NEW: Component-specific styles
-- `src/styles/viewer.css` - NEW: Viewer-specific styles
+- `src/components/Terminal/Terminal.tsx` - Fixed CSS import order, improved initialization
+- `src/components/Terminal/MobileGameControls.tsx` - Touch detection instead of screen size
+- `src/components/Terminal/HintBar.tsx` - Touch detection for consistency
+- `src/components/Terminal/commands/core/open.ts` - Flexible matching by folder name or title
+- `src/components/Terminal/commands/games/shared/types.ts` - Landscape orientation support
+- `src/components/Terminal/commands/games/snake.ts` - Orientation change handling
+- `src/components/Terminal/commands/games/tetris.ts` - Orientation change handling
+- `src/styles/components.css` - Landscape mode styles for mobile controls
+- `src/styles/global.css` - Fixed CSS import order (moved @import to top)
+- `scripts/discover-projects.js` - Auto-discovery, info.txt support, file type detection
+- `README.md` - Updated with info.txt format and auto-discovery documentation
 
 ## Original Requirements (from Description.txt)
 - Terminal-first UI ✅
@@ -110,3 +110,11 @@ git add . && git commit -m "message" && git push
 
 ## Last Updated
 January 2025
+
+## Latest Session Summary
+- Fixed terminal display issue (CSS import order)
+- Improved mobile controls (touch detection for all devices)
+- Added landscape mode support for games
+- Implemented project auto-discovery system
+- Added info.txt file support for project metadata
+- Enhanced open command with flexible matching

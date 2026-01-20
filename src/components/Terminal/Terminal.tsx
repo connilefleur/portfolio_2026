@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { executeCommand, commands } from './commands';
 import { getConnilefleurArt } from './ansi';
-import { parseClickableCommands, applyDisabledStyle, clickableCommands, clickableLinks, disabledCommands, clearClickableCommands, clearActiveClickableCommands } from './utils/clickableCommands';
+import { parseClickableCommands, applyDisabledStyle, clickableCommands, clickableLinks, disabledCommands, clearClickableCommands, clearActiveClickableCommands, persistentCommandInstances } from './utils/clickableCommands';
 import { PROMPT } from './constants';
 import { Project } from '../../types/projects';
 import { ViewerState, CommandAction, GameHandler } from '../../types/terminal';
@@ -29,6 +29,9 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
   const gameLoopRef = useRef<number | null>(null);
   const currentGameIdRef = useRef<string | null>(null);
   const initialLogoDisplayedRef = useRef(false);
+  const limitedHistoryRef = useRef(false); // Track limited history mode
+  const initialLineCountRef = useRef(0); // Track number of initial lines (logo + welcome)
+  const lastOutputLineCountRef = useRef(0); // Track number of lines in last output
 
   const writePrompt = useCallback(() => {
     const terminal = terminalRef.current;
@@ -36,6 +39,13 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       // Clear current line and write prompt to avoid duplication
       terminal.write('\x1b[2K\r' + PROMPT);
     }
+  }, []);
+
+  // Helper function to write lines (normal mode - no special handling)
+  const writeLine = useCallback((line: string) => {
+    const terminal = terminalRef.current;
+    if (!terminal) return;
+    terminal.writeln(line);
   }, []);
 
   // Helper function to display logo and welcome message
@@ -82,9 +92,9 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       }
       
       const logo = getConnilefleurArt(currentTerminal.cols);
-      const logoLines = logo.split('\n');
-      logoLines.forEach((line) => {
-        currentTerminal.writeln(line);
+      const logoLinesArray = logo.split('\n');
+      logoLinesArray.forEach((line) => {
+        writeLine(line);
       });
       
       // Restore original font size after logo
@@ -100,11 +110,24 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       // Welcome message with clickable commands
       // Align to left edge (no leading spaces) to match ANSI art and tagline/subtitle
       const openLine = parseClickableCommands("[ Type or click [cmd:open] to browse projects ]");
-      currentTerminal.writeln(openLine);
+      writeLine(openLine);
+      // Mark the "open" command in this line as persistent (from initial welcome)
+      persistentCommandInstances.add('open:initial');
+      
       const helpLine = parseClickableCommands("[ Type or click [cmd:help] for more commands ]");
-      currentTerminal.writeln(helpLine);
-      currentTerminal.writeln('');
+      writeLine(helpLine);
+      // Mark the "help" command in this line as persistent (from initial welcome)
+      persistentCommandInstances.add('help:initial');
+      
+      const escLine = parseClickableCommands("[ Press ESC or browser back button to close overlays ]");
+      writeLine(escLine);
+      writeLine('');
       writePrompt();
+      
+      // Track initial line count for limited history mode
+      // Count: logo lines + name + tagline + subtitle + open + help + esc + empty
+      // (prompt is written separately, so we don't count it as "initial")
+      initialLineCountRef.current = logoLinesArray.length + 1 + 1 + 1 + 1 + 1 + 1 + 1; // logo + name + tagline + subtitle + open + help + esc + empty
     };
 
     // On mobile, use requestAnimationFrame to ensure terminal is fully rendered
@@ -134,6 +157,18 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       delete (window as unknown as { refreshTerminal?: () => void }).refreshTerminal;
     };
   }, [refreshTerminal]);
+
+  // Expose toggleLimitedHistory function globally
+  useEffect(() => {
+    const toggleLimitedHistory = () => {
+      limitedHistoryRef.current = !limitedHistoryRef.current;
+      return limitedHistoryRef.current;
+    };
+    (window as unknown as { toggleLimitedHistory?: () => boolean }).toggleLimitedHistory = toggleLimitedHistory;
+    return () => {
+      delete (window as unknown as { toggleLimitedHistory?: () => boolean }).toggleLimitedHistory;
+    };
+  }, []);
 
   const exitGame = useCallback(() => {
     if (gameLoopRef.current) {
@@ -192,15 +227,55 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     }
     
     // Mark current clickable commands as disabled (for persistence across re-renders)
+    // But exclude persistent command instances (help, open from initial welcome) from being disabled
     clickableCommands.forEach((_cmd, displayText) => {
-      disabledCommands.add(displayText);
+      // Only disable if not a persistent command instance (from initial welcome)
+      const isPersistent = persistentCommandInstances.has(`${displayText.toLowerCase()}:initial`);
+      if (!isPersistent) {
+        disabledCommands.add(displayText);
+      }
     });
     
     // Remove styling from old clickable commands using inline styles
-    if (container) {
+    // But skip persistent command instances (from initial welcome)
+    if (container && terminal) {
       const oldLinks = container.querySelectorAll('[class*="xterm-underline"]');
       oldLinks.forEach(el => {
-        applyDisabledStyle(el as HTMLElement);
+        const text = el.textContent?.trim();
+        if (text) {
+          // Check if this element is in the initial lines area
+          // We need to find which line this element is on
+          let isInInitialLines = false;
+          try {
+            // Try to find the parent row element
+            let rowElement = el.parentElement;
+            let rowIndex = -1;
+            
+            // Find the row index by traversing up to find xterm rows
+            while (rowElement && rowIndex === -1) {
+              if (rowElement.classList.contains('xterm-rows')) {
+                // Found the rows container, now find the index
+                const rows = Array.from(rowElement.children);
+                rowIndex = rows.findIndex(row => row.contains(el));
+                break;
+              }
+              rowElement = rowElement.parentElement;
+            }
+            
+            // If we found the row index, check if it's within initial lines
+            if (rowIndex >= 0 && rowIndex < initialLineCountRef.current) {
+              isInInitialLines = true;
+            }
+          } catch (e) {
+            // If we can't determine the line, fall back to checking persistent instances
+            isInInitialLines = persistentCommandInstances.has(`${text.toLowerCase()}:initial`);
+          }
+          
+          // Only disable if not in initial lines
+          if (!isInInitialLines) {
+            applyDisabledStyle(el as HTMLElement);
+          }
+        }
       });
     }
     
@@ -209,11 +284,41 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     clearActiveClickableCommands();
     
     if (resolvedResult.output && terminal) {
+      // If limited history is active, clear previous output and command line (but keep initial lines)
+      if (limitedHistoryRef.current) {
+        const buffer = terminal.buffer.active;
+        const totalLines = buffer.length;
+        const outputStartLine = initialLineCountRef.current; // Line where output starts (after initial lines)
+        
+        // Calculate how many lines to clear: previous output + previous command line + previous prompt
+        // We need to clear everything from outputStartLine to the current cursor position
+        const linesToClear = totalLines - outputStartLine;
+        
+        if (linesToClear > 0) {
+          // Move cursor to start of output area
+          terminal.write(`\x1b[${outputStartLine + 1};1H`); // Move to line (1-indexed, +1 because ANSI is 1-based)
+          
+          // Clear all lines from output start to end
+          for (let i = 0; i < linesToClear; i++) {
+            terminal.write('\x1b[2K'); // Clear entire line
+            if (i < linesToClear - 1) {
+              terminal.write('\x1b[1B'); // Move down (except on last iteration)
+            }
+          }
+          
+          // Move cursor back to where we should write (after initial lines)
+          terminal.write(`\x1b[${outputStartLine + 1};1H`);
+        }
+      }
+      
       const lines = resolvedResult.output.split('\n');
       lines.forEach((line) => {
         const display = parseClickableCommands(line);
-        terminal.writeln(display);
+        writeLine(display);
       });
+      
+      // Track number of output lines for next time
+      lastOutputLineCountRef.current = lines.length;
     }
     
     if (resolvedResult.action) {
@@ -307,34 +412,44 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       const fitAddon = new FitAddon();
       terminal.loadAddon(fitAddon);
 
+      // Open terminal and wait for it to be ready
       terminal.open(container);
       
-      // Ensure background is set immediately on all xterm elements
-      const xtermElement = container.querySelector('.xterm') as HTMLElement;
-      if (xtermElement) {
-        xtermElement.style.backgroundColor = theme.terminal.background;
-      }
-      const viewport = container.querySelector('.xterm-viewport') as HTMLElement;
-      if (viewport) {
-        viewport.style.backgroundColor = theme.terminal.background;
-      }
-      const screen = container.querySelector('.xterm-screen') as HTMLElement;
-      if (screen) {
-        screen.style.backgroundColor = theme.terminal.background;
-      }
-      
-      terminalRef.current = terminal;
-      fitAddonRef.current = fitAddon;
-      
-      // Expose terminal reference globally for ANSI art width calculation
-      (window as any).__terminalRef = terminal;
+      // Wait for terminal to be fully initialized before accessing dimensions
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        // Ensure background is set immediately on all xterm elements
+        const xtermElement = container.querySelector('.xterm') as HTMLElement;
+        if (xtermElement) {
+          xtermElement.style.backgroundColor = theme.terminal.background;
+        }
+        const viewport = container.querySelector('.xterm-viewport') as HTMLElement;
+        if (viewport) {
+          viewport.style.backgroundColor = theme.terminal.background;
+        }
+        const screen = container.querySelector('.xterm-screen') as HTMLElement;
+        if (screen) {
+          screen.style.backgroundColor = theme.terminal.background;
+        }
+        
+        terminalRef.current = terminal;
+        fitAddonRef.current = fitAddon;
+        
+        // Expose terminal reference globally for ANSI art width calculation
+        (window as any).__terminalRef = terminal;
 
-      // Fit terminal immediately to ensure proper sizing
-      try {
-        fitAddon.fit();
-      } catch (e) {
-        console.warn('FitAddon initial fit error:', e);
-      }
+        // Fit terminal after renderer is initialized
+        // Add a small delay to ensure renderer is fully ready
+        setTimeout(() => {
+          try {
+            if (terminalRef.current && fitAddonRef.current) {
+              fitAddonRef.current.fit();
+            }
+          } catch (e) {
+            console.warn('FitAddon initial fit error:', e);
+          }
+        }, 0);
+      });
 
       // Fit terminal first, then display logo with correct dimensions
       // This ensures terminal.cols is accurate before generating the logo
@@ -557,9 +672,38 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
               
               underlinedElements.forEach((el) => {
                 const text = el.textContent?.trim();
-                // If this text is in disabledCommands and NOT in current clickableCommands, disable it
                 if (text && disabledCommands.has(text) && !clickableCommands.has(text)) {
-                  applyDisabledStyle(el as HTMLElement);
+                  // Check if this element is in the initial lines area
+                  let isInInitialLines = false;
+                  try {
+                    // Try to find the parent row element
+                    let rowElement = el.parentElement;
+                    let rowIndex = -1;
+                    
+                    // Find the row index by traversing up to find xterm rows
+                    while (rowElement && rowIndex === -1) {
+                      if (rowElement.classList.contains('xterm-rows')) {
+                        // Found the rows container, now find the index
+                        const rows = Array.from(rowElement.children);
+                        rowIndex = rows.findIndex(row => row.contains(el));
+                        break;
+                      }
+                      rowElement = rowElement.parentElement;
+                    }
+                    
+                    // If we found the row index, check if it's within initial lines
+                    if (rowIndex >= 0 && rowIndex < initialLineCountRef.current) {
+                      isInInitialLines = true;
+                    }
+                  } catch (e) {
+                    // If we can't determine the line, fall back to checking persistent instances
+                    isInInitialLines = persistentCommandInstances.has(`${text.toLowerCase()}:initial`);
+                  }
+                  
+                  // Only disable if not in initial lines
+                  if (!isInInitialLines) {
+                    applyDisabledStyle(el as HTMLElement);
+                  }
                 }
               });
             }

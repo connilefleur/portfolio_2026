@@ -92,7 +92,7 @@ export function generateAnsiArt(text: string, color: string = '\x1b[36m', maxWid
   return chunkArts.join('\n\n');
 }
 
-function generateAnsiArtChunk(text: string, color: string, spacing: number, isMobile: boolean = false): string {
+function generateAnsiArtChunk(text: string, color: string, spacing: number, _isMobile: boolean = false): string {
   // Always use full 5-line pattern for proper character display
   // The compact 3-line pattern was cutting off important parts
   const numLines = 5;

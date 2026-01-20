@@ -93,12 +93,26 @@ function scanProjectFolder(projectPath, folderName) {
     .map(f => f.name)
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
   
+  // Track which images have mobile versions
+  const imageFiles = new Set();
+  const mobileFiles = new Set();
+  
   for (const filename of sortedFiles) {
     // Skip meta.json, info.txt and other config files
     if (filename === 'meta.json' || filename === 'info.txt' || filename.startsWith('.')) continue;
     
+    // Track mobile versions separately
+    if (filename.includes('_mobile.')) {
+      mobileFiles.add(filename);
+      continue; // Don't add mobile versions as separate media items
+    }
+    
     const fileType = getFileType(filename);
     if (!fileType) continue;
+    
+    if (fileType === 'image') {
+      imageFiles.add(filename);
+    }
     
     media.push({
       id: path.parse(filename).name,
@@ -106,6 +120,20 @@ function scanProjectFolder(projectPath, folderName) {
       src: filename,
       _resolvedSrc: `/projects/${folderName}/${filename}`
     });
+  }
+  
+  // Add mobile version info to image media items
+  for (const item of media) {
+    if (item.type === 'image') {
+      // Check if mobile version exists
+      const baseName = path.parse(item.src).name;
+      const ext = path.extname(item.src);
+      const mobileFilename = `${baseName}_mobile${ext}`;
+      
+      if (mobileFiles.has(mobileFilename)) {
+        item._mobileSrc = `/projects/${folderName}/${mobileFilename}`;
+      }
+    }
   }
   
   return media;

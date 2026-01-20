@@ -16,6 +16,7 @@ import { help } from './core/help';
 import { open } from './core/open';
 import { close } from './core/close';
 import { clear } from './core/clear';
+import { history } from './core/history';
 
 // Navigation commands
 import { contact } from './navigation/contact';
@@ -41,6 +42,7 @@ export const commands: Record<string, CommandHandler> = {
   contact,
   imprint,
   clear,
+  history,
   whoami,
   uname,
   neofetch,

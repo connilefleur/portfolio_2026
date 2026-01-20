@@ -5,25 +5,28 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run discover && tsc && vite build",
+    "build": "npm run optimize && npm run discover && tsc && vite build",
     "preview": "vite preview",
-    "discover": "node scripts/discover-projects.js"
+    "discover": "node scripts/discover-projects.js",
+    "optimize": "node scripts/optimize-images.js",
+    "restore": "node scripts/restore-originals.js"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@xterm/xterm": "^5.5.0",
+    "@react-three/drei": "^9.117.0",
+    "@react-three/fiber": "^8.17.10",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
-    "three": "^0.169.0",
-    "@react-three/fiber": "^8.17.10",
-    "@react-three/drei": "^9.117.0"
+    "@xterm/xterm": "^5.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^4.3.3",
+    "sharp": "^0.34.5",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
   }

@@ -11,6 +11,8 @@
   min-height: 0; /* Important for flex child */
   /* macOS Terminal-style padding for better readability */
   padding: 12px 16px;
+  /* Add bottom padding to prevent overlap with hint bar */
+  padding-bottom: calc(12px + 48px); /* Top padding + hint bar height */
   box-sizing: border-box;
 }
 
@@ -18,12 +20,14 @@
 @media (max-width: 768px) {
   .terminal-container {
     padding: 10px 12px;
+    padding-bottom: calc(10px + 48px); /* Top padding + hint bar height */
   }
 }
 
 @media (max-width: 480px) {
   .terminal-container {
     padding: 8px 10px;
+    padding-bottom: calc(8px + 48px); /* Top padding + hint bar height */
   }
 }
 

@@ -24,6 +24,8 @@ Thumbs.db
 
 # Generated files
 public/projects-index.json
+public/projects-original/
+public/projects-optimized/
 
 # Debug files
 browser-log.txt

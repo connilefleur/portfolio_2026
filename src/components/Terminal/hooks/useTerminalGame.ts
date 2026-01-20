@@ -6,7 +6,7 @@
 
 import { useRef, useCallback } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
-import { GameHandler } from '../../../../types/terminal';
+import { GameHandler } from '../../../types/terminal';
 
 export function useTerminalGame(
   terminalRef: React.MutableRefObject<XTerm | null>,
