@@ -45,11 +45,14 @@ A terminal-style portfolio website built with React, TypeScript, and xterm.js. V
 
 #### 5. Commands Structure
 Commands are organized by functionality:
-- **Core**: `help`, `open`, `close`, `clear`
+- **Core**: `help`, `open`, `close`, `clear`, `history`
 - **Navigation**: `contact`, `imprint` (display in terminal, not overlays)
 - **System**: `whoami`, `uname`, `neofetch`
 - **ANSI**: `ansi <text>`
 - **Games**: `snake`, `tetris`
+
+**New Commands**:
+- `history` - Toggle limited history mode (shows only current + 1 line)
 
 #### 6. Project System
 - Projects in `/public/projects/` folders
@@ -99,6 +102,37 @@ Commands are organized by functionality:
 - **Content**: Contact and imprint display directly in terminal (no overlays)
 - **Close Behavior**: Only ESC key/button closes overlays (no click-to-close on empty space)
 - **ESC Button**: Embedded in "Press [ESC] to close" text on desktop, separate button on mobile
+- **Browser Back Button**: Works like ESC when viewer/game is open
+- **Auto-Focus**: Viewer automatically receives focus on open for immediate keyboard control
+
+#### 10. Image Optimization System
+- **Location**: `scripts/optimize-images.js`
+- **Process**: Runs automatically before build
+- **Features**:
+  - Creates desktop (~2000px) and mobile (~1200px) versions
+  - Converts PNG to JPG for better compression
+  - Maintains aspect ratios, scales using long side
+  - Preserves originals in `public/projects-original/`
+- **Restore**: Use `npm run restore` to restore original images
+- **Responsive**: ImageViewer uses srcset for automatic size selection
+
+#### 11. 3D Viewer
+- **Location**: `src/components/Viewer/ThreeDViewer.tsx`
+- **Features**:
+  - Fullscreen canvas with proper responsive sizing
+  - Automatic model framing from front view (5% border)
+  - Smooth damped rotation and zoom with limits
+  - Touch support for mobile
+  - Panning disabled
+- **Libraries**: Uses `@react-three/fiber` and `@react-three/drei`
+
+#### 12. Terminal History Modes
+- **Normal Mode**: Full scrollback history (default)
+- **Limited History Mode**: Shows only current line + 1 history line
+  - Toggle with `history` command
+  - Initial welcome lines always remain visible
+  - Previous output gets replaced when new command runs
+  - Creates page-like experience for non-technical users
 
 ### File Structure
 
@@ -163,6 +197,41 @@ All colors in `src/config/theme.ts`:
 
 ### Recent Changes (Latest Session)
 
+#### Image Optimization System
+- ✅ **Build-time Optimization**: Added `optimize-images.js` script that runs before build
+- ✅ **Automatic Processing**: Processes all images in projects folder
+- ✅ **Multiple Sizes**: Creates desktop (~2000px) and mobile (~1200px) versions
+- ✅ **Format Conversion**: Converts PNG to JPG for better compression (maintains quality)
+- ✅ **Aspect Ratio Preservation**: Maintains original aspect ratios, scales using long side
+- ✅ **Space Savings**: Significant reduction (185MB+ in tests, some PNGs reduced by 99%)
+- ✅ **Original Preservation**: Backs up originals to `public/projects-original/`
+- ✅ **Responsive Images**: ImageViewer uses srcset for automatic size selection
+- ✅ **Restore Script**: `restore-originals.js` available to restore original images if needed
+
+#### 3D Viewer Enhancements
+- ✅ **Fullscreen Canvas**: Viewer now uses full screen (100vw x calc(100vh - 48px))
+- ✅ **Automatic Framing**: Models automatically framed from front view with 5% border
+- ✅ **Model Centering**: Models automatically centered at origin
+- ✅ **Smooth Rotation**: Damped rotation (dampingFactor: 0.05) for smooth, free dragging
+- ✅ **Zoom Limits**: Prevents overshooting with min/max distance based on model size
+- ✅ **Touch Support**: Full touch support for mobile (drag to rotate, pinch to zoom)
+- ✅ **Panning Disabled**: Panning disabled as requested
+- ✅ **Responsive Zoom**: Zoom limits calculated dynamically based on model dimensions
+
+#### Terminal UX Improvements
+- ✅ **Bottom Bar Fix**: Fixed overlap issue on MacBook 13" and other screens
+  - Added padding-bottom to terminal container to account for hint bar height
+- ✅ **Name Display**: Added "Conrad Loeffler" as subheading below ANSI art logo
+- ✅ **ESC Instructions**: Added ESC key usage instruction in welcome message
+- ✅ **Limited History Mode**: New mode that shows only current + 1 history line
+  - Creates page-like experience instead of continuous scrolling
+  - Initial welcome lines always remain visible
+  - Previous output gets replaced when new command runs
+- ✅ **History Toggle**: Added `history` command to toggle limited history mode on/off
+- ✅ **Browser Back Button**: Browser back button now works like ESC when viewer/game is open
+- ✅ **Auto-Focus Viewer**: Viewer automatically receives focus on open for immediate keyboard control
+- ✅ **Persistent Links**: Help and open links in top welcome stay active (not in help output)
+
 #### Code Organization
 - ✅ Extracted clickable commands utilities to separate file
 - ✅ Created shared game utilities (Point interface, dimension calculation)
@@ -196,16 +265,24 @@ All colors in `src/config/theme.ts`:
   - Line 3: Description
   - Line 4+: Additional metadata (tags, role, etc.)
 - ✅ **Flexible Matching**: Open command matches by folder name, project ID, or title
+- ✅ **3D Model Support**: GLB/GLTF models supported with full 3D viewer
 
 ### Build & Development
 
 ```bash
 npm install          # Install dependencies
 npm run dev          # Start dev server (http://localhost:5173)
-npm run build        # Build for production (generates dist/)
+npm run build        # Build for production (runs: optimize -> discover -> build)
 npm run discover     # Regenerate projects index
+npm run optimize     # Optimize images (creates optimized versions)
+npm run restore      # Restore original images from backup
 npm run preview      # Preview production build
 ```
+
+**Build Process**:
+1. `optimize` - Processes and optimizes images (creates desktop/mobile versions)
+2. `discover` - Scans projects folder and generates projects-index.json
+3. `build` - TypeScript compilation and Vite production build
 
 ### Next Steps / Focus Areas
 
@@ -235,6 +312,9 @@ npm run preview      # Preview production build
 - **Hint Bar**: `src/components/Terminal/HintBar.tsx` - ESC button (desktop/mobile)
 - **Styles**: `src/styles/` - Organized by concern (terminal, components, viewer)
 - **Fonts**: `src/styles/fonts.css` - Google Fonts import for Doto
+- **Image Optimization**: `scripts/optimize-images.js` - Build-time image optimization
+- **3D Viewer**: `src/components/Viewer/ThreeDViewer.tsx` - 3D model viewer with Three.js
+- **History Command**: `src/components/Terminal/commands/core/history.ts` - Toggle limited history mode
 
 ### Game Implementation Details
 
