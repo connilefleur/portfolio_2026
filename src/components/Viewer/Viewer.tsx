@@ -3,6 +3,7 @@ import { MediaItem, Project } from '../../types/projects';
 import { ImageViewer } from './ImageViewer';
 import { VideoViewer } from './VideoViewer';
 import { ImageStackViewer } from './ImageStackViewer';
+import { WindowControls } from '../WindowControls';
 
 // Lazy load the 3D viewer to reduce initial bundle size
 const ThreeDViewer = lazy(() => import('./ThreeDViewer').then(m => ({ default: m.ThreeDViewer })));
@@ -72,7 +73,7 @@ export function Viewer({ project, mediaIndex, onNext, onPrev }: ViewerProps) {
         return <ImageStackViewer sources={getSrcArray(media)} description={media.description} />;
       case '3d-model':
         return (
-          <Suspense fallback={<div style={{ color: '#ffffff' }}>Loading 3D viewer...</div>}>
+          <Suspense fallback={<div style={{ color: 'var(--color-overlay-text)' }}>Loading 3D viewer...</div>}>
             <ThreeDViewer src={getSrc(media)} description={media.description} />
           </Suspense>
         );
@@ -88,6 +89,7 @@ export function Viewer({ project, mediaIndex, onNext, onPrev }: ViewerProps) {
       tabIndex={-1}
       style={{ outline: 'none' }}
     >
+      <WindowControls onClose={onClose} />
       {renderMedia()}
       
       {hasMultiple && (

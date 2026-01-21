@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Terminal } from './components/Terminal/Terminal';
-import { HintBar } from './components/Terminal/HintBar';
 import { MobileGameControls } from './components/Terminal/MobileGameControls';
 import { Viewer } from './components/Viewer/Viewer';
 import { useProjects } from './hooks/useProjects';
@@ -104,7 +103,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#ffffff' }}>Loading...</p>
+        <p style={{ color: 'var(--color-text)' }}>Loading...</p>
       </div>
     );
   }
@@ -130,8 +129,6 @@ export default function App() {
           onPrev={prevMedia}
         />
       )}
-      
-      <HintBar hasViewer={!!viewer || hasGame} />
       
       <MobileGameControls 
         isActive={hasGame}

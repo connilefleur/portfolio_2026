@@ -3,12 +3,13 @@ import { Terminal as XTerm, ITerminalOptions } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { executeCommand, commands } from './commands';
-import { getConnilefleurArt } from './ansi';
-import { parseClickableCommands, applyDisabledStyle, clickableCommands, clickableLinks, disabledCommands, clearClickableCommands, clearActiveClickableCommands, persistentCommandInstances } from './utils/clickableCommands';
+import { parseClickableCommands, clickableCommands, disabledCommands, clearClickableCommands, clearActiveClickableCommands, persistentCommandInstances, applyDisabledStyle } from './utils/clickableCommands';
+import { displayLogoAndWelcome } from './utils/displayLogo';
+import { useTerminalEvents } from './hooks/useTerminalEvents';
 import { PROMPT } from './constants';
 import { Project } from '../../types/projects';
 import { ViewerState, CommandAction, GameHandler } from '../../types/terminal';
-import { theme } from '../../config/theme';
+import { useThemeContext } from '../../contexts/ThemeContext';
 
 interface TerminalProps {
   projects: Project[];
@@ -18,6 +19,7 @@ interface TerminalProps {
 }
 
 export function Terminal({ projects, currentViewer, onAction, onGameStateChange }: TerminalProps) {
+  const { currentTheme } = useThemeContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -38,6 +40,8 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     if (terminal) {
       // Clear current line and write prompt to avoid duplication
       terminal.write('\x1b[2K\r' + PROMPT);
+      // Ensure terminal can receive input
+      terminal.focus();
     }
   }, []);
 
@@ -49,7 +53,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
   }, []);
 
   // Helper function to display logo and welcome message
-  const displayLogoAndWelcome = useCallback((isInitial: boolean = false) => {
+  const displayLogoAndWelcomeCallback = useCallback((isInitial: boolean = false) => {
     const terminal = terminalRef.current;
     if (!terminal) return;
 
@@ -61,73 +65,16 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       initialLogoDisplayedRef.current = true;
     }
 
-    // Ensure terminal is fitted before getting cols
     // Use requestAnimationFrame on mobile to ensure terminal is fully rendered
     const displayLogo = () => {
-      const fitAddon = fitAddonRef.current;
-      if (fitAddon) {
-        try {
-          fitAddon.fit();
-        } catch (e) {
-          console.warn('FitAddon error in displayLogoAndWelcome:', e);
-        }
-      }
-
-      const currentTerminal = terminalRef.current;
-      if (!currentTerminal) return;
-
-      // On mobile, temporarily reduce font size to make ANSI art half size
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-      const container = containerRef.current;
-      let originalFontSize: string | null = null;
-      
-      if (isMobile && container) {
-        const xtermElement = container.querySelector('.xterm') as HTMLElement;
-        if (xtermElement) {
-          // Save original font size
-          originalFontSize = window.getComputedStyle(xtermElement).fontSize;
-          // Set to half size for ANSI art
-          xtermElement.style.fontSize = '8px'; // Half of 16px
-        }
-      }
-      
-      const logo = getConnilefleurArt(currentTerminal.cols);
-      const logoLinesArray = logo.split('\n');
-      logoLinesArray.forEach((line) => {
-        writeLine(line);
+      displayLogoAndWelcome({
+        terminal,
+        fitAddon: fitAddonRef.current,
+        container: containerRef.current,
+        writeLine,
+        writePrompt,
+        initialLineCountRef,
       });
-      
-      // Restore original font size after logo
-      if (isMobile && container && originalFontSize) {
-        setTimeout(() => {
-          const xtermElement = container.querySelector('.xterm') as HTMLElement;
-          if (xtermElement) {
-            xtermElement.style.fontSize = originalFontSize;
-          }
-        }, 10);
-      }
-
-      // Welcome message with clickable commands
-      // Align to left edge (no leading spaces) to match ANSI art and tagline/subtitle
-      const openLine = parseClickableCommands("[ Type or click [cmd:open] to browse projects ]");
-      writeLine(openLine);
-      // Mark the "open" command in this line as persistent (from initial welcome)
-      persistentCommandInstances.add('open:initial');
-      
-      const helpLine = parseClickableCommands("[ Type or click [cmd:help] for more commands ]");
-      writeLine(helpLine);
-      // Mark the "help" command in this line as persistent (from initial welcome)
-      persistentCommandInstances.add('help:initial');
-      
-      const escLine = parseClickableCommands("[ Press ESC or browser back button to close overlays ]");
-      writeLine(escLine);
-      writeLine('');
-      writePrompt();
-      
-      // Track initial line count for limited history mode
-      // Count: logo lines + name + tagline + subtitle + open + help + esc + empty
-      // (prompt is written separately, so we don't count it as "initial")
-      initialLineCountRef.current = logoLinesArray.length + 1 + 1 + 1 + 1 + 1 + 1 + 1; // logo + name + tagline + subtitle + open + help + esc + empty
     };
 
     // On mobile, use requestAnimationFrame to ensure terminal is fully rendered
@@ -138,7 +85,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     } else {
       displayLogo();
     }
-  }, [writePrompt]);
+  }, [writePrompt, writeLine]);
 
   const refreshTerminal = useCallback(() => {
     const terminal = terminalRef.current;
@@ -190,7 +137,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       // Small delay to ensure terminal is ready after reset
       setTimeout(() => {
         // Show logo and welcome message (same as initial page load)
-        displayLogoAndWelcome(false);
+        displayLogoAndWelcomeCallback(false);
       }, 10);
     }
     // Notify parent that game is no longer active
@@ -317,6 +264,11 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
         writeLine(display);
       });
       
+      // Add empty line after output for visual spacing (only if there was output)
+      if (terminal && resolvedResult.output.trim().length > 0) {
+        terminal.writeln('');
+      }
+      
       // Track number of output lines for next time
       lastOutputLineCountRef.current = lines.length;
     }
@@ -377,29 +329,29 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
 
       const options: ITerminalOptions = {
         theme: {
-          background: theme.terminal.background,
-          foreground: theme.terminal.foreground,
-          cursor: theme.terminal.cursor,
-          cursorAccent: theme.terminal.cursorAccent,
-          selectionBackground: theme.terminal.selectionBackground,
-          black: theme.terminal.black,
-          red: theme.terminal.red,
-          green: theme.terminal.green,
-          yellow: theme.terminal.yellow,
-          blue: theme.terminal.blue,
-          magenta: theme.terminal.magenta,
-          cyan: theme.terminal.cyan,
-          white: theme.terminal.white,
-          brightBlack: theme.terminal.brightBlack,
-          brightRed: theme.terminal.brightRed,
-          brightGreen: theme.terminal.brightGreen,
-          brightYellow: theme.terminal.brightYellow,
-          brightBlue: theme.terminal.brightBlue,
-          brightMagenta: theme.terminal.brightMagenta,
-          brightCyan: theme.terminal.brightCyan,
-          brightWhite: theme.terminal.brightWhite,
+          background: currentTheme.terminal.background,
+          foreground: currentTheme.terminal.foreground,
+          cursor: currentTheme.terminal.cursor,
+          cursorAccent: currentTheme.terminal.cursorAccent,
+          selectionBackground: currentTheme.terminal.selectionBackground,
+          black: currentTheme.terminal.black,
+          red: currentTheme.terminal.red,
+          green: currentTheme.terminal.green,
+          yellow: currentTheme.terminal.yellow,
+          blue: currentTheme.terminal.blue,
+          magenta: currentTheme.terminal.magenta,
+          cyan: currentTheme.terminal.cyan,
+          white: currentTheme.terminal.white,
+          brightBlack: currentTheme.terminal.brightBlack,
+          brightRed: currentTheme.terminal.brightRed,
+          brightGreen: currentTheme.terminal.brightGreen,
+          brightYellow: currentTheme.terminal.brightYellow,
+          brightBlue: currentTheme.terminal.brightBlue,
+          brightMagenta: currentTheme.terminal.brightMagenta,
+          brightCyan: currentTheme.terminal.brightCyan,
+          brightWhite: currentTheme.terminal.brightWhite,
         },
-        fontFamily: "'Doto', sans-serif",
+        fontFamily: "'Anonymous Pro', monospace",
         fontSize: window.innerWidth < 768 ? 16 : 14,
         lineHeight: window.innerWidth < 768 ? 1.2 : 1.2,
         cursorBlink: true,
@@ -415,21 +367,24 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       // Open terminal and wait for it to be ready
       terminal.open(container);
       
+      // Ensure terminal can receive focus for input
+      terminal.focus();
+      
       // Wait for terminal to be fully initialized before accessing dimensions
       // Use requestAnimationFrame to ensure DOM is ready
       requestAnimationFrame(() => {
         // Ensure background is set immediately on all xterm elements
         const xtermElement = container.querySelector('.xterm') as HTMLElement;
         if (xtermElement) {
-          xtermElement.style.backgroundColor = theme.terminal.background;
+          xtermElement.style.backgroundColor = currentTheme.terminal.background;
         }
         const viewport = container.querySelector('.xterm-viewport') as HTMLElement;
         if (viewport) {
-          viewport.style.backgroundColor = theme.terminal.background;
+          viewport.style.backgroundColor = currentTheme.terminal.background;
         }
         const screen = container.querySelector('.xterm-screen') as HTMLElement;
         if (screen) {
-          screen.style.backgroundColor = theme.terminal.background;
+          screen.style.backgroundColor = currentTheme.terminal.background;
         }
         
         terminalRef.current = terminal;
@@ -455,7 +410,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       // This ensures terminal.cols is accurate before generating the logo
       setTimeout(() => {
         // Display logo and welcome message (isInitial=true to prevent duplicates)
-        displayLogoAndWelcome(true);
+        displayLogoAndWelcomeCallback(true);
       }, 50);
 
       // Handle resize
@@ -468,257 +423,8 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       };
       window.addEventListener('resize', handleResize);
 
-      // Click handler - use mousedown + capture phase to intercept before xterm.js stops propagation
-      const handleMouseDown = (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        
-        // Only handle if within the terminal container
-        if (!container.contains(target)) {
-          return;
-        }
-        
-        // If a game is active, handle click/tap to pause/resume
-        if (gameHandlerRef.current && gameHandlerRef.current.onClick) {
-          // Don't trigger if clicking on a clickable command
-          const isClickableCommand = target.classList.toString().includes('xterm-underline') || 
-                                      target.closest('[class*="xterm-underline"]');
-          if (!isClickableCommand) {
-            e.preventDefault();
-            e.stopPropagation();
-            // Small delay to ensure game state is updated before next render
-            setTimeout(() => {
-              if (gameHandlerRef.current && gameHandlerRef.current.onClick) {
-                gameHandlerRef.current.onClick();
-              }
-            }, 0);
-            return;
-          }
-        }
-        
-        // Check if clicked element has xterm-underline class (indicates a clickable command or link)
-        if (target.classList.toString().includes('xterm-underline')) {
-          const text = target.textContent?.trim();
-          
-          // Check for external link first
-          if (text && clickableLinks.has(text)) {
-            const url = clickableLinks.get(text)!;
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(url, '_blank', 'noopener,noreferrer');
-            return;
-          }
-          
-          // Check for command
-          if (text && clickableCommands.has(text)) {
-            const command = clickableCommands.get(text)!;
-            e.preventDefault();
-            e.stopPropagation();
-            setTimeout(() => {
-              injectCommandRef.current(command);
-            }, 0);
-            return;
-          }
-        }
-        
-        // Also check parent for underline class
-        const underlinedParent = target.closest('[class*="xterm-underline"]') as HTMLElement;
-        if (underlinedParent) {
-          const text = underlinedParent.textContent?.trim();
-          
-          // Check for external link first
-          if (text && clickableLinks.has(text)) {
-            const url = clickableLinks.get(text)!;
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(url, '_blank', 'noopener,noreferrer');
-            return;
-          }
-          
-          // Check for command
-          if (text && clickableCommands.has(text)) {
-            const command = clickableCommands.get(text)!;
-            e.preventDefault();
-            e.stopPropagation();
-            setTimeout(() => {
-              injectCommandRef.current(command);
-            }, 0);
-            return;
-          }
-        }
-      };
-      
-      // Also handle touch events for mobile
-      // Use touchend instead of touchstart to avoid conflicts with scrolling/selection
-      let touchStartTime = 0;
-      let touchStartTarget: HTMLElement | null = null;
-      let touchStartPos: { x: number; y: number } | null = null;
-      
-      const handleTouchStart = (e: TouchEvent) => {
-        const target = e.target as HTMLElement;
-        
-        // Only handle if within the terminal container
-        if (!container.contains(target)) {
-          return;
-        }
-        
-        // Store touch start info
-        touchStartTime = Date.now();
-        touchStartTarget = target;
-        const touch = e.touches[0];
-        if (touch) {
-          touchStartPos = { x: touch.clientX, y: touch.clientY };
-        }
-      };
-      
-      const handleTouchEnd = (e: TouchEvent) => {
-        const target = e.target as HTMLElement;
-        
-        // Only handle if within the terminal container
-        if (!container.contains(target)) {
-          touchStartTime = 0;
-          touchStartTarget = null;
-          touchStartPos = null;
-          return;
-        }
-        
-        // Check if this was a quick tap (not a long press or drag)
-        const touchDuration = Date.now() - touchStartTime;
-        const touch = e.changedTouches[0];
-        
-        // Calculate movement distance
-        let moved = false;
-        if (touchStartPos && touch) {
-          const dx = Math.abs(touch.clientX - touchStartPos.x);
-          const dy = Math.abs(touch.clientY - touchStartPos.y);
-          moved = dx > 10 || dy > 10; // More than 10px movement = drag
-        }
-        
-        // Only trigger if it was a quick tap (< 300ms), same target, and minimal movement
-        if (touchDuration < 300 && touchDuration > 0 && touchStartTarget === target && !moved) {
-          // Check if tapping on a clickable link or command
-          const isClickable = target.classList.toString().includes('xterm-underline') || 
-                              target.closest('[class*="xterm-underline"]');
-          
-          if (isClickable) {
-            const underlinedElement = target.closest('[class*="xterm-underline"]') as HTMLElement || target;
-            const text = underlinedElement.textContent?.trim();
-            
-            // Check for external link first
-            if (text && clickableLinks.has(text)) {
-              const url = clickableLinks.get(text)!;
-              e.preventDefault();
-              e.stopPropagation();
-              window.open(url, '_blank', 'noopener,noreferrer');
-              touchStartTime = 0;
-              touchStartTarget = null;
-              touchStartPos = null;
-              return;
-            }
-            
-            // Check for command
-            if (text && clickableCommands.has(text)) {
-              const command = clickableCommands.get(text)!;
-              e.preventDefault();
-              e.stopPropagation();
-              setTimeout(() => {
-                injectCommandRef.current(command);
-              }, 10);
-              touchStartTime = 0;
-              touchStartTarget = null;
-              touchStartPos = null;
-              return;
-            }
-          }
-          
-          // If a game is active, handle tap to pause/resume
-          if (gameHandlerRef.current && gameHandlerRef.current.onClick) {
-            // Don't trigger if tapping on a clickable command or link
-            if (!isClickable) {
-              e.preventDefault();
-              e.stopPropagation();
-              // Small delay to ensure game state is updated before next render
-              setTimeout(() => {
-                if (gameHandlerRef.current && gameHandlerRef.current.onClick) {
-                  gameHandlerRef.current.onClick();
-                }
-              }, 10);
-              touchStartTime = 0;
-              touchStartTarget = null;
-              touchStartPos = null;
-              return;
-            }
-          }
-        }
-        
-        touchStartTime = 0;
-        touchStartTarget = null;
-        touchStartPos = null;
-      };
-
-      // Use capture phase (true) to intercept events before xterm.js can stop them
-      document.addEventListener('mousedown', handleMouseDown, true);
-      document.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
-      document.addEventListener('touchend', handleTouchEnd, { passive: false, capture: true });
-
-      // MutationObserver to handle xterm re-renders - disable old commands when they reappear
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
-            if (node instanceof HTMLElement) {
-              // Check if this node or its children have underline class
-              const underlinedElements = node.classList?.toString().includes('xterm-underline') 
-                ? [node] 
-                : Array.from(node.querySelectorAll('[class*="xterm-underline"]'));
-              
-              underlinedElements.forEach((el) => {
-                const text = el.textContent?.trim();
-                if (text && disabledCommands.has(text) && !clickableCommands.has(text)) {
-                  // Check if this element is in the initial lines area
-                  let isInInitialLines = false;
-                  try {
-                    // Try to find the parent row element
-                    let rowElement = el.parentElement;
-                    let rowIndex = -1;
-                    
-                    // Find the row index by traversing up to find xterm rows
-                    while (rowElement && rowIndex === -1) {
-                      if (rowElement.classList.contains('xterm-rows')) {
-                        // Found the rows container, now find the index
-                        const rows = Array.from(rowElement.children);
-                        rowIndex = rows.findIndex(row => row.contains(el));
-                        break;
-                      }
-                      rowElement = rowElement.parentElement;
-                    }
-                    
-                    // If we found the row index, check if it's within initial lines
-                    if (rowIndex >= 0 && rowIndex < initialLineCountRef.current) {
-                      isInInitialLines = true;
-                    }
-                  } catch (e) {
-                    // If we can't determine the line, fall back to checking persistent instances
-                    isInInitialLines = persistentCommandInstances.has(`${text.toLowerCase()}:initial`);
-                  }
-                  
-                  // Only disable if not in initial lines
-                  if (!isInInitialLines) {
-                    applyDisabledStyle(el as HTMLElement);
-                  }
-                }
-              });
-            }
-          });
-        });
-      });
-      
-      observer.observe(container, { childList: true, subtree: true });
-
       (container as HTMLDivElement & { _cleanup?: () => void })._cleanup = () => {
         window.removeEventListener('resize', handleResize);
-        document.removeEventListener('mousedown', handleMouseDown, true);
-        document.removeEventListener('touchstart', handleTouchStart, true);
-        document.removeEventListener('touchend', handleTouchEnd, true);
-        observer.disconnect();
         terminal.dispose();
         terminalRef.current = null;
       };
@@ -732,7 +438,39 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       // Reset flag on cleanup
       initialLogoDisplayedRef.current = false;
     };
-  }, [writePrompt, displayLogoAndWelcome]);
+  }, [writePrompt, displayLogoAndWelcomeCallback, currentTheme]);
+
+  const injectCommand = useCallback((cmd: string) => {
+    const terminal = terminalRef.current;
+    if (!terminal) return;
+    
+    terminal.write('\x1b[2K\r');
+    writePrompt();
+    terminal.write(cmd);
+    terminal.writeln('');
+    
+    inputBufferRef.current = '';
+    historyRef.current.push(cmd);
+    historyIndexRef.current = historyRef.current.length;
+    
+    handleCommand(cmd).then((wasGame) => {
+      if (!wasGame) {
+        writePrompt();
+      }
+    });
+  }, [writePrompt, handleCommand]);
+
+  useEffect(() => {
+    injectCommandRef.current = injectCommand;
+  }, [injectCommand]);
+
+  // Set up event handlers for clickable commands and game interactions
+  useTerminalEvents({
+    container: containerRef.current!,
+    gameHandlerRef,
+    injectCommand,
+    initialLineCountRef,
+  });
 
 
   // Handle keyboard input
@@ -743,21 +481,24 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     // Global keyboard handler for game mode (catches events from mobile controls and desktop)
     // This needs to be on window to catch all keys, especially arrow keys
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (gameHandlerRef.current) {
-        // ESC to exit game
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          e.stopPropagation();
-          exitGame();
-          return;
-        }
-        // Pass arrow keys and space to game handler
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (gameHandlerRef.current.onKey) {
-            gameHandlerRef.current.onKey(e.key, e);
-          }
+      // Only handle game keys if we're actually in game mode
+      if (!gameHandlerRef.current) {
+        return; // Let terminal handle all input when not in game mode
+      }
+      
+      // ESC to exit game
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        exitGame();
+        return;
+      }
+      // Pass arrow keys and space to game handler
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (gameHandlerRef.current.onKey) {
+          gameHandlerRef.current.onKey(e.key, e);
         }
       }
     };
@@ -914,30 +655,6 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       }
     };
   }, [handleCommand, writePrompt, exitGame]);
-
-  const injectCommand = useCallback((cmd: string) => {
-    const terminal = terminalRef.current;
-    if (!terminal) return;
-    
-    terminal.write('\x1b[2K\r');
-    writePrompt();
-    terminal.write(cmd);
-    terminal.writeln('');
-    
-    inputBufferRef.current = '';
-    historyRef.current.push(cmd);
-    historyIndexRef.current = historyRef.current.length;
-    
-    handleCommand(cmd).then((wasGame) => {
-      if (!wasGame) {
-        writePrompt();
-      }
-    });
-  }, [writePrompt, handleCommand]);
-
-  useEffect(() => {
-    injectCommandRef.current = injectCommand;
-  }, [injectCommand]);
 
   useEffect(() => {
     (window as unknown as { injectCommand?: (cmd: string) => void }).injectCommand = injectCommand;

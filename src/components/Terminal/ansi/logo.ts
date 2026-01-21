@@ -14,22 +14,25 @@ export const getConnilefleurArt = (terminalCols?: number): string => {
   // We'll pass a flag to the generator to use smaller spacing
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   
-  // Generate logo - on mobile, we'll use CSS to scale it down
+  // Generate logo - use cyan for logo art
   const logo = generateAnsiArt('connilefleur', '\x1b[36m', maxWidth);
   
   // On mobile, use shorter text that wraps better
   // All text aligns to left edge (no leading spaces) to match ANSI art
-  const name = '\x1b[36mConrad Loeffler\x1b[0m';
+  // Name in slight orange color (RGB: 255, 180, 80)
+  const name = '\x1b[38;2;255;180;80mConrad Loeffler\x1b[0m';
   
   if (isMobile) {
     // Mobile-friendly shorter versions that break at better points
-    const tagline = '\x1b[33mCreative Developer\n& Digital Artist\x1b[0m';
-    const subtitle = '\x1b[90mBuilding beautiful\ndigital experiences\x1b[0m';
-    return `${logo}\n${name}\n${tagline}\n${subtitle}`;
+    // Plain text - no colors (only logo and name are colored)
+    const tagline = 'Creative Developer\n& Digital Artist';
+    const subtitle = 'Building beautiful\ndigital experiences';
+    return `${logo}\n\n${name}\n${tagline}\n${subtitle}`;
   } else {
     // Desktop version - full text on one line
-    const tagline = '\x1b[33mCreative Developer & Digital Artist\x1b[0m';
-    const subtitle = '\x1b[90mBuilding beautiful digital experiences\x1b[0m';
-    return `${logo}\n${name}\n${tagline}\n${subtitle}`;
+    // Plain text - no colors (only logo and name are colored)
+    const tagline = 'Creative Developer & Digital Artist';
+    const subtitle = 'Building beautiful digital experiences';
+    return `${logo}\n\n${name}\n${tagline}\n${subtitle}`;
   }
 };

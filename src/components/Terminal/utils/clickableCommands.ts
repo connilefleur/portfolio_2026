@@ -13,6 +13,8 @@ export const disabledCommands = new Set<string>();
 // Track which specific command instances are persistent (from initial welcome lines)
 // Format: "command-text:line-number" or just track by a unique identifier
 export const persistentCommandInstances = new Set<string>();
+// Store persistent command mappings (displayText -> command) so they can be re-added after clearing
+export const persistentCommandMappings = new Map<string, string>();
 
 /**
  * Parse [cmd:xxx] or [cmd:display|command] patterns and return display text
@@ -32,7 +34,8 @@ export function parseClickableCommands(text: string): string {
     
     // Register this link as clickable
     clickableLinks.set(displayText, url);
-    // Style: cyan + underline
+    // Style: cyan + underline (ANSI code \x1b[36m uses terminal.cyan color from theme)
+    // This maps to the accent color (#7a9a9a - lighter teal) in Cool Minimal Palette
     return `\x1b[36m\x1b[4m${displayText}\x1b[0m`;
   });
   
@@ -54,7 +57,8 @@ export function parseClickableCommands(text: string): string {
     
     // Register this command as clickable
     clickableCommands.set(displayText, command);
-    // Style: cyan + underline
+    // Style: cyan + underline (ANSI code \x1b[36m uses terminal.cyan color from theme)
+    // This maps to the accent color (#7a9a9a - lighter teal) in Cool Minimal Palette
     return `\x1b[36m\x1b[4m${displayText}\x1b[0m`;
   });
   
@@ -82,8 +86,14 @@ export function clearClickableCommands() {
 
 /**
  * Clear only active clickable commands and links (keep disabled commands)
+ * Re-add persistent commands after clearing
  */
 export function clearActiveClickableCommands() {
   clickableCommands.clear();
   clickableLinks.clear();
+  
+  // Re-add persistent commands so they remain clickable
+  persistentCommandMappings.forEach((command, displayText) => {
+    clickableCommands.set(displayText, command);
+  });
 }

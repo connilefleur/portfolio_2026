@@ -1,6 +1,27 @@
 # Current Issues
 
-## No Known Issues
+## Status: Active Issue - WebGL Glass Button Appearance
+
+**Latest Update:** WebGL glass buttons are rendering but visual appearance needs refinement.
+
+## Current Active Issue
+
+### WebGL Glass Button Visual Appearance
+- **Status:** 🟡 Active - Buttons rendering but don't look correct
+- **File:** `src/components/GlassButton/utils/webgl3DPillRenderer.ts`
+- **Details:** See ISSUES.md for full details
+- **Priority:** Medium-High (Visual polish needed)
+
+## Future Enhancements (Not Critical)
+
+### Welcome Message Enhancement
+- Current welcome message works correctly
+- Enhancement to add welcome intro text can be implemented later
+- See ISSUES.md for details
+
+---
+
+## Previously Resolved Issues
 
 All previously reported issues have been resolved:
 

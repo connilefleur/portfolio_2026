@@ -33,3 +33,6 @@ browser-log.txt
 
 # Optional: Uncomment if you don't want to track projects in git
 # public/projects/
+
+# Archived components (not used but kept for reference)
+archived-components/

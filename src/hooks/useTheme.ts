@@ -1,22 +1,15 @@
-import { useEffect } from 'react';
-import { theme, themeToCSSVars } from '../config/theme';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 /**
- * Hook for applying theme colors
+ * Hook for accessing theme colors
+ * 
+ * @deprecated Use useThemeContext() instead for full theme control
+ * This hook is kept for backward compatibility
  */
 export function useTheme() {
-  // Apply theme to document
-  useEffect(() => {
-    const cssVars = themeToCSSVars(theme);
-    
-    // Apply CSS variables to root
-    const root = document.documentElement;
-    Object.entries(cssVars).forEach(([key, value]) => {
-      root.style.setProperty(key, value);
-    });
-  }, []);
-
+  const { currentTheme } = useThemeContext();
+  
   return {
-    themeColors: theme,
+    themeColors: currentTheme,
   };
 }

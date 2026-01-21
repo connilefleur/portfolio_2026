@@ -44,6 +44,8 @@ git add . && git commit -m "message" && git push
 ## What's Not Working
 **No known issues** - All features working as expected.
 
+**Note:** Files restored from git to ensure working state. Welcome message enhancement (see ISSUES.md) can be implemented later as a planned improvement.
+
 ---
 
 ## Recent Improvements (Latest Session)

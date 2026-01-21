@@ -2,92 +2,6 @@
  * Component-specific styles
  */
 
-/* Hint bar at bottom */
-.hint-bar {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-bg-secondary);
-  border-top: 1px solid var(--color-border);
-  flex-wrap: wrap;
-  align-items: center;
-  flex-shrink: 0;
-  font-family: 'Doto', sans-serif;
-}
-
-.hint-bar button {
-  background: var(--color-button-bg);
-  border: 1px solid var(--color-button-border);
-  color: var(--color-button-text);
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-family: 'Doto', sans-serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  outline: none;
-}
-
-.hint-bar button:hover {
-  background: var(--color-button-bg-hover);
-  color: var(--color-button-text-hover);
-  border-color: var(--color-border-hover);
-}
-
-.hint-bar button:focus {
-  outline: none;
-}
-
-.hint-bar button:active {
-  outline: none;
-}
-
-.hint-bar button code {
-  color: #ffffff;
-}
-
-.hint-bar .hint-esc {
-  margin-left: auto;
-  color: #ffffff;
-  font-size: 0.85rem;
-}
-
-.hint-bar .hint-esc code {
-  color: #ffffff;
-  background: var(--color-bg-tertiary);
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  margin: 0 0.25rem;
-}
-
-.hint-bar .hint-esc-button {
-  margin-left: auto;
-  background: var(--color-button-bg);
-  border: 1px solid var(--color-button-border);
-  color: var(--color-button-text);
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-family: 'Doto', sans-serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  outline: none;
-}
-
-.hint-bar .hint-esc-button:hover {
-  background: var(--color-button-bg-hover);
-  color: var(--color-button-text-hover);
-  border-color: var(--color-border-hover);
-}
-
-.hint-bar .hint-esc-button:focus {
-  outline: none;
-}
-
-.hint-bar .hint-esc-button:active {
-  outline: none;
-}
-
 /* Mobile game controls */
 .mobile-game-controls {
   position: fixed;
@@ -155,10 +69,12 @@
   flex: 1;
   max-width: 120px;
   height: 60px;
-  border-radius: 8px;
-  background: var(--color-bg-tertiary);
-  border: 2px solid var(--color-border);
-  color: #ffffff;
+  border-radius: 9999px; /* Apple pill shape - flowing liquid glass */
+  background: rgba(31, 42, 58, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(42, 52, 65, 0.4);
+  color: var(--color-text);
   font-size: 1.8rem;
   display: flex;
   align-items: center;
@@ -167,8 +83,15 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.15s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+  .mobile-control-btn {
+    background: var(--color-bg-tertiary);
+  }
 }
 
 /* Landscape mode: smaller buttons for side panel */
@@ -182,9 +105,10 @@
 }
 
 .mobile-control-btn:active {
-  background: var(--color-button-bg-hover);
+  background: rgba(42, 52, 65, 0.9);
   border-color: var(--color-border-hover);
   transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-control-btn:focus {
@@ -244,5 +168,106 @@
   .mobile-controls-grid {
     gap: 1rem;
     padding: 0 0.5rem;
+  }
+}
+
+/* macOS-style Window Controls */
+.window-controls {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 200;
+  pointer-events: auto;
+}
+
+.window-control {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.window-control-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: block;
+}
+
+.window-control-close {
+  background: #ff5f57;
+}
+
+.window-control-close .window-control-dot {
+  background: #ff5f57;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.window-control-close:hover {
+  background: #ff3b30;
+  transform: scale(1.1);
+}
+
+.window-control-close:hover .window-control-dot {
+  opacity: 1;
+}
+
+.window-control-minimize {
+  background: #ffbd2e;
+}
+
+.window-control-minimize .window-control-dot {
+  background: #ffbd2e;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.window-control-minimize:hover {
+  background: #ff9500;
+  transform: scale(1.1);
+}
+
+.window-control-minimize:hover .window-control-dot {
+  opacity: 1;
+}
+
+.window-control-maximize {
+  background: #28c840;
+}
+
+.window-control-maximize .window-control-dot {
+  background: #28c840;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.window-control-maximize:hover {
+  background: #20d046;
+  transform: scale(1.1);
+}
+
+.window-control-maximize:hover .window-control-dot {
+  opacity: 1;
+}
+
+.window-control:active {
+  transform: scale(0.95);
+}
+
+/* Hide window controls on mobile */
+@media (max-width: 768px) {
+  .window-controls {
+    display: none;
   }
 }
