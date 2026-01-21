@@ -27,6 +27,18 @@ public/projects-index.json
 public/projects-original/
 public/projects-optimized/
 
+# Video files (large, will be replaced with Vimeo/CDN)
+*.mp4
+*.mov
+*.avi
+*.webm
+*.mkv
+*.MP4
+*.MOV
+*.AVI
+*.WEBM
+*.MKV
+
 # Debug files
 browser-log.txt
 *.log
