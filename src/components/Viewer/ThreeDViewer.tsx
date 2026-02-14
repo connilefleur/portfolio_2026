@@ -1,6 +1,6 @@
 import { Suspense, useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment } from '@react-three/drei';
+import { OrbitControls, useGLTF } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 
@@ -143,13 +143,13 @@ function SceneContent({ src }: { src: string }) {
   
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 8, 5]} intensity={1.2} castShadow />
+      <directionalLight position={[-3, -2, 3]} intensity={0.4} />
       <Suspense fallback={null}>
         <Model src={src} />
         <FrameModel margin={0.05} onFramed={setFitDistance} />
       </Suspense>
-      <Environment preset="studio" />
       <Controls fitDistance={fitDistance} />
     </>
   );

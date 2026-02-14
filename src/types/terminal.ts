@@ -33,3 +33,10 @@ export interface GameHandler {
   onClick?: () => void; // Click/tap to start/pause
   render: (terminal: import('@xterm/xterm').Terminal) => void;
 }
+
+/** Global terminal ref for ANSI/width helpers; set by Terminal on mount, cleared on unmount */
+declare global {
+  interface Window {
+    __terminalRef?: import('@xterm/xterm').Terminal;
+  }
+}

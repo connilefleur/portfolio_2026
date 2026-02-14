@@ -31,7 +31,11 @@ export function useProjects() {
     loadProjects();
   }, []);
 
-  const getProject = (id: string) => projects.find(p => p.id === id);
+  const getProject = (id: string): Project | undefined => {
+    if (!id || !id.trim()) return undefined;
+    const normalized = id.trim().normalize('NFC');
+    return projects.find(p => p.id === normalized || p.id.trim().normalize('NFC') === normalized);
+  };
 
   return { projects, loading, error, getProject };
 }

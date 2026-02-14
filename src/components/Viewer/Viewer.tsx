@@ -16,7 +16,7 @@ interface ViewerProps {
   onPrev: () => void;
 }
 
-export function Viewer({ project, mediaIndex, onNext, onPrev }: ViewerProps) {
+export function Viewer({ project, mediaIndex, onClose, onNext, onPrev }: ViewerProps) {
   const media = project.media[mediaIndex];
   const hasMultiple = project.media.length > 1;
   const overlayRef = useRef<HTMLDivElement>(null);

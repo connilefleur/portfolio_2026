@@ -16,20 +16,38 @@ export const persistentCommandInstances = new Set<string>();
 // Store persistent command mappings (displayText -> command) so they can be re-added after clearing
 export const persistentCommandMappings = new Map<string, string>();
 
+/** Allowed URL schemes for [link:...] to prevent javascript: or other unsafe URIs */
+const ALLOWED_LINK_SCHEMES = ['http:', 'https:'];
+
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_LINK_SCHEMES.includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function isSafeMailto(email: string): boolean {
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
+}
+
 /**
  * Parse [cmd:xxx] or [cmd:display|command] patterns and return display text
  * [cmd:help] -> displays "help", executes "help"
  * [cmd:example-project|project example-project] -> displays "example-project", executes "project example-project"
- * Also parse [link:url|text] and [mailto:email|text] for external links
+ * Also parse [link:url|text] and [mailto:email|text] for external links (only http/https and valid mailto)
  */
 export function parseClickableCommands(text: string): string {
   // Parse external links: [link:url|text] or [mailto:email|text]
   text = text.replace(/\[(link|mailto):([^\|]+)\|([^\]]+)\]/g, (_match, type, urlOrEmail, displayText) => {
     let url: string;
     if (type === 'mailto') {
-      url = `mailto:${urlOrEmail}`;
+      if (!isSafeMailto(urlOrEmail)) return _match;
+      url = `mailto:${urlOrEmail.trim()}`;
     } else {
-      url = urlOrEmail;
+      if (!isSafeUrl(urlOrEmail.trim())) return _match;
+      url = urlOrEmail.trim();
     }
     
     // Register this link as clickable

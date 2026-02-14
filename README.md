@@ -159,4 +159,4 @@ scripts/
   discover-projects.js  # Build-time project scanner
 ```
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed architecture documentation.
+See `TODO.md` and `THEME_SYSTEM.md` for more project details.

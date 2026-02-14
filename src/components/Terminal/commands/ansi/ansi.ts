@@ -26,7 +26,7 @@ export const ansi: CommandHandler = {
     let maxWidth: number | undefined;
     if (typeof window !== 'undefined') {
       // Try to get terminal reference to get actual cols
-      const terminal = (window as any).__terminalRef;
+      const terminal = window.__terminalRef;
       if (terminal && terminal.cols) {
         maxWidth = Math.floor(terminal.cols * 0.95);
       } else {

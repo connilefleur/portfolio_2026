@@ -1,10 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { Terminal as XTerm, ITerminalOptions } from '@xterm/xterm';
+import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { executeCommand, commands } from './commands';
 import { parseClickableCommands, clickableCommands, disabledCommands, clearClickableCommands, clearActiveClickableCommands, persistentCommandInstances, applyDisabledStyle } from './utils/clickableCommands';
 import { displayLogoAndWelcome } from './utils/displayLogo';
+import { getTerminalOptions } from './utils/terminalOptions';
 import { useTerminalEvents } from './hooks/useTerminalEvents';
 import { PROMPT } from './constants';
 import { Project } from '../../types/projects';
@@ -144,7 +145,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
     if (onGameStateChange) {
       onGameStateChange(false);
     }
-  }, [displayLogoAndWelcome, onGameStateChange]);
+  }, [displayLogoAndWelcomeCallback, onGameStateChange]);
 
   // Expose exitGame function globally for ESC button
   useEffect(() => {
@@ -327,40 +328,7 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
         return;
       }
 
-      const options: ITerminalOptions = {
-        theme: {
-          background: currentTheme.terminal.background,
-          foreground: currentTheme.terminal.foreground,
-          cursor: currentTheme.terminal.cursor,
-          cursorAccent: currentTheme.terminal.cursorAccent,
-          selectionBackground: currentTheme.terminal.selectionBackground,
-          black: currentTheme.terminal.black,
-          red: currentTheme.terminal.red,
-          green: currentTheme.terminal.green,
-          yellow: currentTheme.terminal.yellow,
-          blue: currentTheme.terminal.blue,
-          magenta: currentTheme.terminal.magenta,
-          cyan: currentTheme.terminal.cyan,
-          white: currentTheme.terminal.white,
-          brightBlack: currentTheme.terminal.brightBlack,
-          brightRed: currentTheme.terminal.brightRed,
-          brightGreen: currentTheme.terminal.brightGreen,
-          brightYellow: currentTheme.terminal.brightYellow,
-          brightBlue: currentTheme.terminal.brightBlue,
-          brightMagenta: currentTheme.terminal.brightMagenta,
-          brightCyan: currentTheme.terminal.brightCyan,
-          brightWhite: currentTheme.terminal.brightWhite,
-        },
-        fontFamily: "'Anonymous Pro', monospace",
-        fontSize: window.innerWidth < 768 ? 16 : 14,
-        lineHeight: window.innerWidth < 768 ? 1.2 : 1.2,
-        cursorBlink: true,
-        cursorStyle: 'block',
-        scrollback: 1000,
-        allowProposedApi: true,
-      };
-
-      const terminal = new XTerm(options);
+      const terminal = new XTerm(getTerminalOptions(currentTheme));
       const fitAddon = new FitAddon();
       terminal.loadAddon(fitAddon);
 
@@ -391,10 +359,9 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
         fitAddonRef.current = fitAddon;
         
         // Expose terminal reference globally for ANSI art width calculation
-        (window as any).__terminalRef = terminal;
+        window.__terminalRef = terminal;
 
-        // Fit terminal after renderer is initialized
-        // Add a small delay to ensure renderer is fully ready
+        // Fit once so terminal has dimensions and DOM rows for measurement
         setTimeout(() => {
           try {
             if (terminalRef.current && fitAddonRef.current) {
@@ -406,14 +373,47 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
         }, 0);
       });
 
-      // Fit terminal first, then display logo with correct dimensions
-      // This ensures terminal.cols is accurate before generating the logo
-      setTimeout(() => {
-        // Display logo and welcome message (isInitial=true to prevent duplicates)
-        displayLogoAndWelcomeCallback(true);
-      }, 50);
+      // Show logo only when container size is stable (avoids wrong cols on small/first paint)
+      let lastWidth = 0;
+      let lastHeight = 0;
+      let stableCount = 0;
+      let logoScheduled = false;
+      const scheduleLogoOnce = () => {
+        if (logoScheduled) return;
+        logoScheduled = true;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            try {
+              if (fitAddonRef.current) fitAddonRef.current.fit();
+            } catch {
+              // ignore
+            }
+            displayLogoAndWelcomeCallback(true);
+          });
+        });
+      };
+      const resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || !containerRef.current) return;
+        const { width, height } = entry.contentRect;
+        const w = Math.round(width);
+        const h = Math.round(height);
+        if (w <= 0 || h <= 0) return;
+        if (w === lastWidth && h === lastHeight) {
+          stableCount++;
+          if (stableCount >= 2) scheduleLogoOnce();
+        } else {
+          lastWidth = w;
+          lastHeight = h;
+          stableCount = 0;
+        }
+      });
+      resizeObserver.observe(container);
+      // If size is already stable (e.g. no further layout), show logo after a short delay
+      const fallbackLogo = setTimeout(() => {
+        if (!logoScheduled) scheduleLogoOnce();
+      }, 150);
 
-      // Handle resize
       const handleResize = () => {
         try {
           fitAddon.fit();
@@ -424,7 +424,10 @@ export function Terminal({ projects, currentViewer, onAction, onGameStateChange 
       window.addEventListener('resize', handleResize);
 
       (container as HTMLDivElement & { _cleanup?: () => void })._cleanup = () => {
+        clearTimeout(fallbackLogo);
+        resizeObserver.disconnect();
         window.removeEventListener('resize', handleResize);
+        delete window.__terminalRef;
         terminal.dispose();
         terminalRef.current = null;
       };

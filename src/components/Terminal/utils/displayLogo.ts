@@ -1,14 +1,14 @@
 /**
  * Display Logo and Welcome Message Utility
- * 
- * Handles displaying the ANSI art logo and welcome message in the terminal
+ *
+ * Handles displaying the ANSI art logo and welcome message in the terminal.
+ * Uses measured DOM dimensions for column count so the logo fits on all display sizes.
  */
 
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { getConnilefleurArt } from '../ansi';
 import { parseClickableCommands, persistentCommandInstances, persistentCommandMappings } from './clickableCommands';
-import { PROMPT } from '../constants';
 
 export interface DisplayLogoParams {
   terminal: XTerm;
@@ -19,6 +19,28 @@ export interface DisplayLogoParams {
   initialLineCountRef: React.MutableRefObject<number>;
 }
 
+const MIN_COLS = 20;
+const FALLBACK_COLS_DESKTOP = 80;
+const FALLBACK_COLS_MOBILE = 40;
+
+/**
+ * Get column count from actual DOM measurements so the logo width matches
+ * what the terminal will display (avoids terminal.cols being wrong before layout settles).
+ */
+function getColsFromDOM(container: HTMLElement): number | null {
+  const viewport = container.querySelector('.xterm-viewport') as HTMLElement | null;
+  const rows = container.querySelector('.xterm-rows') as HTMLElement | null;
+  if (!viewport || !rows || !rows.firstElementChild) return null;
+  const firstRow = rows.firstElementChild as HTMLElement;
+  const firstCell = firstRow.firstElementChild as HTMLElement | null;
+  if (!firstCell || firstCell.offsetWidth <= 0) return null;
+  const viewportWidth = viewport.clientWidth;
+  if (viewportWidth <= 0) return null;
+  const cellWidth = firstCell.offsetWidth;
+  const cols = Math.floor(viewportWidth / cellWidth);
+  return cols >= MIN_COLS ? cols : null;
+}
+
 export function displayLogoAndWelcome({
   terminal,
   fitAddon,
@@ -27,7 +49,16 @@ export function displayLogoAndWelcome({
   writePrompt,
   initialLineCountRef,
 }: DisplayLogoParams) {
-  // Ensure terminal is fitted before getting cols
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  const doWriteLogo = (cols: number): number => {
+    const safeCols = cols < MIN_COLS ? (isMobile ? FALLBACK_COLS_MOBILE : FALLBACK_COLS_DESKTOP) : cols;
+    const logo = getConnilefleurArt(safeCols);
+    const logoLinesArray = logo.split('\n');
+    logoLinesArray.forEach((line) => writeLine(line));
+    return logoLinesArray.length;
+  };
+
   if (fitAddon) {
     try {
       fitAddon.fit();
@@ -36,65 +67,53 @@ export function displayLogoAndWelcome({
     }
   }
 
-  // On mobile, temporarily reduce font size to make ANSI art half size
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   let originalFontSize: string | null = null;
-  
   if (isMobile && container) {
     const xtermElement = container.querySelector('.xterm') as HTMLElement;
     if (xtermElement) {
-      // Save original font size
       originalFontSize = window.getComputedStyle(xtermElement).fontSize;
-      // Set to half size for ANSI art
-      xtermElement.style.fontSize = '8px'; // Half of 16px
+      xtermElement.style.fontSize = '8px';
+    }
+    if (fitAddon) {
+      try {
+        fitAddon.fit();
+      } catch {
+        // ignore
+      }
     }
   }
-  
-  const logo = getConnilefleurArt(terminal.cols);
-  const logoLinesArray = logo.split('\n');
-  logoLinesArray.forEach((line) => {
-    writeLine(line);
-  });
-  
-  // Restore original font size after logo
+
+  const cols =
+    (container && getColsFromDOM(container)) ??
+    terminal.cols ??
+    (isMobile ? FALLBACK_COLS_MOBILE : FALLBACK_COLS_DESKTOP);
+
+  const logoLineCount = doWriteLogo(cols);
+
   if (isMobile && container && originalFontSize) {
-    setTimeout(() => {
-      const xtermElement = container.querySelector('.xterm') as HTMLElement;
-      if (xtermElement) {
-        xtermElement.style.fontSize = originalFontSize;
+    const xtermElement = container.querySelector('.xterm') as HTMLElement;
+    if (xtermElement) xtermElement.style.fontSize = originalFontSize;
+    if (fitAddon) {
+      try {
+        fitAddon.fit();
+      } catch {
+        // ignore
       }
-    }, 10);
+    }
   }
 
-  // Welcome message with clickable commands
-  // Align to left edge (no leading spaces) to match ANSI art and tagline/subtitle
   writeLine('');
-  // More monochrome welcome message - plain text, no special styling
   writeLine("Welcome! Click the highlighted commands below, or type your own.");
   writeLine('');
-  
-  const openLine = parseClickableCommands("→ [cmd:open] to browse projects");
-  writeLine(openLine);
-  // Mark the "open" command in this line as persistent (from initial welcome)
+  writeLine(parseClickableCommands("→ [cmd:open] to browse projects"));
   persistentCommandInstances.add('open:initial');
-  // Store the mapping so it can be re-added after clearing
   persistentCommandMappings.set('open', 'open');
-  
-  const helpLine = parseClickableCommands("→ [cmd:help] for more commands");
-  writeLine(helpLine);
-  // Mark the "help" command in this line as persistent (from initial welcome)
+  writeLine(parseClickableCommands("→ [cmd:help] for more commands"));
   persistentCommandInstances.add('help:initial');
-  // Store the mapping so it can be re-added after clearing
   persistentCommandMappings.set('help', 'help');
-  
-  const escLine = "→ Press ESC or browser back button to close overlays";
-  writeLine(escLine);
+  writeLine("→ Press ESC or browser back button to close overlays");
   writeLine('');
   writePrompt();
-  
-  // Track initial line count for limited history mode
-  // Count: logo lines + empty + name + tagline + subtitle + empty + welcomeIntro + empty + open + help + esc + empty
-  // (prompt is written separately, so we don't count it as "initial")
-  // Note: logo includes an empty line between logo and name
-  initialLineCountRef.current = logoLinesArray.length + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1; // logo (includes empty line) + name + tagline + subtitle + empty + welcomeIntro + empty + open + help + esc + empty
+  initialLineCountRef.current =
+    logoLineCount + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1;
 }

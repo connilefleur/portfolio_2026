@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'react';
 import { GameHandler } from '../../../types/terminal';
 import { clickableCommands, clickableLinks, applyDisabledStyle, disabledCommands, persistentCommandInstances, persistentCommandMappings } from '../utils/clickableCommands';
+import { getFullClickableText } from '../utils/clickableText';
 
 export interface UseTerminalEventsParams {
   container: HTMLElement;
@@ -55,64 +56,28 @@ export function useTerminalEvents({
         }
       }
       
-      // Check if clicked element has xterm-underline class (indicates a clickable command or link)
-      if (target.classList.toString().includes('xterm-underline')) {
-        const text = target.textContent?.trim();
-        
-        // Check for external link first
-        if (text && clickableLinks.has(text)) {
-          const url = clickableLinks.get(text)!;
-          e.preventDefault();
-          e.stopPropagation();
-          window.open(url, '_blank', 'noopener,noreferrer');
-          return;
-        }
-        
-        // Check for command (including persistent commands)
+      // Resolve full clickable text (xterm often uses one span per character)
+      const underlinedEl = target.classList.toString().includes('xterm-underline')
+        ? target
+        : target.closest('[class*="xterm-underline"]') as HTMLElement | null;
+      if (underlinedEl) {
+        const text = getFullClickableText(underlinedEl);
         if (text) {
-          let command: string | undefined = clickableCommands.get(text);
-          // Fallback: check persistent command mappings if not in active commands
-          if (!command && persistentCommandMappings.has(text)) {
-            command = persistentCommandMappings.get(text);
-          }
-          if (command) {
+          if (clickableLinks.has(text)) {
+            const url = clickableLinks.get(text)!;
             e.preventDefault();
             e.stopPropagation();
-            setTimeout(() => {
-              injectCommand(command!);
-            }, 0);
+            window.open(url, '_blank', 'noopener,noreferrer');
             return;
           }
-        }
-      }
-      
-      // Also check parent for underline class
-      const underlinedParent = target.closest('[class*="xterm-underline"]') as HTMLElement;
-      if (underlinedParent) {
-        const text = underlinedParent.textContent?.trim();
-        
-        // Check for external link first
-        if (text && clickableLinks.has(text)) {
-          const url = clickableLinks.get(text)!;
-          e.preventDefault();
-          e.stopPropagation();
-          window.open(url, '_blank', 'noopener,noreferrer');
-          return;
-        }
-        
-        // Check for command (including persistent commands)
-        if (text) {
           let command: string | undefined = clickableCommands.get(text);
-          // Fallback: check persistent command mappings if not in active commands
           if (!command && persistentCommandMappings.has(text)) {
             command = persistentCommandMappings.get(text);
           }
           if (command) {
             e.preventDefault();
             e.stopPropagation();
-            setTimeout(() => {
-              injectCommand(command!);
-            }, 0);
+            setTimeout(() => injectCommand(command!), 0);
             return;
           }
         }
@@ -168,40 +133,33 @@ export function useTerminalEvents({
                             target.closest('[class*="xterm-underline"]');
         
         if (isClickable) {
-          const underlinedElement = target.closest('[class*="xterm-underline"]') as HTMLElement || target;
-          const text = underlinedElement.textContent?.trim();
-          
-          // Check for external link first
-          if (text && clickableLinks.has(text)) {
-            const url = clickableLinks.get(text)!;
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(url, '_blank', 'noopener,noreferrer');
-            touchStartTimeRef.current = 0;
-            touchStartTargetRef.current = null;
-            touchStartPosRef.current = null;
-            return;
-          }
-          
-            // Check for command (including persistent commands)
-            if (text) {
-              let command: string | undefined = clickableCommands.get(text);
-              // Fallback: check persistent command mappings if not in active commands
-              if (!command && persistentCommandMappings.has(text)) {
-                command = persistentCommandMappings.get(text);
-              }
-              if (command) {
-                e.preventDefault();
-                e.stopPropagation();
-                setTimeout(() => {
-                  injectCommand(command!);
-                }, 10);
-                touchStartTimeRef.current = 0;
-                touchStartTargetRef.current = null;
-                touchStartPosRef.current = null;
-                return;
-              }
+          const underlinedElement = (target.closest('[class*="xterm-underline"]') as HTMLElement) || target;
+          const text = getFullClickableText(underlinedElement);
+          if (text) {
+            if (clickableLinks.has(text)) {
+              const url = clickableLinks.get(text)!;
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(url, '_blank', 'noopener,noreferrer');
+              touchStartTimeRef.current = 0;
+              touchStartTargetRef.current = null;
+              touchStartPosRef.current = null;
+              return;
             }
+            let command: string | undefined = clickableCommands.get(text);
+            if (!command && persistentCommandMappings.has(text)) {
+              command = persistentCommandMappings.get(text);
+            }
+            if (command) {
+              e.preventDefault();
+              e.stopPropagation();
+              setTimeout(() => injectCommand(command!), 10);
+              touchStartTimeRef.current = 0;
+              touchStartTargetRef.current = null;
+              touchStartPosRef.current = null;
+              return;
+            }
+          }
         }
         
         // If a game is active, handle tap to pause/resume
