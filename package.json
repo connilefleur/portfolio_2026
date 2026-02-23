@@ -1,34 +1,25 @@
 {
-  "name": "terminal-portfolio",
-  "version": "1.0.0",
+  "name": "connilefleur-portfolio-canvas",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run optimize && npm run discover && tsc && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "build": "npm run generate:projects && tsc -b && vite build",
+    "check": "npm run generate:projects && npm run typecheck && vite build",
     "preview": "vite preview",
-    "discover": "node scripts/discover-projects.js",
-    "optimize": "node scripts/optimize-images.js",
-    "restore": "node scripts/restore-originals.js"
+    "generate:projects": "node scripts/generate-projects-index.mjs"
   },
   "dependencies": {
-    "@react-three/drei": "^9.117.0",
-    "@react-three/fiber": "^8.17.10",
-    "@xterm/addon-fit": "^0.10.0",
-    "@xterm/addon-web-links": "^0.11.0",
-    "@xterm/xterm": "^5.5.0",
-    "framer-motion": "^12.27.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "three": "^0.169.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@types/three": "^0.169.0",
-    "@vitejs/plugin-react": "^4.3.3",
-    "sharp": "^0.34.5",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.4.1"
   }
 }

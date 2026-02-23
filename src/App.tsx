@@ -1,142 +1,230 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Terminal } from './components/Terminal/Terminal';
-import { MobileGameControls } from './components/Terminal/MobileGameControls';
-import { Viewer } from './components/Viewer/Viewer';
-import { useProjects } from './hooks/useProjects';
-import { useViewer } from './hooks/useViewer';
-import { useTheme } from './hooks/useTheme';
-import { CommandAction } from './types/terminal';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CanvasEngine } from "./canvas/CanvasEngine";
+import {
+  DEFAULT_TILE,
+  type TileConfig,
+  type TileId,
+  getAdjacentTileId,
+  getProjectSlugFromTileId,
+  getProjectTiles,
+  getTileRegistry,
+  isProjectTileId,
+  parseTileId
+} from "./canvas/tileRegistry";
+import { loadProjectsIndex, siteInfo } from "./data/siteData";
+import type { ProjectItem } from "./types/content";
+import { LandingTile } from "./tiles/LandingTile";
+import { MoreWorkTile } from "./tiles/MoreWorkTile";
+import { ProjectDarkTile } from "./tiles/ProjectDarkTile";
+import { ProjectOverviewTile } from "./tiles/ProjectOverviewTile";
+import { WorkTogetherTile } from "./tiles/WorkTogetherTile";
+import { NavRopeOverlay } from "./components/NavRopeOverlay";
+
+function readTileFromUrl(registry: TileConfig[]): TileId {
+  const params = new URLSearchParams(window.location.search);
+  return parseTileId(params.get("tile"), registry) ?? DEFAULT_TILE;
+}
+
+function writeTileToUrl(tileId: TileId, mode: "push" | "replace" = "push") {
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("tile", tileId);
+  if (mode === "replace") {
+    window.history.replaceState({ tileId }, "", nextUrl);
+    return;
+  }
+  window.history.pushState({ tileId }, "", nextUrl);
+}
+
+function getInitialIntroPhase(): "active" | "exiting" | "done" {
+  const params = new URLSearchParams(window.location.search);
+  const initialTile = params.get("tile");
+  if (initialTile && initialTile !== "landing") {
+    return "done";
+  }
+  return "active";
+}
 
 export default function App() {
-  useTheme(); // Apply theme colors
-  const { projects, loading, getProject } = useProjects();
-  const { 
-    viewer, 
-    openViewer, 
-    closeViewer, 
-    nextMedia, 
-    prevMedia,
-    currentProject 
-  } = useViewer(getProject);
-  const [hasGame, setHasGame] = useState(false);
-  const [currentGameId, setCurrentGameId] = useState<string | undefined>();
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const tileRegistry = useMemo(() => getTileRegistry(projects), [projects]);
+  const [activeTileId, setActiveTileId] = useState<TileId>(DEFAULT_TILE);
+  const [introPhase, setIntroPhase] = useState<"active" | "exiting" | "done">(getInitialIntroPhase);
+  const introTimerRef = useRef<number | null>(null);
+  const [themeMode, setThemeMode] = useState<"dark" | "light">(() => {
+    const saved = window.localStorage.getItem("theme-mode");
+    return saved === "light" ? "light" : "dark";
+  });
 
-  // Function to handle ESC/back behavior
-  const handleEscape = useCallback(() => {
-    // Exit game first if active
-    if (hasGame) {
-      const exitGame = (window as unknown as { exitGame?: () => void }).exitGame;
-      if (exitGame) {
-        exitGame();
-        setHasGame(false);
+  useEffect(() => {
+    document.title = siteInfo.meta.title;
+    const descriptionTag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (descriptionTag) {
+      descriptionTag.content = siteInfo.meta.description;
+    } else {
+      const meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      meta.setAttribute("content", siteInfo.meta.description);
+      document.head.appendChild(meta);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProjectsIndex()
+      .then((items) => setProjects(items))
+      .catch(() => setProjects([]));
+  }, []);
+
+  const hasInitialUrlSync = useRef(false);
+  const previousTileId = useRef<TileId | null>(null);
+  const skipNextUrlWrite = useRef(false);
+  useEffect(() => {
+    if (tileRegistry.length > 0 && !hasInitialUrlSync.current) {
+      const initialTile = readTileFromUrl(tileRegistry);
+      previousTileId.current = initialTile;
+      setActiveTileId(initialTile);
+      hasInitialUrlSync.current = true;
+    }
+  }, [tileRegistry]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const nextTile = readTileFromUrl(tileRegistry);
+      skipNextUrlWrite.current = true;
+      previousTileId.current = nextTile;
+      setActiveTileId(nextTile);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [tileRegistry]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (introPhase !== "done") return;
+      const projectTiles = getProjectTiles(tileRegistry);
+      const inProjectMode = isProjectTileId(activeTileId) && projectTiles.length > 0;
+
+      if (inProjectMode && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+        event.preventDefault();
+        const idx = projectTiles.findIndex((t) => t.id === activeTileId);
+        if (idx < 0) return;
+        const next =
+          event.key === "ArrowDown"
+            ? projectTiles[Math.min(idx + 1, projectTiles.length - 1)]
+            : projectTiles[Math.max(idx - 1, 0)];
+        setActiveTileId(next.id);
+        return;
       }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setActiveTileId((current) => getAdjacentTileId(current, 1, 0, tileRegistry));
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setActiveTileId((current) => getAdjacentTileId(current, -1, 0, tileRegistry));
+      }
+      if (!inProjectMode && event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveTileId((current) => getAdjacentTileId(current, 0, 1, tileRegistry));
+      }
+      if (!inProjectMode && event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveTileId((current) => getAdjacentTileId(current, 0, -1, tileRegistry));
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [tileRegistry, activeTileId, introPhase]);
+
+  useEffect(() => {
+    if (!hasInitialUrlSync.current) return;
+    if (skipNextUrlWrite.current) {
+      skipNextUrlWrite.current = false;
+      previousTileId.current = activeTileId;
       return;
     }
-    if (viewer) {
-      closeViewer();
-      // Refresh terminal after viewer closes
-      setTimeout(() => {
-        const refreshTerminal = (window as unknown as { refreshTerminal?: () => void }).refreshTerminal;
-        if (refreshTerminal) {
-          refreshTerminal();
-        }
-      }, 100);
-      // Remove focus from any active element to prevent focus outline
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
+
+    const prev = previousTileId.current;
+    if (prev === activeTileId) return;
+
+    const wasProject = prev ? isProjectTileId(prev) : false;
+    const isProject = isProjectTileId(activeTileId);
+
+    if (!wasProject && isProject && prev && prev !== "landing") {
+      // Ensure one-step back from any project returns to landing.
+      writeTileToUrl("landing", "push");
     }
-  }, [viewer, closeViewer, hasGame]);
 
-  // Global ESC key handler
+    const mode: "push" | "replace" = wasProject && isProject ? "replace" : "push";
+    writeTileToUrl(activeTileId, mode);
+    previousTileId.current = activeTileId;
+  }, [activeTileId]);
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleEscape();
-      }
-    };
+    window.localStorage.setItem("theme-mode", themeMode);
+  }, [themeMode]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleEscape]);
+  const startIntroExit = useCallback(() => {
+    if (introPhase !== "active") return;
+    setIntroPhase("exiting");
+    introTimerRef.current = window.setTimeout(() => {
+      setIntroPhase("done");
+      introTimerRef.current = null;
+    }, 420);
+  }, [introPhase]);
 
-  // Browser back button handler (popstate)
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      // If viewer or game is open, close it instead of navigating back
-      if (viewer || hasGame) {
-        e.preventDefault();
-        handleEscape();
-        // Push current state back to prevent navigation
-        window.history.pushState(null, '', window.location.href);
+    return () => {
+      if (introTimerRef.current) {
+        window.clearTimeout(introTimerRef.current);
       }
     };
+  }, []);
 
-    // Push initial state
-    window.history.pushState({ viewer: false }, '', window.location.href);
-    
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [viewer, hasGame, handleEscape]);
+  const goToTile = useCallback((tileId: TileId) => setActiveTileId(tileId), []);
 
-  // Update history when viewer/game state changes
-  useEffect(() => {
-    if (viewer || hasGame) {
-      window.history.pushState({ viewer: true }, '', window.location.href);
-    }
-  }, [viewer, hasGame]);
-
-  const handleAction = useCallback((action: CommandAction) => {
-    switch (action.type) {
-      case 'open-viewer':
-        openViewer(action.projectId, action.mediaIndex);
-        break;
-      case 'close-viewer':
-        closeViewer();
-        break;
-      case 'clear':
-        // Terminal handles this internally
-        break;
-    }
-  }, [openViewer, closeViewer]);
-
-  if (loading) {
-    return (
-      <div className="app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'var(--color-text)' }}>Loading...</p>
-      </div>
-    );
-  }
+  const tileRenderer = useCallback(
+    (tile: TileConfig) => {
+      const projectSlug = getProjectSlugFromTileId(tile.id);
+      if (projectSlug) {
+        const project = projects.find((p) => p.slug === projectSlug);
+        return <ProjectDarkTile project={project} projects={projects} goToTile={goToTile} />;
+      }
+      switch (tile.id) {
+        case "landing":
+          return (
+            <LandingTile
+              projects={projects}
+              siteInfo={siteInfo}
+              goToTile={goToTile}
+              introPhase={introPhase}
+              onIntroEnter={startIntroExit}
+            />
+          );
+        case "recognition":
+          return <MoreWorkTile goToTile={goToTile} />;
+        case "about-me":
+          return <ProjectOverviewTile projects={projects} goToTile={goToTile} />;
+        case "work-together":
+          return <WorkTogetherTile siteInfo={siteInfo} goToTile={goToTile} />;
+        default:
+          return null;
+      }
+    },
+    [goToTile, introPhase, projects, startIntroExit]
+  );
 
   return (
-    <div className="app">
-      <Terminal 
-        projects={projects}
-        currentViewer={viewer}
-        onAction={handleAction}
-        onGameStateChange={(hasGame, gameId) => {
-          setHasGame(hasGame);
-          setCurrentGameId(gameId);
-        }}
-      />
-      
-      {viewer && currentProject && (
-        <Viewer
-          project={currentProject}
-          mediaIndex={viewer.mediaIndex}
-          onClose={closeViewer}
-          onNext={nextMedia}
-          onPrev={prevMedia}
+    <main className="app-shell" data-theme={themeMode} data-intro={introPhase}>
+      <div className="app-content">
+        <CanvasEngine
+          activeTileId={activeTileId}
+          tileRegistry={tileRegistry}
+          renderTile={tileRenderer}
+          introPhase={introPhase}
         />
-      )}
-      
-      <MobileGameControls 
-        isActive={hasGame}
-        gameId={currentGameId}
-        onKeyPress={() => {
-          // Keys are handled by global event listener in Terminal
-        }}
-      />
-    </div>
+        <NavRopeOverlay />
+      </div>
+    </main>
   );
 }

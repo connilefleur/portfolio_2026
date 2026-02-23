@@ -1,0 +1,73 @@
+:root {
+  --font-main: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* 5 font sizes: caption → lead → heading → heading-lg → display */
+  --font-size-caption: 0.875rem;
+  --font-size-lead: 1.5rem;
+  --font-size-heading: 2rem;
+  --font-size-heading-lg: clamp(2rem, 2.2vw, 2.6rem);
+  --font-size-display: clamp(2rem, 4vw, 4rem);
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --bg-page: #d4d5d8;
+  --surface-bg: #020202;
+  --surface-text: #f3f3f4;
+  --muted-text: #8d8d92;
+  --line-color: #3f3f42;
+  --soft-card: linear-gradient(145deg, #cfd1d8, #c1c3cb);
+  --nav-bg: rgba(0, 0, 0, 0.18);
+  --nav-button-bg: rgba(255, 255, 255, 0.88);
+  --nav-button-fg: #111;
+  --nav-button-active-bg: #111;
+  --nav-button-active-fg: #fff;
+  --radius-shell: 20px;
+  --radius-card: 20px;
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+}
+
+.app-shell[data-theme="light"] {
+  --surface-bg: #f4f4f5;
+  --surface-text: #101010;
+  --muted-text: #8d8e96;
+  --line-color: #bebec2;
+  --nav-bg: rgba(255, 255, 255, 0.55);
+  --nav-button-bg: rgba(20, 20, 20, 0.08);
+  --nav-button-fg: #111;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: auto;
+  font-family: var(--font-main);
+  background: var(--bg-page);
+}
+
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-main);
+  background: var(--bg-page);
+}
+
+
+button,
+a {
+  color: inherit;
+  font: inherit;
+}

@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "title": "Portfolio",
+    "description": "Creative Developer & Digital Artist – Conrad Löffler"
+  },
+  "brand": {
+    "name": "Conrad Loeffler",
+    "tagline": "Creative Developer & Digital Artist",
+    "subtitle": "Building beautiful digital experiences"
+  },
+  "contact": {
+    "email": "connilefleur@protonmail.com",
+    "instagram": "connilefleur",
+    "blurb": "Feel free to reach out for collaborations, questions, or just to say hello."
+  },
+  "imprint": {
+    "name": "Conrad Löffler",
+    "address": "Teckstraße 15, Tübingen-Pfrondorf",
+    "email": "connilefleur@protonmail.com",
+    "liability": "The contents of this website have been created with the utmost care. However, I cannot guarantee the accuracy, completeness, or timeliness of the content.",
+    "copyright": "The content and works on this website are subject to copyright. Any duplication, processing, distribution, or any form of commercialization beyond the scope of copyright law requires prior written consent.",
+    "lastUpdated": "January 2026"
+  }
+}

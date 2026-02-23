@@ -1,50 +1,13 @@
-# Dependencies
 node_modules/
-package-lock.json
-yarn.lock
-
-# Build outputs
 dist/
-build/
-*.log
-
-# Environment
-.env
-.env.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
 .DS_Store
-Thumbs.db
-
-# Generated files
-public/projects-index.json
-public/projects-original/
-public/projects-optimized/
-
-# Video files (large, will be replaced with Vimeo/CDN)
-*.mp4
-*.mov
-*.avi
-*.webm
-*.mkv
-*.MP4
-*.MOV
-*.AVI
-*.WEBM
-*.MKV
-
-# Debug files
-browser-log.txt
+*.tsbuildinfo
 *.log
 
-# Optional: Uncomment if you don't want to track projects in git
-# public/projects/
+# Vite / editor
+.vite/
+.idea/
+.vscode/
 
-# Archived components (not used but kept for reference)
-archived-components/
+# Local generated data caches
+public/projects-index.json
