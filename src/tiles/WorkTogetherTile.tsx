@@ -11,9 +11,8 @@ export function WorkTogetherTile({ siteInfo, goToTile }: WorkTogetherTileProps) 
   return (
     <TileFrame>
       <header className="tile-header tiny">
-        <button className="text-link tiny" data-nav-anchor="true" onClick={() => goToTile("landing")}>
-          BACK
-        </button>
+        <span>CONRAD LOEFFLER</span>
+        <span>PORTFOLIO 2026</span>
       </header>
       <button className="avatar-placeholder contact-avatar" onClick={() => goToTile("landing")} aria-label="Back home" />
       <div className="contact-layout">

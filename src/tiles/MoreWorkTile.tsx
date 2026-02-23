@@ -27,12 +27,12 @@ const dummyRecognitions: RecognitionItem[] = [
 ];
 
 export function MoreWorkTile({ goToTile }: MoreWorkTileProps) {
+  void goToTile;
   return (
     <TileFrame>
       <header className="tile-header tiny">
-        <button className="text-link tiny" data-nav-anchor="true" onClick={() => goToTile("landing")}>
-          BACK
-        </button>
+        <span>CONRAD LOEFFLER</span>
+        <span>PORTFOLIO 2026</span>
       </header>
       <h2 className="tile-title">Recognition</h2>
       <div className="work-table">
@@ -50,7 +50,7 @@ export function MoreWorkTile({ goToTile }: MoreWorkTileProps) {
               <span>{recognition.year}</span>
               <span>{recognition.publication}</span>
               <span>{recognition.description}</span>
-              <button className="text-link align-right" onClick={() => goToTile("about-me")}>
+              <button className="text-link align-right" onClick={() => goToTile("work-together")}>
                 VIEW
               </button>
             </div>

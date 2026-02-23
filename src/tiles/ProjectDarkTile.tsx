@@ -18,6 +18,8 @@ function fallbackProject(): ProjectItem {
     year: 2025,
     client: "Client",
     tags: [],
+    approach: "Project details will be added soon.",
+    outcomes: "Project details will be added soon.",
     media: [],
     path: ""
   };
@@ -26,27 +28,13 @@ function fallbackProject(): ProjectItem {
 export function ProjectDarkTile({ project, projects, goToTile }: ProjectDarkTileProps) {
   const displayProject = project ?? (projects.length > 0 ? projects[0] : fallbackProject());
   const description = displayProject.description || "Project details will be added soon.";
-  const projectIndex = projects.findIndex((p) => p.slug === displayProject.slug);
-  const previousProject = projectIndex > 0 ? projects[projectIndex - 1] : null;
-  const nextProject = projectIndex >= 0 && projectIndex < projects.length - 1 ? projects[projectIndex + 1] : null;
+  void goToTile;
 
   return (
     <TileFrame>
       <header className="tile-header tiny">
-        <button
-          className="text-link tiny"
-          data-nav-anchor="true"
-          onClick={() => (previousProject ? goToTile(`project-${previousProject.slug}` as TileId) : goToTile("landing"))}
-        >
-          {previousProject ? "PREVIOUS" : "HOME"}
-        </button>
-        <button
-          className="text-link tiny"
-          data-nav-anchor="true"
-          onClick={() => (nextProject ? goToTile(`project-${nextProject.slug}` as TileId) : goToTile("landing"))}
-        >
-          {nextProject ? "NEXT" : "HOME"}
-        </button>
+        <span>CONRAD LOEFFLER</span>
+        <span>PORTFOLIO 2026</span>
       </header>
       <div className="project-detail">
         <div className="detail-top">
@@ -75,11 +63,11 @@ export function ProjectDarkTile({ project, projects, goToTile }: ProjectDarkTile
           <div className="mock-media" />
           <div>
             <h4>Approach</h4>
-            <p>{description}</p>
+            <p>{displayProject.approach || description}</p>
           </div>
           <div>
             <h4>Outcomes</h4>
-            <p>{description}</p>
+            <p>{displayProject.outcomes || description}</p>
           </div>
         </div>
       </div>

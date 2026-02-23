@@ -18,7 +18,8 @@ import { MoreWorkTile } from "./tiles/MoreWorkTile";
 import { ProjectDarkTile } from "./tiles/ProjectDarkTile";
 import { ProjectOverviewTile } from "./tiles/ProjectOverviewTile";
 import { WorkTogetherTile } from "./tiles/WorkTogetherTile";
-import { NavRopeOverlay } from "./components/NavRopeOverlay";
+import { ImprintTile } from "./tiles/ImprintTile";
+import { CursorTextNav } from "./components/CursorTextNav";
 
 function readTileFromUrl(registry: TileConfig[]): TileId {
   const params = new URLSearchParams(window.location.search);
@@ -164,13 +165,16 @@ export default function App() {
     window.localStorage.setItem("theme-mode", themeMode);
   }, [themeMode]);
 
-  const startIntroExit = useCallback(() => {
+  useEffect(() => {
     if (introPhase !== "active") return;
-    setIntroPhase("exiting");
-    introTimerRef.current = window.setTimeout(() => {
-      setIntroPhase("done");
-      introTimerRef.current = null;
-    }, 420);
+    const rafId = window.requestAnimationFrame(() => {
+      setIntroPhase("exiting");
+      introTimerRef.current = window.setTimeout(() => {
+        setIntroPhase("done");
+        introTimerRef.current = null;
+      }, 420);
+    });
+    return () => window.cancelAnimationFrame(rafId);
   }, [introPhase]);
 
   useEffect(() => {
@@ -198,7 +202,6 @@ export default function App() {
               siteInfo={siteInfo}
               goToTile={goToTile}
               introPhase={introPhase}
-              onIntroEnter={startIntroExit}
             />
           );
         case "recognition":
@@ -207,11 +210,13 @@ export default function App() {
           return <ProjectOverviewTile projects={projects} goToTile={goToTile} />;
         case "work-together":
           return <WorkTogetherTile siteInfo={siteInfo} goToTile={goToTile} />;
+        case "imprint":
+          return <ImprintTile siteInfo={siteInfo} goToTile={goToTile} />;
         default:
           return null;
       }
     },
-    [goToTile, introPhase, projects, startIntroExit]
+    [goToTile, introPhase, projects]
   );
 
   return (
@@ -223,7 +228,7 @@ export default function App() {
           renderTile={tileRenderer}
           introPhase={introPhase}
         />
-        <NavRopeOverlay />
+        <CursorTextNav activeTileId={activeTileId} tileRegistry={tileRegistry} introPhase={introPhase} onNavigate={goToTile} />
       </div>
     </main>
   );

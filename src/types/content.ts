@@ -39,6 +39,8 @@ export type ProjectItem = {
   year: number | null;
   client: string;
   tags: string[];
+  approach: string;
+  outcomes: string;
   media: ProjectMedia[];
   path: string;
 };

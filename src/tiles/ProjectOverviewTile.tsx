@@ -8,14 +8,14 @@ type ProjectOverviewTileProps = {
 };
 
 export function ProjectOverviewTile({ projects, goToTile }: ProjectOverviewTileProps) {
+  void goToTile;
   const cards = projects.length > 0 ? projects.slice(0, 4) : Array.from({ length: 4 }, (_, i) => ({ id: `${i}` }));
 
   return (
     <TileFrame>
       <header className="tile-header tiny">
-        <button className="text-link tiny" data-nav-anchor="true" onClick={() => goToTile("landing")}>
-          BACK
-        </button>
+        <span>CONRAD LOEFFLER</span>
+        <span>PORTFOLIO 2026</span>
       </header>
       <div className="overview-grid">
         {cards.map((project, index) => (

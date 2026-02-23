@@ -36,6 +36,23 @@ This runs:
 - `npm run check` - full local validation path
 - `npm run preview` - preview production bundle
 
+## Content Workflow (File-Based CMS)
+
+Text metadata lives in:
+- `content/projects.csv`
+
+Project source assets live in:
+- `content/projects/<slug>/images/`
+- `content/projects/<slug>/videos/`
+- `content/projects/<slug>/models/`
+
+On build (`generate:projects`), assets are copied into `public/projects/<slug>/` and `public/projects-index.json` is regenerated.
+
+CSV columns:
+- `id;slug;title;category;description;year;client;tags;approach;outcomes;path`
+- delimiter is `;`
+- `tags` uses `|` separator (example: `branding|3d|motion`)
+
 ## Architecture
 
 - Entry: `src/main.tsx`

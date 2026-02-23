@@ -17,11 +17,27 @@
 3. Recognition tile cleanup
 - Removed `PORTFOLIO 2026` from recognition top header
 
-4. Project hygiene / production-readiness
+4. Imprint + nav/content updates
+- Added an `Imprint` slide using data from `content/site-info.json` (`siteInfo.imprint`)
+- Landing stack updated: `Contact` now first, `Imprint` added as last entry
+- `about-me` page kept in code but removed from active tile registry/navigation (deactivated)
+- Recognition row `VIEW` action now routes to `Contact` (`work-together`)
+
+5. Project hygiene / production-readiness
 - Added `.gitignore`
 - Added scripts: `typecheck`, `check`
 - Added README and refreshed architecture/state docs
-- Added CI workflow (`.github/workflows/ci.yml`)
+
+6. File-based CMS-style content model
+- Added `content/projects.csv` as the text metadata source for all projects
+- Added per-project asset folders under `content/projects/<slug>/` with `images/`, `videos/`, `models/`
+- Updated `scripts/generate-projects-index.mjs` to:
+  - parse CSV project rows
+  - support semicolon-delimited CSV
+  - include project slide text fields `approach` and `outcomes`
+  - copy content assets into `public/projects/<slug>/`
+  - generate `public/projects-index.json`
+  - fall back to existing `public/projects/<slug>/` media if content assets are not present
 
 ## Important Files
 

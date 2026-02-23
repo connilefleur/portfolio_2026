@@ -1,7 +1,10 @@
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
+const contentRoot = path.join(root, "content");
+const projectsCsvPath = path.join(contentRoot, "projects.csv");
+const contentProjectsRoot = path.join(contentRoot, "projects");
 const projectsRoot = path.join(root, "public", "projects");
 const outputPath = path.join(root, "public", "projects-index.json");
 
@@ -31,52 +34,165 @@ function titleFromSlug(slug) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-async function safeReadJson(filePath) {
+async function safeReadText(filePath) {
   try {
-    const raw = await readFile(filePath, "utf8");
-    return JSON.parse(raw);
+    return await readFile(filePath, "utf8");
   } catch {
     return null;
   }
 }
 
+function parseCsvLine(line, delimiter) {
+  const values = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      const next = line[i + 1];
+      if (inQuotes && next === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) {
+      values.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current);
+  return values.map((value) => value.trim());
+}
+
+function parseCsv(text) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
+  if (lines.length < 2) return [];
+
+  const delimiter = lines[0].includes(";") ? ";" : ",";
+  const headers = parseCsvLine(lines[0], delimiter);
+  return lines.slice(1).map((line) => {
+    const cells = parseCsvLine(line, delimiter);
+    const row = {};
+    for (let i = 0; i < headers.length; i++) {
+      row[headers[i]] = cells[i] ?? "";
+    }
+    return row;
+  });
+}
+
+async function walkFiles(dirPath) {
+  const entries = await readdir(dirPath, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await walkFiles(entryPath)));
+      continue;
+    }
+    if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+  return files;
+}
+
 async function discoverMedia(projectFolderPath) {
-  const entries = await readdir(projectFolderPath, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isFile() && mediaExtensions.has(path.extname(entry.name).toLowerCase()))
-    .map((entry, index) => {
-      const ext = path.extname(entry.name).toLowerCase();
+  const files = await walkFiles(projectFolderPath);
+  return files
+    .filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b))
+    .map((filePath, index) => {
+      const relPath = path.relative(projectFolderPath, filePath).split(path.sep).join("/");
+      const ext = path.extname(filePath).toLowerCase();
       return {
-        id: `${path.parse(entry.name).name}-${index}`,
+        id: `${path.parse(relPath).name}-${index}`,
         type: extensionToType(ext),
-        src: entry.name,
+        src: relPath,
         description: ""
       };
     });
 }
 
+async function copyProjectAssets(slug) {
+  const sourceDir = path.join(contentProjectsRoot, slug);
+  const targetDir = path.join(projectsRoot, slug);
+  try {
+    const sourceFiles = await walkFiles(sourceDir);
+    const mediaFiles = sourceFiles.filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()));
+    for (const sourceFile of mediaFiles) {
+      const relPath = path.relative(sourceDir, sourceFile);
+      const targetFile = path.join(targetDir, relPath);
+      await mkdir(path.dirname(targetFile), { recursive: true });
+      await copyFile(sourceFile, targetFile);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function parseTags(rawTags) {
+  if (!rawTags) return [];
+  return rawTags
+    .split("|")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
 async function buildIndex() {
-  const entries = await readdir(projectsRoot, { withFileTypes: true });
-  const folders = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  await mkdir(projectsRoot, { recursive: true });
+
+  const csvRaw = await safeReadText(projectsCsvPath);
+  if (!csvRaw) {
+    throw new Error(`Missing CSV data source: ${projectsCsvPath}`);
+  }
+  const rows = parseCsv(csvRaw);
+  if (rows.length === 0) {
+    throw new Error(`CSV has no project rows: ${projectsCsvPath}`);
+  }
 
   const projects = [];
-  for (const slug of folders) {
-    const folderPath = path.join(projectsRoot, slug);
-    const metaPath = path.join(folderPath, "meta.json");
-    const meta = await safeReadJson(metaPath);
-    const media = await discoverMedia(folderPath);
+  for (const row of rows) {
+    const slug = row.slug;
+    if (!slug) {
+      throw new Error("CSV row is missing required field: slug");
+    }
 
+    await copyProjectAssets(slug);
+    const contentMediaPath = path.join(contentProjectsRoot, slug);
+    const publicMediaPath = path.join(projectsRoot, slug);
+
+    let media = await discoverMedia(contentMediaPath).catch(() => []);
+    if (media.length === 0) {
+      media = await discoverMedia(publicMediaPath).catch(() => []);
+    }
+
+    const parsedYear = row.year ? Number.parseInt(row.year, 10) : NaN;
     projects.push({
-      id: meta?.id ?? slug,
+      id: row.id || slug,
       slug,
-      title: meta?.title ?? titleFromSlug(slug),
-      category: meta?.category ?? "experimental",
-      description: meta?.description ?? "Project details will be updated soon.",
-      year: typeof meta?.year === "number" ? meta.year : null,
-      client: meta?.client ?? "Independent",
-      tags: Array.isArray(meta?.tags) ? meta.tags : [],
-      media: Array.isArray(meta?.media) && meta.media.length > 0 ? meta.media : media,
-      path: `/projects/${slug}`
+      title: row.title || titleFromSlug(slug),
+      category: row.category || "experimental",
+      description: row.description || "Project details will be updated soon.",
+      year: Number.isFinite(parsedYear) ? parsedYear : null,
+      client: row.client || "Independent",
+      tags: parseTags(row.tags),
+      approach: row.approach || row.description || "Project details will be updated soon.",
+      outcomes: row.outcomes || row.description || "Project details will be updated soon.",
+      media,
+      path: row.path || `/projects/${slug}`
     });
   }
 

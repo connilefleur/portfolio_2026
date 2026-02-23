@@ -1,6 +1,6 @@
 import type { ProjectItem } from "../types/content";
 
-export type TileId = "landing" | "recognition" | "about-me" | "work-together" | `project-${string}`;
+export type TileId = "landing" | "recognition" | "about-me" | "work-together" | "imprint" | `project-${string}`;
 
 export type TileConfig = {
   id: TileId;
@@ -9,13 +9,13 @@ export type TileConfig = {
   label: string;
 };
 
-export const NAV_TILE_IDS: TileId[] = ["landing", "about-me", "work-together"];
+export const NAV_TILE_IDS: TileId[] = ["landing", "work-together", "recognition", "imprint"];
 
 const STATIC_TILES: TileConfig[] = [
   { id: "recognition", x: 1, y: 0, label: "Recognition" },
-  { id: "about-me", x: 0, y: 1, label: "About me" },
   { id: "landing", x: 1, y: 1, label: "Landing" },
-  { id: "work-together", x: 2, y: 1, label: "Work together" }
+  { id: "work-together", x: 2, y: 1, label: "Work together" },
+  { id: "imprint", x: 2, y: 0, label: "Imprint" }
 ];
 
 /* Projects stack vertically below landing: first at (1,2), then (1,3), (1,4), ... */
