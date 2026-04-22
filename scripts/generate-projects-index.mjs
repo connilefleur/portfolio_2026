@@ -166,20 +166,10 @@ function parseTags(rawTags) {
   return parsePipeList(rawTags);
 }
 
-function preferWebVideoTwin(fileName, availableNames) {
-  if (!fileName) return fileName;
-  if (!/\.mov$/i.test(fileName)) return fileName;
-  const mp4Twin = fileName.replace(/\.mov$/i, '.mp4');
-  return availableNames.includes(mp4Twin) ? mp4Twin : fileName;
-}
-
 function mergeViewerMedia(preferredNames, discoveredNames) {
   const merged = [];
   const seen = new Set();
-  const availableNames = [...preferredNames, ...discoveredNames];
-
-  for (const rawName of [...preferredNames, ...discoveredNames]) {
-    const name = preferWebVideoTwin(rawName, availableNames);
+  for (const name of [...preferredNames, ...discoveredNames]) {
     if (!name || isGeneratedPosterFileName(name) || seen.has(name)) continue;
     seen.add(name);
     merged.push(name);
@@ -225,14 +215,8 @@ async function buildIndex() {
       .map((item) => item.src.split("/").pop())
       .filter(Boolean)
       .filter((name) => !isGeneratedPosterFileName(name));
-    const preferredHeroPrimary = preferWebVideoTwin(
-      isGeneratedPosterFileName(row.hero_media_primary || "") ? "" : row.hero_media_primary,
-      mediaFileNames,
-    );
-    const preferredHeroSecondary = preferWebVideoTwin(
-      isGeneratedPosterFileName(row.hero_media_secondary || "") ? "" : row.hero_media_secondary,
-      mediaFileNames,
-    );
+    const preferredHeroPrimary = isGeneratedPosterFileName(row.hero_media_primary || "") ? "" : row.hero_media_primary;
+    const preferredHeroSecondary = isGeneratedPosterFileName(row.hero_media_secondary || "") ? "" : row.hero_media_secondary;
     const heroPrimary = preferredHeroPrimary || mediaFileNames[0] || "";
     const heroSecondary = preferredHeroSecondary || mediaFileNames.find((name) => name !== heroPrimary) || mediaFileNames[1] || "";
     const viewerMedia = mergeViewerMedia(parsePipeList(row.viewer_media), mediaFileNames);

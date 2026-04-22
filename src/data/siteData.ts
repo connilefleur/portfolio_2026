@@ -13,27 +13,16 @@ function getMediaFileName(src: string) {
   return src.split("/").pop() ?? src;
 }
 
-function preferWebVideoTwin(fileName: string, availableNames: Set<string>) {
-  if (!/\.mov$/i.test(fileName)) return fileName;
-  const mp4Twin = fileName.replace(/\.mov$/i, ".mp4");
-  return availableNames.has(mp4Twin) ? mp4Twin : fileName;
-}
-
 function normalizeProject(project: ProjectItem): ProjectItem {
   const media = project.media.filter((item) => !isGeneratedPosterFileName(getMediaFileName(item.src)));
   const availableNames = new Set(media.map((item) => getMediaFileName(item.src)));
   const viewerMedia = (project.detail.media.viewerMedia ?? [])
     .filter((name) => !isGeneratedPosterFileName(name))
-    .map((name) => preferWebVideoTwin(name, availableNames))
-    .filter((name, index, all) => all.indexOf(name) === index)
+        .filter((name, index, all) => all.indexOf(name) === index)
     .filter((name) => availableNames.has(name));
   const fallbackViewerMedia = viewerMedia.length > 0 ? viewerMedia : media.map((item) => getMediaFileName(item.src));
-  const preferredHeroPrimary = project.detail.media.heroPrimary
-    ? preferWebVideoTwin(project.detail.media.heroPrimary, availableNames)
-    : "";
-  const preferredHeroSecondary = project.detail.media.heroSecondary
-    ? preferWebVideoTwin(project.detail.media.heroSecondary, availableNames)
-    : "";
+  const preferredHeroPrimary = project.detail.media.heroPrimary ?? "";
+  const preferredHeroSecondary = project.detail.media.heroSecondary ?? "";
   const heroPrimary =
     preferredHeroPrimary &&
     !isGeneratedPosterFileName(preferredHeroPrimary) &&

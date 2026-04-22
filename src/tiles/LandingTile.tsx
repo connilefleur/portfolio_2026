@@ -9,21 +9,7 @@ type LandingTileProps = {
   introPhase: "active" | "exiting" | "done";
 };
 
-function deriveIndex(label: string) {
-  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  let acc = label.length;
-  for (let i = 0; i < label.length; i++) {
-    acc = (acc * 37 + label.charCodeAt(i)) >>> 0;
-  }
-  let result = "";
-  while (result.length < 4) {
-    result += alphabet[acc % alphabet.length];
-    acc = Math.floor(acc / alphabet.length) + 3;
-  }
-  return result;
-}
-
-function getLinks(projects: ProjectItem[]): Array<{ label: string; index: string; target: TileId }> {
+function getLinks(projects: ProjectItem[]): Array<{ label: string; index?: string; target: TileId }> {
   const projectLinks = projects.slice(0, 3).map((project, i) => {
     const label = `Project ${i + 1}`;
     return {
@@ -34,9 +20,9 @@ function getLinks(projects: ProjectItem[]): Array<{ label: string; index: string
   });
   return [
     ...projectLinks,
-    { label: "Contact", index: deriveIndex("Contact"), target: "work-together" },
-    { label: "Recognition", index: deriveIndex("Recognition"), target: "recognition" },
-    { label: "Imprint", index: deriveIndex("Imprint"), target: "imprint" }
+    { label: "Contact", target: "work-together" },
+    { label: "Recognition", target: "recognition" },
+    { label: "Imprint", target: "imprint" }
   ];
 }
 
@@ -57,9 +43,11 @@ export function LandingTile({ projects, siteInfo, goToTile, introPhase }: Landin
               <button className="landing-link" onClick={() => goToTile(link.target)}>
                 {link.label}
               </button>
-              <button className="landing-index-link" onClick={() => goToTile(link.target)}>
-                {link.index}
-              </button>
+              {link.index ? (
+                <button className="landing-index-link" onClick={() => goToTile(link.target)}>
+                  {link.index}
+                </button>
+              ) : null}
             </div>
           ))}
         </nav>
