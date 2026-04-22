@@ -4,10 +4,40 @@ dist/
 *.tsbuildinfo
 *.log
 
-# Vite / editor
+# Runtime/env/state files (local only)
+.env
+.env.local
+.env.*
+.openclaw/
+
+scripts/__pycache__/
+
+# IDE / editor artifacts
 .vite/
 .idea/
 .vscode/
 
+# Node/local caches and generated artifacts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
 # Local generated data caches
 public/projects-index.json
+
+# Sensitive file types
+*.pem
+*.key
+*.jks
+*.p12
+*.pfx
+*.keystore
+*.crt
+*.csr
+*.p7b
+*.asc
+# Local review and import scratch space
+tmp/
+public/review/
+drop_in/

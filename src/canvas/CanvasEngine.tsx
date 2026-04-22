@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import {
   type TileConfig,
   type TileId,
@@ -54,11 +54,24 @@ function GridCanvas({
 
   const cols = bounds.maxX - bounds.minX + 1;
   const rows = bounds.maxY - bounds.minY + 1;
+  const [viewportSize, setViewportSize] = useState(() => ({
+    width: typeof window !== "undefined" ? window.innerWidth : 1440,
+    height: typeof window !== "undefined" ? window.innerHeight : 900,
+  }));
+
+  useEffect(() => {
+    const updateViewportSize = () => {
+      setViewportSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    updateViewportSize();
+    window.addEventListener("resize", updateViewportSize);
+    return () => window.removeEventListener("resize", updateViewportSize);
+  }, []);
 
   const canvasStyle = {
-    width: `${cols * 100}%`,
-    height: `${rows * 100}%`,
-    transform: `translate3d(${(-activeTile.x / cols) * 100}%, ${(-activeTile.y / rows) * 100}%, 0)`
+    width: `${cols * viewportSize.width}px`,
+    height: `${rows * viewportSize.height}px`,
+    transform: `translate3d(${-activeTile.x * viewportSize.width}px, ${-activeTile.y * viewportSize.height}px, 0)`
   };
 
   return (

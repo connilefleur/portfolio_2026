@@ -9,7 +9,8 @@
     "build": "npm run generate:projects && tsc -b && vite build",
     "check": "npm run generate:projects && npm run typecheck && vite build",
     "preview": "vite preview",
-    "generate:projects": "node scripts/generate-projects-index.mjs"
+    "generate:projects": "node scripts/generate-projects-index.mjs",
+    "scan:secrets": "node scripts/scan-secrets.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -21,5 +22,8 @@
     "@vitejs/plugin-react": "^4.4.1",
     "typescript": "^5.7.2",
     "vite": "^6.4.1"
+  },
+  "overrides": {
+    "rollup": ">=4.59.0"
   }
 }

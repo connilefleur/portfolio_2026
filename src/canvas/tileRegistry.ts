@@ -1,6 +1,13 @@
 import type { ProjectItem } from "../types/content";
 
-export type TileId = "landing" | "recognition" | "about-me" | "work-together" | "imprint" | `project-${string}`;
+export type TileId =
+  | "landing"
+  | "recognition"
+  | "about-me"
+  | "work-together"
+  | "imprint"
+  | `project-${string}`
+  | `project-viewer-${string}`;
 
 export type TileConfig = {
   id: TileId;
@@ -18,15 +25,28 @@ const STATIC_TILES: TileConfig[] = [
   { id: "imprint", x: 2, y: 0, label: "Imprint" }
 ];
 
-/* Projects stack vertically below landing: first at (1,2), then (1,3), (1,4), ... */
+/* Projects stack vertically below landing. Each project gets a viewer tile directly to the right. */
 export function getTileRegistry(projects: ProjectItem[]): TileConfig[] {
-  const projectTiles: TileConfig[] = projects.map((p, i) => ({
-    id: `project-${p.slug}` as TileId,
-    x: 1,
-    y: 2 + i,
-    label: p.title
-  }));
-  return [...STATIC_TILES, ...projectTiles];
+  const projectTiles: TileConfig[] = [];
+  const viewerTiles: TileConfig[] = [];
+
+  projects.forEach((project, index) => {
+    const y = 2 + index;
+    projectTiles.push({
+      id: `project-${project.slug}` as TileId,
+      x: 1,
+      y,
+      label: project.title
+    });
+    viewerTiles.push({
+      id: `project-viewer-${project.slug}` as TileId,
+      x: 2,
+      y,
+      label: `${project.title} Viewer`
+    });
+  });
+
+  return [...STATIC_TILES, ...projectTiles, ...viewerTiles];
 }
 
 export function getNavTiles(registry: TileConfig[]): TileConfig[] {
@@ -52,13 +72,21 @@ export function getAdjacentTileId(currentId: TileId, dx: number, dy: number, reg
 }
 
 export function isProjectTileId(id: TileId): id is `project-${string}` {
-  return id.startsWith("project-");
+  return id.startsWith("project-") && !id.startsWith("project-viewer-");
+}
+
+export function isProjectViewerTileId(id: TileId): id is `project-viewer-${string}` {
+  return id.startsWith("project-viewer-");
 }
 
 export function getProjectSlugFromTileId(id: TileId): string | null {
   return isProjectTileId(id) ? id.slice(8) : null;
 }
 
+export function getProjectViewerSlugFromTileId(id: TileId): string | null {
+  return isProjectViewerTileId(id) ? id.slice("project-viewer-".length) : null;
+}
+
 export function getProjectTiles(registry: TileConfig[]): TileConfig[] {
-  return registry.filter((t) => isProjectTileId(t.id));
+  return registry.filter((tile) => isProjectTileId(tile.id));
 }

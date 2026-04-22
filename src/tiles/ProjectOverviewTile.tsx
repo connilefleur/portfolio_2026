@@ -1,47 +1,38 @@
-import type { ProjectItem } from "../types/content";
+import type { ProjectItem, SlideContent } from "../types/content";
 import type { TileId } from "../canvas/tileRegistry";
-import { TileFrame } from "./TileFrame";
+import { HomeNavButton } from "../components/HomeNavButton";
+import { SlideShell } from "../components/SlideShell";
 
 type ProjectOverviewTileProps = {
+  content: SlideContent["overview"];
   projects: ProjectItem[];
   goToTile: (id: TileId) => void;
 };
 
-export function ProjectOverviewTile({ projects, goToTile }: ProjectOverviewTileProps) {
-  void goToTile;
-  const cards = projects.length > 0 ? projects.slice(0, 4) : Array.from({ length: 4 }, (_, i) => ({ id: `${i}` }));
+export function ProjectOverviewTile({ content, projects, goToTile }: ProjectOverviewTileProps) {
+  const cards = content.cards.length > 0 ? content.cards : Array.from({ length: 4 }, (_, i) => ({ id: `${i}`, title: undefined, projectSlug: undefined, services: [] }));
 
   return (
-    <TileFrame>
-      <header className="tile-header tiny">
-        <span>CONRAD LOEFFLER</span>
-        <span>PORTFOLIO 2026</span>
-      </header>
+    <SlideShell headerStart={<HomeNavButton goToTile={goToTile} />}>
       <div className="overview-grid">
-        {cards.map((project, index) => (
-          <article key={project.id} className="overview-item">
-            <h3>{(project as ProjectItem).title ?? `Project ${index + 1}`}</h3>
-            <ul>
-              <li>Logotype</li>
-              <li>Strategy</li>
-              <li>Packaging</li>
-              <li>Product design</li>
-              <li>Web design</li>
-              <li>Photography</li>
-            </ul>
-            <button
-              className="overview-image"
-              onClick={() =>
-                goToTile(
-                  "slug" in project && project.slug
-                    ? (`project-${project.slug}` as import("../canvas/tileRegistry").TileId)
-                    : "landing"
-                )
-              }
-            />
-          </article>
-        ))}
+        {cards.map((card, index) => {
+          const resolvedProject = card.projectSlug
+            ? projects.find((project) => project.slug === card.projectSlug)
+            : projects[index];
+          const targetTile = resolvedProject ? (`project-${resolvedProject.slug}` as import("../canvas/tileRegistry").TileId) : "landing";
+          return (
+            <article key={card.id} className="overview-item">
+              <h3>{card.title ?? resolvedProject?.title ?? `Project ${index + 1}`}</h3>
+              <ul>
+                {card.services.map((service) => (
+                  <li key={service}>{service}</li>
+                ))}
+              </ul>
+              <button className="overview-image" onClick={() => goToTile(targetTile)} />
+            </article>
+          );
+        })}
       </div>
-    </TileFrame>
+    </SlideShell>
   );
 }
