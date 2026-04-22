@@ -1,0 +1,129 @@
+{
+  "overview": {
+    "cards": [
+      {
+        "id": "overview-1",
+        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+      },
+      {
+        "id": "overview-2",
+        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+      },
+      {
+        "id": "overview-3",
+        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+      },
+      {
+        "id": "overview-4",
+        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+      }
+    ]
+  },
+  "recognition": {
+    "title": "Recognition",
+    "columns": ["Award", "Year", "Publication", "Description", "Link"],
+    "items": [
+      {
+        "id": "1",
+        "title": "Best Digital Design Award",
+        "year": 2025,
+        "publication": "Design Week",
+        "description": "Outstanding achievement in digital interface design.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "2",
+        "title": "Featured Artist",
+        "year": 2024,
+        "publication": "Creative Review",
+        "description": "Spotlight on innovative portfolio presentation.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "3",
+        "title": "Excellence in Web Design",
+        "year": 2024,
+        "publication": "Awwwards",
+        "description": "Recognition for exceptional user experience.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "4",
+        "title": "Top Portfolio Site",
+        "year": 2023,
+        "publication": "CSS Design Awards",
+        "description": "Awarded for creative and technical excellence.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "5",
+        "title": "Innovation in Interaction",
+        "year": 2023,
+        "publication": "FWA",
+        "description": "Pioneering approach to portfolio navigation.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "6",
+        "title": "Editor's Choice",
+        "year": 2022,
+        "publication": "Behance",
+        "description": "Featured project in digital design category.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "7",
+        "title": "Best Portfolio Design",
+        "year": 2022,
+        "publication": "SiteInspire",
+        "description": "Recognition for minimalist aesthetic.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "8",
+        "title": "Creative Excellence Award",
+        "year": 2021,
+        "publication": "Dribbble",
+        "description": "Outstanding contribution to design community.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "9",
+        "title": "Featured Publication",
+        "year": 2021,
+        "publication": "It's Nice That",
+        "description": "Interview and portfolio showcase.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      },
+      {
+        "id": "10",
+        "title": "Design of the Day",
+        "year": 2020,
+        "publication": "Designspiration",
+        "description": "Daily feature for exceptional design work.",
+        "actionLabel": "VIEW",
+        "targetSlide": "about-me"
+      }
+    ]
+  },
+  "contact": {
+    "title": "Let's work together",
+    "labels": {
+      "instagram": "Instagram",
+      "email": "Email",
+      "recognition": "Recognition"
+    },
+    "actions": {
+      "recognition": "VIEW DETAILS"
+    }
+  }
+}

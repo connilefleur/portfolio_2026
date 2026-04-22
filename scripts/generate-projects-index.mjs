@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
@@ -26,6 +26,10 @@ function extensionToType(ext) {
   if ([".mp4", ".webm", ".mov"].includes(ext)) return "video";
   if ([".glb", ".gltf"].includes(ext)) return "3d-model";
   return "image";
+}
+
+function isGeneratedPosterFileName(fileName) {
+  return /\.poster\.(jpg|jpeg|png|webp)$/i.test(fileName);
 }
 
 function titleFromSlug(slug) {
@@ -112,6 +116,7 @@ async function discoverMedia(projectFolderPath) {
   const files = await walkFiles(projectFolderPath);
   return files
     .filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()))
+    .filter((filePath) => !isGeneratedPosterFileName(path.basename(filePath)))
     .sort((a, b) => a.localeCompare(b))
     .map((filePath, index) => {
       const relPath = path.relative(projectFolderPath, filePath).split(path.sep).join("/");
@@ -130,7 +135,12 @@ async function copyProjectAssets(slug) {
   const targetDir = path.join(projectsRoot, slug);
   try {
     const sourceFiles = await walkFiles(sourceDir);
-    const mediaFiles = sourceFiles.filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()));
+    const mediaFiles = sourceFiles
+      .filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()))
+      .filter((filePath) => !isGeneratedPosterFileName(path.basename(filePath)));
+
+    await rm(targetDir, { recursive: true, force: true });
+
     for (const sourceFile of mediaFiles) {
       const relPath = path.relative(sourceDir, sourceFile);
       const targetFile = path.join(targetDir, relPath);
@@ -143,12 +153,39 @@ async function copyProjectAssets(slug) {
   }
 }
 
-function parseTags(rawTags) {
-  if (!rawTags) return [];
-  return rawTags
+function parsePipeList(rawValue) {
+  if (!rawValue) return [];
+  return rawValue
     .split("|")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .filter((value) => !isGeneratedPosterFileName(value));
+}
+
+function parseTags(rawTags) {
+  return parsePipeList(rawTags);
+}
+
+function preferWebVideoTwin(fileName, availableNames) {
+  if (!fileName) return fileName;
+  if (!/\.mov$/i.test(fileName)) return fileName;
+  const mp4Twin = fileName.replace(/\.mov$/i, '.mp4');
+  return availableNames.includes(mp4Twin) ? mp4Twin : fileName;
+}
+
+function mergeViewerMedia(preferredNames, discoveredNames) {
+  const merged = [];
+  const seen = new Set();
+  const availableNames = [...preferredNames, ...discoveredNames];
+
+  for (const rawName of [...preferredNames, ...discoveredNames]) {
+    const name = preferWebVideoTwin(rawName, availableNames);
+    if (!name || isGeneratedPosterFileName(name) || seen.has(name)) continue;
+    seen.add(name);
+    merged.push(name);
+  }
+
+  return merged;
 }
 
 async function buildIndex() {
@@ -165,6 +202,10 @@ async function buildIndex() {
 
   const projects = [];
   for (const row of rows) {
+    const siteStatus = (row.site_status || "live").trim().toLowerCase();
+    if (siteStatus === "archived" || siteStatus === "hidden" || siteStatus === "disabled") {
+      continue;
+    }
     const slug = row.slug;
     if (!slug) {
       throw new Error("CSV row is missing required field: slug");
@@ -179,18 +220,49 @@ async function buildIndex() {
       media = await discoverMedia(publicMediaPath).catch(() => []);
     }
 
-    const parsedYear = row.year ? Number.parseInt(row.year, 10) : NaN;
+    const defaultDetailBody = row.description || "Project details will be updated soon.";
+    const mediaFileNames = media
+      .map((item) => item.src.split("/").pop())
+      .filter(Boolean)
+      .filter((name) => !isGeneratedPosterFileName(name));
+    const preferredHeroPrimary = preferWebVideoTwin(
+      isGeneratedPosterFileName(row.hero_media_primary || "") ? "" : row.hero_media_primary,
+      mediaFileNames,
+    );
+    const preferredHeroSecondary = preferWebVideoTwin(
+      isGeneratedPosterFileName(row.hero_media_secondary || "") ? "" : row.hero_media_secondary,
+      mediaFileNames,
+    );
+    const heroPrimary = preferredHeroPrimary || mediaFileNames[0] || "";
+    const heroSecondary = preferredHeroSecondary || mediaFileNames.find((name) => name !== heroPrimary) || mediaFileNames[1] || "";
+    const viewerMedia = mergeViewerMedia(parsePipeList(row.viewer_media), mediaFileNames);
+
     projects.push({
       id: row.id || slug,
       slug,
       title: row.title || titleFromSlug(slug),
       category: row.category || "experimental",
       description: row.description || "Project details will be updated soon.",
-      year: Number.isFinite(parsedYear) ? parsedYear : null,
+      year: row.year || "",
       client: row.client || "Independent",
       tags: parseTags(row.tags),
-      approach: row.approach || row.description || "Project details will be updated soon.",
-      outcomes: row.outcomes || row.description || "Project details will be updated soon.",
+      detail: {
+        panels: [
+          {
+            heading: row.info_block_1_heading || "Approach",
+            body: row.info_block_1_content || defaultDetailBody
+          },
+          {
+            heading: row.info_block_2_heading || "Outcomes",
+            body: row.info_block_2_content || defaultDetailBody
+          }
+        ],
+        media: {
+          heroPrimary,
+          heroSecondary,
+          viewerMedia
+        }
+      },
       media,
       path: row.path || `/projects/${slug}`
     });

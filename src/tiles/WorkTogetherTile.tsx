@@ -1,20 +1,17 @@
-import type { SiteInfo } from "../types/content";
+import type { ContactSlideContent, SiteInfo } from "../types/content";
 import type { TileId } from "../canvas/tileRegistry";
-import { TileFrame } from "./TileFrame";
+import { HomeNavButton } from "../components/HomeNavButton";
+import { SlideShell } from "../components/SlideShell";
 
 type WorkTogetherTileProps = {
+  content: ContactSlideContent;
   siteInfo: SiteInfo;
   goToTile: (id: TileId) => void;
 };
 
-export function WorkTogetherTile({ siteInfo, goToTile }: WorkTogetherTileProps) {
+export function WorkTogetherTile({ content, siteInfo, goToTile }: WorkTogetherTileProps) {
   return (
-    <TileFrame>
-      <header className="tile-header tiny">
-        <span>CONRAD LOEFFLER</span>
-        <span>PORTFOLIO 2026</span>
-      </header>
-      <button className="avatar-placeholder contact-avatar" onClick={() => goToTile("landing")} aria-label="Back home" />
+    <SlideShell headerStart={<HomeNavButton goToTile={goToTile} />}>
       <div className="contact-layout">
         <h2>Let&apos;s work together</h2>
         <div className="contact-bottom-left">
@@ -23,25 +20,26 @@ export function WorkTogetherTile({ siteInfo, goToTile }: WorkTogetherTileProps) 
             instagram.com/{siteInfo.contact.instagram}
           </a>
         </div>
+        <button className="avatar-placeholder contact-avatar" onClick={() => goToTile("landing")} aria-label="Home" />
         <div className="contact-bottom-right">
           <div>
-            <span>Instagram</span>
+            <span>{content.labels.instagram}</span>
             <a href={`https://instagram.com/${siteInfo.contact.instagram}`} target="_blank" rel="noreferrer">
               @{siteInfo.contact.instagram}
             </a>
           </div>
           <div>
-            <span>Email</span>
+            <span>{content.labels.email}</span>
             <a href={`mailto:${siteInfo.contact.email}`}>{siteInfo.contact.email}</a>
           </div>
           <div>
-            <span>Recognition</span>
+            <span>{content.labels.recognition}</span>
             <button className="text-link" onClick={() => goToTile("recognition")}>
-              VIEW DETAILS
+              {content.actions.recognition}
             </button>
           </div>
         </div>
       </div>
-    </TileFrame>
+    </SlideShell>
   );
 }

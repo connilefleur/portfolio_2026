@@ -24,12 +24,12 @@ function deriveIndex(label: string) {
 }
 
 function getLinks(projects: ProjectItem[]): Array<{ label: string; index: string; target: TileId }> {
-  const projectLinks = projects.slice(0, 3).map((p, i) => {
+  const projectLinks = projects.slice(0, 3).map((project, i) => {
     const label = `Project ${i + 1}`;
     return {
       label,
-      index: deriveIndex(label),
-      target: `project-${p.slug}` as TileId
+      index: project.title,
+      target: `project-${project.slug}` as TileId
     };
   });
   return [

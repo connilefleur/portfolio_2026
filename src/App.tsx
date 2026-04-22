@@ -4,14 +4,13 @@ import {
   DEFAULT_TILE,
   type TileConfig,
   type TileId,
-  getAdjacentTileId,
   getProjectSlugFromTileId,
-  getProjectTiles,
+  getProjectViewerSlugFromTileId,
   getTileRegistry,
   isProjectTileId,
   parseTileId
 } from "./canvas/tileRegistry";
-import { loadProjectsIndex, siteInfo } from "./data/siteData";
+import { loadProjectsIndex, siteInfo, slideContent } from "./data/siteData";
 import type { ProjectItem } from "./types/content";
 import { LandingTile } from "./tiles/LandingTile";
 import { MoreWorkTile } from "./tiles/MoreWorkTile";
@@ -19,7 +18,7 @@ import { ProjectDarkTile } from "./tiles/ProjectDarkTile";
 import { ProjectOverviewTile } from "./tiles/ProjectOverviewTile";
 import { WorkTogetherTile } from "./tiles/WorkTogetherTile";
 import { ImprintTile } from "./tiles/ImprintTile";
-import { CursorTextNav } from "./components/CursorTextNav";
+import { ProjectViewerTile } from "./tiles/ProjectViewerTile";
 
 function readTileFromUrl(registry: TileConfig[]): TileId {
   const params = new URLSearchParams(window.location.search);
@@ -42,11 +41,18 @@ function getInitialIntroPhase(): "active" | "exiting" | "done" {
   if (initialTile && initialTile !== "landing") {
     return "done";
   }
+
+  const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (navEntry && (navEntry.type === "back_forward" || navEntry.type === "reload")) {
+    return "done";
+  }
+
   return "active";
 }
 
 export default function App() {
   const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
   const tileRegistry = useMemo(() => getTileRegistry(projects), [projects]);
   const [activeTileId, setActiveTileId] = useState<TileId>(DEFAULT_TILE);
   const [introPhase, setIntroPhase] = useState<"active" | "exiting" | "done">(getInitialIntroPhase);
@@ -55,6 +61,7 @@ export default function App() {
     const saved = window.localStorage.getItem("theme-mode");
     return saved === "light" ? "light" : "dark";
   });
+  const [projectViewerIndex, setProjectViewerIndex] = useState<Record<string, number>>({});
 
   useEffect(() => {
     document.title = siteInfo.meta.title;
@@ -72,70 +79,68 @@ export default function App() {
   useEffect(() => {
     loadProjectsIndex()
       .then((items) => setProjects(items))
-      .catch(() => setProjects([]));
+      .catch(() => setProjects([]))
+      .finally(() => setProjectsLoaded(true));
   }, []);
 
   const hasInitialUrlSync = useRef(false);
+  const [initialTileResolved, setInitialTileResolved] = useState(false);
+  const initialUrlTileRef = useRef<string | null>(new URLSearchParams(window.location.search).get("tile"));
+  const pendingInitialProjectTileIdRef = useRef<TileId | null>(null);
   const previousTileId = useRef<TileId | null>(null);
   const skipNextUrlWrite = useRef(false);
+
   useEffect(() => {
-    if (tileRegistry.length > 0 && !hasInitialUrlSync.current) {
-      const initialTile = readTileFromUrl(tileRegistry);
+    if (tileRegistry.length === 0 || hasInitialUrlSync.current) return;
+
+    const requestedTileRaw = initialUrlTileRef.current;
+    const requestedIsProject = Boolean(requestedTileRaw?.startsWith("project-"));
+
+    if (requestedIsProject && !projectsLoaded) {
+      return;
+    }
+
+    const requestedTile = parseTileId(requestedTileRaw, tileRegistry);
+
+    if (requestedTile && isProjectTileId(requestedTile)) {
+      previousTileId.current = "landing";
+      setActiveTileId("landing");
+      pendingInitialProjectTileIdRef.current = requestedTile;
+    } else {
+      const initialTile = requestedTile ?? DEFAULT_TILE;
       previousTileId.current = initialTile;
       setActiveTileId(initialTile);
-      hasInitialUrlSync.current = true;
     }
-  }, [tileRegistry]);
+
+    hasInitialUrlSync.current = true;
+    setInitialTileResolved(true);
+  }, [projectsLoaded, tileRegistry]);
+
+  useEffect(() => {
+    if (!hasInitialUrlSync.current) return;
+    if (introPhase !== "done") return;
+
+    const pendingProjectTile = pendingInitialProjectTileIdRef.current;
+    if (!pendingProjectTile) return;
+
+    pendingInitialProjectTileIdRef.current = null;
+    skipNextUrlWrite.current = true;
+    window.requestAnimationFrame(() => {
+      setActiveTileId(pendingProjectTile);
+    });
+  }, [introPhase, projectsLoaded, tileRegistry]);
 
   useEffect(() => {
     const onPopState = () => {
       const nextTile = readTileFromUrl(tileRegistry);
       skipNextUrlWrite.current = true;
+      pendingInitialProjectTileIdRef.current = null;
       previousTileId.current = nextTile;
       setActiveTileId(nextTile);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [tileRegistry]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (introPhase !== "done") return;
-      const projectTiles = getProjectTiles(tileRegistry);
-      const inProjectMode = isProjectTileId(activeTileId) && projectTiles.length > 0;
-
-      if (inProjectMode && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
-        event.preventDefault();
-        const idx = projectTiles.findIndex((t) => t.id === activeTileId);
-        if (idx < 0) return;
-        const next =
-          event.key === "ArrowDown"
-            ? projectTiles[Math.min(idx + 1, projectTiles.length - 1)]
-            : projectTiles[Math.max(idx - 1, 0)];
-        setActiveTileId(next.id);
-        return;
-      }
-
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        setActiveTileId((current) => getAdjacentTileId(current, 1, 0, tileRegistry));
-      }
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        setActiveTileId((current) => getAdjacentTileId(current, -1, 0, tileRegistry));
-      }
-      if (!inProjectMode && event.key === "ArrowDown") {
-        event.preventDefault();
-        setActiveTileId((current) => getAdjacentTileId(current, 0, 1, tileRegistry));
-      }
-      if (!inProjectMode && event.key === "ArrowUp") {
-        event.preventDefault();
-        setActiveTileId((current) => getAdjacentTileId(current, 0, -1, tileRegistry));
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [tileRegistry, activeTileId, introPhase]);
 
   useEffect(() => {
     if (!hasInitialUrlSync.current) return;
@@ -152,7 +157,6 @@ export default function App() {
     const isProject = isProjectTileId(activeTileId);
 
     if (!wasProject && isProject && prev && prev !== "landing") {
-      // Ensure one-step back from any project returns to landing.
       writeTileToUrl("landing", "push");
     }
 
@@ -164,6 +168,17 @@ export default function App() {
   useEffect(() => {
     window.localStorage.setItem("theme-mode", themeMode);
   }, [themeMode]);
+
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setIntroPhase("done");
+      }
+    };
+
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   useEffect(() => {
     if (introPhase !== "active") return;
@@ -185,15 +200,41 @@ export default function App() {
     };
   }, []);
 
-  const goToTile = useCallback((tileId: TileId) => setActiveTileId(tileId), []);
+  const goToTile = useCallback((tileId: TileId) => {
+    setActiveTileId(tileId);
+  }, []);
+
+  const openProjectViewer = useCallback((slug: string, index: number) => {
+    setProjectViewerIndex((current) => ({ ...current, [slug]: index }));
+    setActiveTileId(`project-viewer-${slug}` as TileId);
+  }, []);
+
+  const setViewerIndexForProject = useCallback((slug: string, index: number) => {
+    setProjectViewerIndex((current) => ({ ...current, [slug]: index }));
+  }, []);
 
   const tileRenderer = useCallback(
     (tile: TileConfig) => {
+      const projectViewerSlug = getProjectViewerSlugFromTileId(tile.id);
+      if (projectViewerSlug) {
+        const project = projects.find((p) => p.slug === projectViewerSlug);
+        return (
+          <ProjectViewerTile
+            project={project}
+            currentIndex={projectViewerIndex[projectViewerSlug] ?? 0}
+            onBack={() => goToTile(`project-${projectViewerSlug}` as TileId)}
+            onSelectIndex={(index) => setViewerIndexForProject(projectViewerSlug, index)}
+            goToTile={goToTile}
+          />
+        );
+      }
+
       const projectSlug = getProjectSlugFromTileId(tile.id);
       if (projectSlug) {
         const project = projects.find((p) => p.slug === projectSlug);
-        return <ProjectDarkTile project={project} projects={projects} goToTile={goToTile} />;
+        return <ProjectDarkTile project={project} projects={projects} goToTile={goToTile} onOpenViewer={openProjectViewer} />;
       }
+
       switch (tile.id) {
         case "landing":
           return (
@@ -205,19 +246,29 @@ export default function App() {
             />
           );
         case "recognition":
-          return <MoreWorkTile goToTile={goToTile} />;
+          return <MoreWorkTile content={slideContent.recognition} goToTile={goToTile} />;
         case "about-me":
-          return <ProjectOverviewTile projects={projects} goToTile={goToTile} />;
+          return <ProjectOverviewTile content={slideContent.overview} projects={projects} goToTile={goToTile} />;
         case "work-together":
-          return <WorkTogetherTile siteInfo={siteInfo} goToTile={goToTile} />;
+          return <WorkTogetherTile content={slideContent.contact} siteInfo={siteInfo} goToTile={goToTile} />;
         case "imprint":
           return <ImprintTile siteInfo={siteInfo} goToTile={goToTile} />;
         default:
           return null;
       }
     },
-    [goToTile, introPhase, projects]
+    [goToTile, introPhase, openProjectViewer, projectViewerIndex, projects, setViewerIndexForProject]
   );
+
+  const appReady = projectsLoaded && initialTileResolved;
+
+  if (!appReady) {
+    return (
+      <main className="app-shell" data-theme={themeMode} data-intro={introPhase}>
+        <div className="app-loading" aria-live="polite" aria-label="Loading portfolio" />
+      </main>
+    );
+  }
 
   return (
     <main className="app-shell" data-theme={themeMode} data-intro={introPhase}>
@@ -228,7 +279,6 @@ export default function App() {
           renderTile={tileRenderer}
           introPhase={introPhase}
         />
-        <CursorTextNav activeTileId={activeTileId} tileRegistry={tileRegistry} introPhase={introPhase} onNavigate={goToTile} />
       </div>
     </main>
   );

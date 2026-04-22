@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { type TileConfig, type TileId, getProjectTiles, isProjectTileId } from "../canvas/tileRegistry";
 
 type CursorTextNavProps = {
@@ -11,12 +11,8 @@ type CursorTextNavProps = {
 export function CursorTextNav({ activeTileId, tileRegistry, introPhase, onNavigate }: CursorTextNavProps) {
   const [pointerFine, setPointerFine] = useState(() => window.matchMedia("(hover: hover) and (pointer: fine)").matches);
   const [pointerVisible, setPointerVisible] = useState(false);
-  const [isLeftSide, setIsLeftSide] = useState(true);
-  const labelRef = useRef<HTMLSpanElement>(null);
-  const rafRef = useRef<number | null>(null);
-  const pointerVisibleRef = useRef(false);
-  const pointerTargetRef = useRef({ x: window.innerWidth * 0.5, y: window.innerHeight * 0.5 });
-  const isLeftSideRef = useRef(true);
+  const [cursor, setCursor] = useState({ x: window.innerWidth * 0.5, y: window.innerHeight * 0.5 });
+  const [isPrimaryZone, setIsPrimaryZone] = useState(true);
 
   const enabled = introPhase === "done" && activeTileId !== "landing" && pointerFine;
   const projectTiles = useMemo(() => getProjectTiles(tileRegistry), [tileRegistry]);
@@ -41,56 +37,22 @@ export function CursorTextNav({ activeTileId, tileRegistry, introPhase, onNaviga
   useEffect(() => {
     document.body.classList.toggle("cursor-text-nav-active", enabled);
     return () => document.body.classList.remove("cursor-text-nav-active");
-  }, [enabled]);
+  }, [enabled, isProjectMode]);
 
   useEffect(() => {
     if (!enabled) {
-      pointerVisibleRef.current = false;
       setPointerVisible(false);
-      if (rafRef.current) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
       return;
     }
 
-    const applyCursorPosition = () => {
-      const node = labelRef.current;
-      if (!node) {
-        rafRef.current = null;
-        return;
-      }
-      const point = pointerTargetRef.current;
-      node.style.left = `${point.x}px`;
-      node.style.top = `${point.y}px`;
-      rafRef.current = null;
-    };
-
     const onPointerMove = (event: PointerEvent) => {
       if (event.pointerType === "touch") return;
-      pointerTargetRef.current = { x: event.clientX, y: event.clientY };
-
-      const nextIsLeft = event.clientX < window.innerWidth * 0.5;
-      if (nextIsLeft !== isLeftSideRef.current) {
-        isLeftSideRef.current = nextIsLeft;
-        setIsLeftSide(nextIsLeft);
-      }
-
-      if (!pointerVisibleRef.current) {
-        pointerVisibleRef.current = true;
-        setPointerVisible(true);
-      }
-
-      if (!rafRef.current) {
-        rafRef.current = window.requestAnimationFrame(applyCursorPosition);
-      }
+      setCursor({ x: event.clientX, y: event.clientY });
+      setIsPrimaryZone(isProjectMode ? event.clientY < window.innerHeight * 0.5 : event.clientX < window.innerWidth * 0.5);
+      setPointerVisible(true);
     };
 
-    const onPointerLeave = () => {
-      pointerVisibleRef.current = false;
-      setPointerVisible(false);
-    };
-
+    const onPointerLeave = () => setPointerVisible(false);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("blur", onPointerLeave);
@@ -98,12 +60,8 @@ export function CursorTextNav({ activeTileId, tileRegistry, introPhase, onNaviga
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("blur", onPointerLeave);
-      if (rafRef.current) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
     };
-  }, [enabled]);
+  }, [enabled, isProjectMode]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -118,7 +76,7 @@ export function CursorTextNav({ activeTileId, tileRegistry, introPhase, onNaviga
         return;
       }
 
-      if (isLeftSide) {
+      if (isPrimaryZone) {
         onNavigate(previousProjectId ?? "landing");
         return;
       }
@@ -128,13 +86,16 @@ export function CursorTextNav({ activeTileId, tileRegistry, introPhase, onNaviga
 
     window.addEventListener("pointerdown", onPointerDown, { capture: true });
     return () => window.removeEventListener("pointerdown", onPointerDown, true);
-  }, [enabled, isLeftSide, isProjectMode, nextProjectId, onNavigate, previousProjectId]);
+  }, [enabled, isPrimaryZone, isProjectMode, nextProjectId, onNavigate, previousProjectId]);
 
-  const label = isProjectMode ? (isLeftSide ? (hasPreviousProject ? "PREVIOUS" : "HOME") : hasNextProject ? "NEXT" : "HOME") : "BACK";
+  const label = isProjectMode ? (isPrimaryZone ? (hasPreviousProject ? "PREVIOUS" : "HOME") : hasNextProject ? "NEXT" : "HOME") : "HOME";
 
   return (
     <div className={`cursor-text-nav${enabled && pointerVisible ? " is-visible" : ""}`} aria-hidden="true">
-      <span ref={labelRef} className="cursor-text-nav-label tiny" style={{ transform: "translate3d(-50%, -50%, 0)" }}>
+      <span
+        className="cursor-text-nav-label tiny"
+        style={{ left: `${cursor.x}px`, top: `${cursor.y}px`, transform: "translate3d(-50%, -50%, 0)" }}
+      >
         {label}
       </span>
     </div>

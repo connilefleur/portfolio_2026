@@ -1,5 +1,5 @@
 :root {
-  --font-main: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-main: "Akzidenz-Grotesk", "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   /* 5 font sizes: caption → lead → heading → heading-lg → display */
   --font-size-caption: 0.875rem;
   --font-size-lead: 1.5rem;
@@ -50,17 +50,27 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   overscroll-behavior: auto;
   font-family: var(--font-main);
   background: var(--bg-page);
 }
 
 #root {
+html,
+body,
+#root,
+button,
+input,
+textarea,
+select {
+  font-style: normal;
+}
+
   margin: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   font-family: var(--font-main);
   background: var(--bg-page);
 }

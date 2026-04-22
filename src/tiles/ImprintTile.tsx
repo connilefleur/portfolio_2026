@@ -1,6 +1,8 @@
 import type { SiteInfo } from "../types/content";
 import type { TileId } from "../canvas/tileRegistry";
-import { TileFrame } from "./TileFrame";
+import { HomeNavButton } from "../components/HomeNavButton";
+import { DetailPanel } from "../components/DetailPanel";
+import { DetailSlide } from "../components/DetailSlide";
 
 type ImprintTileProps = {
   siteInfo: SiteInfo;
@@ -8,49 +10,28 @@ type ImprintTileProps = {
 };
 
 export function ImprintTile({ siteInfo, goToTile }: ImprintTileProps) {
-  void goToTile;
   const imprint = siteInfo.imprint;
   return (
-    <TileFrame>
-      <header className="tile-header tiny">
-        <span>CONRAD LOEFFLER</span>
-        <span>PORTFOLIO 2026</span>
-      </header>
-      <div className="project-detail">
-        <div className="detail-top">
-          <div>
-            <h2>Imprint</h2>
-            <p>{imprint.name}</p>
-          </div>
-          <p className="detail-description">{imprint.liability}</p>
-        </div>
-        <div className="detail-meta">
-          <div>
-            <span>Address</span>
-            <strong>{imprint.address}</strong>
-          </div>
-          <div>
-            <span>Email</span>
-            <strong>{imprint.email}</strong>
-          </div>
-          <div>
-            <span>Last Updated</span>
-            <strong>{imprint.lastUpdated}</strong>
-          </div>
-        </div>
-        <div className="detail-grid">
-          <div className="mock-media" />
-          <div className="mock-media" />
-          <div>
-            <h4>Liability</h4>
-            <p>{imprint.liability}</p>
-          </div>
-          <div>
-            <h4>Copyright</h4>
-            <p>{imprint.copyright}</p>
-          </div>
-        </div>
-      </div>
-    </TileFrame>
+    <DetailSlide
+      headerStart={<HomeNavButton goToTile={goToTile} />}
+      headerEnd={<span>PORTFOLIO 2026</span>}
+      titleBlock={
+        <>
+          <h2>Imprint</h2>
+          <p>{imprint.name}</p>
+        </>
+      }
+      description={imprint.liability}
+      metaItems={[
+        { label: "Address", value: imprint.address },
+        { label: "Email", value: imprint.email },
+        { label: "Last Updated", value: imprint.lastUpdated },
+      ]}
+    >
+      <DetailPanel media />
+      <DetailPanel media />
+      <DetailPanel heading="Liability">{imprint.liability}</DetailPanel>
+      <DetailPanel heading="Copyright">{imprint.copyright}</DetailPanel>
+    </DetailSlide>
   );
 }
