@@ -4,6 +4,7 @@ import { NavAnchorButton } from "../components/NavAnchorButton";
 import { BackIcon, ChevronLeftIcon, ChevronRightIcon, VolumeOffIcon, VolumeOnIcon } from "../components/HomeIcon";
 import type { ProjectItem, ProjectMedia } from "../types/content";
 import { SlideShell } from "../components/SlideShell";
+import { buildAssetUrl, buildImageSrcSet } from "../utils/media";
 
 type ViewerFitMode = "portrait" | "landscape" | "square";
 
@@ -48,10 +49,6 @@ function fallbackProject(): ProjectItem {
   };
 }
 
-function buildAssetUrl(project: ProjectItem, media: ProjectMedia) {
-  return `${project.path}/${media.src}`;
-}
-
 function isGeneratedPosterFileName(fileName: string) {
   return /\.poster\.(jpg|jpeg|png|webp)$/i.test(fileName);
 }
@@ -88,7 +85,8 @@ function ViewerMedia({
     return <div className="project-viewer-stage__empty">No media selected</div>;
   }
 
-  const src = buildAssetUrl(project, media);
+  const src = buildAssetUrl(project.path, media.src);
+  const srcSet = buildImageSrcSet(project.path, media);
 
   if (media.type === "image") {
     return (
@@ -96,8 +94,11 @@ function ViewerMedia({
         <img
           className="project-viewer-stage__asset"
           src={src}
+          srcSet={srcSet || undefined}
+          sizes={srcSet ? "100vw" : undefined}
           alt={media.description || ""}
           loading="eager"
+          decoding="async"
           onLoad={(event) => {
             onFitModeChange(getViewerFitMode(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight));
             onAspectRatioChange(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight);

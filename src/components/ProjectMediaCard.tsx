@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ProjectMedia } from "../types/content";
+import { buildAssetUrl, buildImageSrcSet } from "../utils/media";
 
 type ProjectMediaCardProps = {
   media?: ProjectMedia;
@@ -10,28 +11,28 @@ type ProjectMediaCardProps = {
   loading?: "lazy" | "eager";
   style?: CSSProperties;
   onAspectRatioChange?: (ratio: number) => void;
+  imageSizes?: string;
 };
-
-function buildAssetUrl(assetBasePath: string | undefined, media: ProjectMedia) {
-  return assetBasePath ? `${assetBasePath}/${media.src}` : media.src;
-}
 
 function MediaBody({
   media,
   assetBasePath,
   loading = "lazy",
   onAspectRatioChange,
+  imageSizes = "100vw",
 }: {
   media?: ProjectMedia;
   assetBasePath?: string;
   loading?: "lazy" | "eager";
   onAspectRatioChange?: (ratio: number) => void;
+  imageSizes?: string;
 }) {
   if (!media) {
     return <div className="mock-media project-media-card__empty" />;
   }
 
-  const src = buildAssetUrl(assetBasePath, media);
+  const src = buildAssetUrl(assetBasePath, media.src);
+  const srcSet = buildImageSrcSet(assetBasePath, media);
 
   if (media.type === "image") {
     return (
@@ -39,8 +40,11 @@ function MediaBody({
         <img
           className="project-media-card__asset"
           src={src}
+          srcSet={srcSet || undefined}
+          sizes={srcSet ? imageSizes : undefined}
           alt={media.description || ""}
           loading={loading}
+          decoding="async"
           onLoad={(event) => {
             const { naturalWidth, naturalHeight } = event.currentTarget;
             if (naturalWidth && naturalHeight) {
@@ -90,13 +94,14 @@ export function ProjectMediaCard({
   loading = "lazy",
   style,
   onAspectRatioChange,
+  imageSizes,
 }: ProjectMediaCardProps) {
   const classes = ["project-media-card", className].filter(Boolean).join(" ");
 
   if (onClick) {
     return (
       <button type="button" className={classes} onClick={onClick} aria-label={ariaLabel} style={style}>
-        <MediaBody media={media} assetBasePath={assetBasePath} loading={loading} onAspectRatioChange={onAspectRatioChange} />
+        <MediaBody media={media} assetBasePath={assetBasePath} loading={loading} onAspectRatioChange={onAspectRatioChange} imageSizes={imageSizes} />
         <span className="project-media-card__hover-label" aria-hidden="true">
           SEE MORE
         </span>
@@ -106,7 +111,7 @@ export function ProjectMediaCard({
 
   return (
     <div className={classes} style={style}>
-      <MediaBody media={media} assetBasePath={assetBasePath} loading={loading} onAspectRatioChange={onAspectRatioChange} />
+      <MediaBody media={media} assetBasePath={assetBasePath} loading={loading} onAspectRatioChange={onAspectRatioChange} imageSizes={imageSizes} />
     </div>
   );
 }

@@ -191,6 +191,7 @@ export function ProjectDarkTile({ project, projects, goToTile, onOpenViewer }: P
         loading="eager"
         style={usesSingleWideHero ? primaryHeroStyle : undefined}
         onAspectRatioChange={setPrimaryHeroAspectRatio}
+        imageSizes="(min-width: 1081px) 40vw, (min-width: 641px) 48vw, 100vw"
       />
       {!usesSingleWideHero && secondaryMedia ? (
         <ProjectMediaCard
@@ -200,6 +201,7 @@ export function ProjectDarkTile({ project, projects, goToTile, onOpenViewer }: P
           onClick={() => openForMedia(secondaryMediaSource?.id)}
           ariaLabel={`Open ${displayProject.title} media`}
           loading="eager"
+          imageSizes="(min-width: 1081px) 28vw, (min-width: 641px) 38vw, 100vw"
         />
       ) : null}
       <DetailPanel heading={displayProject.detail.panels[0].heading}>{displayProject.detail.panels[0].body || description}</DetailPanel>

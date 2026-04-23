@@ -10,6 +10,8 @@ const contentProjectsRoot = path.join(contentRoot, "projects");
 const projectsRoot = path.join(root, "public", "projects");
 const outputPath = path.join(root, "public", "projects-index.json");
 const normalizationReportPath = path.join(root, "public", "asset-normalization-report.json");
+const responsiveImageWidths = [960, 1600];
+const responsiveImageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
 const mediaExtensions = new Set([
   ".jpg",
@@ -224,6 +226,7 @@ async function discoverMedia(projectFolderPath) {
   const files = await walkFiles(projectFolderPath);
   return files
     .filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()))
+    .filter((filePath) => !filePath.includes(`${path.sep}_responsive${path.sep}`))
     .filter((filePath) => !isGeneratedPosterFileName(path.basename(filePath)))
     .sort((a, b) => a.localeCompare(b))
     .map((filePath, index) => {
@@ -247,14 +250,37 @@ function summarizeProjectReport(projectId, items) {
     if (item.action === "copy") summary.copied += 1;
     if (item.action === "remux-mov-to-mp4") summary.remuxed += 1;
     if (item.action === "skip-duplicate-mov") summary.skipped += 1;
+    if (item.action === "responsive-images") summary.responsiveJobs += 1;
     return summary;
-  }, { projectId, total: 0, copied: 0, remuxed: 0, skipped: 0, warnings: 0, failures: 0 });
+  }, { projectId, total: 0, copied: 0, remuxed: 0, skipped: 0, responsiveJobs: 0, warnings: 0, failures: 0 });
+}
+
+function generateResponsiveImageVariants(sourceFile, targetDir, targetRelPath) {
+  const sourceExt = path.extname(sourceFile).toLowerCase();
+  if (!responsiveImageExtensions.has(sourceExt)) return [];
+
+  const parsedTarget = path.posix.parse(targetRelPath);
+  const relativeDir = parsedTarget.dir ? `${parsedTarget.dir}/_responsive` : "_responsive";
+  const outputDir = path.join(targetDir, parsedTarget.dir, "_responsive");
+  const outputPrefix = parsedTarget.name;
+  const out = execFileSync("python3", [
+    path.join(root, "scripts", "render-responsive-image.py"),
+    "--input", sourceFile,
+    "--output-dir", outputDir,
+    "--output-prefix", outputPrefix,
+    "--relative-dir", relativeDir,
+    "--widths", responsiveImageWidths.join(","),
+  ], { encoding: "utf8" }).trim();
+
+  if (!out) return [];
+  return JSON.parse(out);
 }
 
 async function copyProjectAssets(slug) {
   const sourceDir = path.join(contentProjectsRoot, slug);
   const targetDir = path.join(projectsRoot, slug);
   const fileNameMap = new Map();
+  const responsiveSourcesByTarget = new Map();
   const reportItems = [];
 
   try {
@@ -397,9 +423,39 @@ async function copyProjectAssets(slug) {
       }
 
       fileNameMap.set(sourceKeyName, path.posix.basename(record.targetRelPath));
+
+      try {
+        const responsiveSources = generateResponsiveImageVariants(record.sourceFile, targetDir, record.targetRelPath);
+        if (responsiveSources.length > 0) {
+          responsiveSourcesByTarget.set(record.targetRelPath, responsiveSources);
+          reportItems.push({
+            projectId: slug,
+            source: record.sourceRelPath.split(path.sep).join("/"),
+            target: record.targetRelPath,
+            action: "responsive-images",
+            status: "success",
+            detail: `Generated ${responsiveSources.length} responsive image variants without changing aspect ratio.`,
+          });
+        }
+      } catch (error) {
+        reportItems.push({
+          projectId: slug,
+          source: record.sourceRelPath.split(path.sep).join("/"),
+          target: record.targetRelPath,
+          action: "responsive-images",
+          status: "failure",
+          detail: `Responsive image generation failed. ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
     }
 
-    return { ok: true, fileNameMap, reportItems, summary: summarizeProjectReport(slug, reportItems) };
+    return {
+      ok: true,
+      fileNameMap,
+      responsiveSourcesByTarget,
+      reportItems,
+      summary: summarizeProjectReport(slug, reportItems),
+    };
   } catch (error) {
     reportItems.push({
       projectId: slug,
@@ -409,7 +465,13 @@ async function copyProjectAssets(slug) {
       status: "failure",
       detail: error instanceof Error ? error.message : String(error),
     });
-    return { ok: false, fileNameMap, reportItems, summary: summarizeProjectReport(slug, reportItems) };
+    return {
+      ok: false,
+      fileNameMap,
+      responsiveSourcesByTarget,
+      reportItems,
+      summary: summarizeProjectReport(slug, reportItems),
+    };
   }
 }
 
@@ -479,6 +541,15 @@ async function buildIndex() {
     if (media.length === 0) {
       media = await discoverMedia(publicMediaPath).catch(() => []);
     }
+
+    media = media.map((item) => {
+      const responsiveSources = copyResult.responsiveSourcesByTarget.get(item.src) ?? [];
+      if (responsiveSources.length === 0) return item;
+      return {
+        ...item,
+        responsiveSources,
+      };
+    });
 
     const normalizeConfiguredName = (fileName) => {
       if (!fileName || isGeneratedPosterFileName(fileName)) return "";

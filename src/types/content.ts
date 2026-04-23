@@ -23,6 +23,12 @@ export type SiteInfo = {
   };
 };
 
+export type ProjectMediaSource = {
+  src: string;
+  width?: number;
+  height?: number;
+};
+
 export type ProjectMedia = {
   id: string;
   type: "image" | "video" | "3d-model" | "image-stack";
@@ -30,6 +36,7 @@ export type ProjectMedia = {
   description?: string;
   width?: number;
   height?: number;
+  responsiveSources?: ProjectMediaSource[];
 };
 
 export type ProjectDetailPanel = {

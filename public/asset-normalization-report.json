@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T12:03:13.502Z",
+  "generatedAt": "2026-04-23T12:34:31.979Z",
   "projectCount": 9,
   "failureCount": 0,
   "warningCount": 1,
@@ -19,10 +19,11 @@
       "projectId": "data_viz",
       "summary": {
         "projectId": "data_viz",
-        "total": 5,
+        "total": 10,
         "copied": 5,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 5,
         "warnings": 0,
         "failures": 0
       },
@@ -37,11 +38,27 @@
         },
         {
           "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0001.jpg",
+          "target": "images/data-viz-rop-image1-0001.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0002.jpg",
           "target": "images/data-viz-rop-image1-0002.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0002.jpg",
+          "target": "images/data-viz-rop-image1-0002.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "data_viz",
@@ -53,6 +70,14 @@
         },
         {
           "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0003.jpg",
+          "target": "images/data-viz-rop-image1-0003.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0004.jpg",
           "target": "images/data-viz-rop-image1-0004.jpg",
           "action": "copy",
@@ -61,11 +86,27 @@
         },
         {
           "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0004.jpg",
+          "target": "images/data-viz-rop-image1-0004.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0005.jpg",
           "target": "images/data-viz-rop-image1-0005.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0005.jpg",
+          "target": "images/data-viz-rop-image1-0005.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     },
@@ -73,10 +114,11 @@
       "projectId": "e30",
       "summary": {
         "projectId": "e30",
-        "total": 5,
+        "total": 10,
         "copied": 5,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 5,
         "warnings": 0,
         "failures": 0
       },
@@ -91,11 +133,27 @@
         },
         {
           "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0001.jpg",
+          "target": "images/cars-pressurized-rop-image1-0001.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0002.jpg",
           "target": "images/cars-pressurized-rop-image1-0002.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0002.jpg",
+          "target": "images/cars-pressurized-rop-image1-0002.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "e30",
@@ -107,6 +165,14 @@
         },
         {
           "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0003.jpg",
+          "target": "images/cars-pressurized-rop-image1-0003.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0004.jpg",
           "target": "images/cars-pressurized-rop-image1-0004.jpg",
           "action": "copy",
@@ -115,11 +181,27 @@
         },
         {
           "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0004.jpg",
+          "target": "images/cars-pressurized-rop-image1-0004.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0006.jpg",
           "target": "images/cars-pressurized-rop-image1-0006.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0006.jpg",
+          "target": "images/cars-pressurized-rop-image1-0006.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     },
@@ -131,6 +213,7 @@
         "copied": 7,
         "remuxed": 1,
         "skipped": 0,
+        "responsiveJobs": 0,
         "warnings": 0,
         "failures": 0
       },
@@ -209,6 +292,7 @@
         "copied": 3,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 0,
         "warnings": 0,
         "failures": 0
       },
@@ -243,10 +327,11 @@
       "projectId": "glasses",
       "summary": {
         "projectId": "glasses",
-        "total": 3,
+        "total": 6,
         "copied": 3,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 3,
         "warnings": 0,
         "failures": 0
       },
@@ -261,6 +346,14 @@
         },
         {
           "projectId": "glasses",
+          "source": "images/oct_Glass_Silhuettes_Image_0017_Shot_002_DenoisedBeauty.jpg",
+          "target": "images/oct-glass-silhuettes-image-0017-shot-002-denoisedbeauty.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "glasses",
           "source": "images/oct_Glass_Silhuettes_Image_0030_Shot_004_animation_DenoisedBeauty.jpg",
           "target": "images/oct-glass-silhuettes-image-0030-shot-004-animation-denoisedbeauty.jpg",
           "action": "copy",
@@ -269,11 +362,27 @@
         },
         {
           "projectId": "glasses",
+          "source": "images/oct_Glass_Silhuettes_Image_0030_Shot_004_animation_DenoisedBeauty.jpg",
+          "target": "images/oct-glass-silhuettes-image-0030-shot-004-animation-denoisedbeauty.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "glasses",
           "source": "images/oct_Glass_Silhuettes_Image_0089_Shot_1_DenoisedBeauty.jpg",
           "target": "images/oct-glass-silhuettes-image-0089-shot-1-denoisedbeauty.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "glasses",
+          "source": "images/oct_Glass_Silhuettes_Image_0089_Shot_1_DenoisedBeauty.jpg",
+          "target": "images/oct-glass-silhuettes-image-0089-shot-1-denoisedbeauty.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     },
@@ -281,10 +390,11 @@
       "projectId": "kapaunenstraße",
       "summary": {
         "projectId": "kapaunenstraße",
-        "total": 10,
+        "total": 20,
         "copied": 10,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 10,
         "warnings": 0,
         "failures": 0
       },
@@ -299,11 +409,27 @@
         },
         {
           "projectId": "kapaunenstraße",
+          "source": "images/House_01_Garden.jpg",
+          "target": "images/house-01-garden.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "kapaunenstraße",
           "source": "images/House_02_Garden.jpg",
           "target": "images/house-02-garden.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/House_02_Garden.jpg",
+          "target": "images/house-02-garden.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "kapaunenstraße",
@@ -315,11 +441,27 @@
         },
         {
           "projectId": "kapaunenstraße",
+          "source": "images/House_06_Front.jpg",
+          "target": "images/house-06-front.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "kapaunenstraße",
           "source": "images/House_09_Front.jpg",
           "target": "images/house-09-front.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/House_09_Front.jpg",
+          "target": "images/house-09-front.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "kapaunenstraße",
@@ -331,11 +473,27 @@
         },
         {
           "projectId": "kapaunenstraße",
+          "source": "images/Kapaunenstraße_Bathroom_Image_01.png",
+          "target": "images/kapaunenstra-e-bathroom-image-01.png",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "kapaunenstraße",
           "source": "images/Kapaunenstraße_Bathroom_Image_02.png",
           "target": "images/kapaunenstra-e-bathroom-image-02.png",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/Kapaunenstraße_Bathroom_Image_02.png",
+          "target": "images/kapaunenstra-e-bathroom-image-02.png",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "kapaunenstraße",
@@ -347,11 +505,27 @@
         },
         {
           "projectId": "kapaunenstraße",
+          "source": "images/Kapaunenstraße_Bathroom_Image_03.png",
+          "target": "images/kapaunenstra-e-bathroom-image-03.png",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "kapaunenstraße",
           "source": "images/oct_Kapaunenstraße_4K_Aces_09_Roof.jpg",
           "target": "images/oct-kapaunenstra-e-4k-aces-09-roof.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/oct_Kapaunenstraße_4K_Aces_09_Roof.jpg",
+          "target": "images/oct-kapaunenstra-e-4k-aces-09-roof.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "kapaunenstraße",
@@ -363,11 +537,27 @@
         },
         {
           "projectId": "kapaunenstraße",
+          "source": "images/oct_Kapaunenstraße_4K_Aces_18_Appartements_05.jpg",
+          "target": "images/oct-kapaunenstra-e-4k-aces-18-appartements-05.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "kapaunenstraße",
           "source": "images/oct_Kapaunenstraße_4K_Aces_29_Appartements_09.jpg",
           "target": "images/oct-kapaunenstra-e-4k-aces-29-appartements-09.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/oct_Kapaunenstraße_4K_Aces_29_Appartements_09.jpg",
+          "target": "images/oct-kapaunenstra-e-4k-aces-29-appartements-09.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     },
@@ -375,10 +565,11 @@
       "projectId": "lookbook",
       "summary": {
         "projectId": "lookbook",
-        "total": 13,
+        "total": 26,
         "copied": 13,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 13,
         "warnings": 0,
         "failures": 0
       },
@@ -393,11 +584,27 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1037.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look01-1037.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1095.jpg",
           "target": "images/20241213-balletshofer-2024-006-ecom-look01-1095.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1095.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look01-1095.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "lookbook",
@@ -409,11 +616,27 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look02_1158.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look02-1158.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1409.jpg",
           "target": "images/20241213-balletshofer-2024-006-ecom-look04-1409.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1409.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1409.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "lookbook",
@@ -425,11 +648,27 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1422.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1422.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1428.jpg",
           "target": "images/20241213-balletshofer-2024-006-ecom-look04-1428.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1428.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1428.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "lookbook",
@@ -441,11 +680,27 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1461.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1461.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_01_1620.jpg",
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-01-1620.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_01_1620.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-01-1620.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "lookbook",
@@ -457,11 +712,27 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_03_1705.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-03-1705.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_05_1883.jpg",
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-05-1883.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_05_1883.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-05-1883.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         },
         {
           "projectId": "lookbook",
@@ -473,6 +744,14 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_07_1980.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-07-1980.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_08_2064.jpg",
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-08-2064.jpg",
           "action": "copy",
@@ -481,11 +760,27 @@
         },
         {
           "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_08_2064.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-08-2064.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_10_2121.jpg",
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-10-2121.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_10_2121.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-10-2121.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     },
@@ -493,10 +788,11 @@
       "projectId": "su7",
       "summary": {
         "projectId": "su7",
-        "total": 3,
+        "total": 6,
         "copied": 3,
         "remuxed": 0,
         "skipped": 0,
+        "responsiveJobs": 3,
         "warnings": 0,
         "failures": 0
       },
@@ -511,6 +807,14 @@
         },
         {
           "projectId": "su7",
+          "source": "images/Xaomi_SU7.rop_image1.0001.jpg",
+          "target": "images/xaomi-su7-rop-image1-0001.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "su7",
           "source": "images/Xaomi_SU7.rop_image1.0003.jpg",
           "target": "images/xaomi-su7-rop-image1-0003.jpg",
           "action": "copy",
@@ -519,11 +823,27 @@
         },
         {
           "projectId": "su7",
+          "source": "images/Xaomi_SU7.rop_image1.0003.jpg",
+          "target": "images/xaomi-su7-rop-image1-0003.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "su7",
           "source": "images/Xaomi_SU7.rop_image1.0004.jpg",
           "target": "images/xaomi-su7-rop-image1-0004.jpg",
           "action": "copy",
           "status": "success",
           "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "su7",
+          "source": "images/Xaomi_SU7.rop_image1.0004.jpg",
+          "target": "images/xaomi-su7-rop-image1-0004.jpg",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     },
@@ -535,6 +855,7 @@
         "copied": 2,
         "remuxed": 0,
         "skipped": 1,
+        "responsiveJobs": 0,
         "warnings": 1,
         "failures": 0
       },
