@@ -1,5 +1,6 @@
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import path from "node:path";
 
 const root = process.cwd();
@@ -115,19 +116,62 @@ async function walkFiles(dirPath) {
 
 function probeMediaDimensions(filePath) {
   try {
-    const out = execFileSync('ffprobe', [
-      '-v', 'error',
-      '-select_streams', 'v:0',
-      '-show_entries', 'stream=width,height',
-      '-of', 'csv=p=0:s=x',
+    const out = execFileSync("ffprobe", [
+      "-v", "error",
+      "-select_streams", "v:0",
+      "-show_entries", "stream=width,height",
+      "-of", "csv=p=0:s=x",
       filePath,
-    ], { encoding: 'utf8' }).trim();
-    const [width, height] = out.split('x').map((value) => Number.parseInt(value, 10));
+    ], { encoding: "utf8" }).trim();
+    const [width, height] = out.split("x").map((value) => Number.parseInt(value, 10));
     if (!width || !height) return {};
     return { width, height };
   } catch {
     return {};
   }
+}
+
+function normalizeAssetSegment(value) {
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || "asset";
+}
+
+function buildUniqueNormalizedRelativePath(sourceRelPath, usedPaths) {
+  const posixRelPath = sourceRelPath.split(path.sep).join(path.posix.sep);
+  const parsed = path.posix.parse(posixRelPath);
+  const dirSegments = parsed.dir
+    ? parsed.dir.split("/").filter(Boolean).map((segment) => normalizeAssetSegment(segment))
+    : [];
+  const ext = parsed.ext.toLowerCase();
+  const baseName = normalizeAssetSegment(parsed.name);
+  const joinCandidate = (name) => (dirSegments.length > 0 ? path.posix.join(...dirSegments, `${name}${ext}`) : `${name}${ext}`);
+
+  let candidate = joinCandidate(baseName);
+  if (!usedPaths.has(candidate)) {
+    usedPaths.add(candidate);
+    return candidate;
+  }
+
+  const digest = createHash("sha1").update(posixRelPath).digest("hex").slice(0, 8);
+  candidate = joinCandidate(`${baseName}-${digest}`);
+  if (!usedPaths.has(candidate)) {
+    usedPaths.add(candidate);
+    return candidate;
+  }
+
+  let counter = 2;
+  while (usedPaths.has(candidate)) {
+    candidate = joinCandidate(`${baseName}-${digest}-${counter}`);
+    counter += 1;
+  }
+  usedPaths.add(candidate);
+  return candidate;
 }
 
 async function discoverMedia(projectFolderPath) {
@@ -152,23 +196,35 @@ async function discoverMedia(projectFolderPath) {
 async function copyProjectAssets(slug) {
   const sourceDir = path.join(contentProjectsRoot, slug);
   const targetDir = path.join(projectsRoot, slug);
+  const fileNameMap = new Map();
+
   try {
     const sourceFiles = await walkFiles(sourceDir);
     const mediaFiles = sourceFiles
       .filter((filePath) => mediaExtensions.has(path.extname(filePath).toLowerCase()))
-      .filter((filePath) => !isGeneratedPosterFileName(path.basename(filePath)));
+      .filter((filePath) => !isGeneratedPosterFileName(path.basename(filePath)))
+      .sort((a, b) => a.localeCompare(b));
 
+    const usedPaths = new Set();
     await rm(targetDir, { recursive: true, force: true });
 
     for (const sourceFile of mediaFiles) {
-      const relPath = path.relative(sourceDir, sourceFile);
-      const targetFile = path.join(targetDir, relPath);
+      const sourceRelPath = path.relative(sourceDir, sourceFile);
+      const normalizedRelPath = buildUniqueNormalizedRelativePath(sourceRelPath, usedPaths);
+      const targetFile = path.join(targetDir, normalizedRelPath);
       await mkdir(path.dirname(targetFile), { recursive: true });
       await copyFile(sourceFile, targetFile);
+
+      const sourceFileName = path.basename(sourceFile);
+      const normalizedFileName = path.posix.basename(normalizedRelPath);
+      if (!fileNameMap.has(sourceFileName)) {
+        fileNameMap.set(sourceFileName, normalizedFileName);
+      }
     }
-    return true;
+
+    return { ok: true, fileNameMap };
   } catch {
-    return false;
+    return { ok: false, fileNameMap };
   }
 }
 
@@ -220,23 +276,26 @@ async function buildIndex() {
       throw new Error("CSV row is missing required field: slug");
     }
 
-    await copyProjectAssets(slug);
-    const contentMediaPath = path.join(contentProjectsRoot, slug);
+    const copyResult = await copyProjectAssets(slug);
     const publicMediaPath = path.join(projectsRoot, slug);
-
-    let media = await discoverMedia(contentMediaPath).catch(() => []);
+    let media = copyResult.ok ? await discoverMedia(publicMediaPath).catch(() => []) : [];
     if (media.length === 0) {
       media = await discoverMedia(publicMediaPath).catch(() => []);
     }
+
+    const normalizeConfiguredName = (fileName) => {
+      if (!fileName || isGeneratedPosterFileName(fileName)) return "";
+      return copyResult.fileNameMap.get(fileName) ?? fileName;
+    };
 
     const defaultDetailBody = row.description || "Project details will be updated soon.";
     const mediaFileNames = media
       .map((item) => item.src.split("/").pop())
       .filter(Boolean)
       .filter((name) => !isGeneratedPosterFileName(name));
-    const preferredHeroPrimary = isGeneratedPosterFileName(row.hero_media_primary || "") ? "" : row.hero_media_primary;
-    const preferredHeroSecondary = isGeneratedPosterFileName(row.hero_media_secondary || "") ? "" : row.hero_media_secondary;
-    const explicitViewerMedia = parsePipeList(row.viewer_media);
+    const preferredHeroPrimary = normalizeConfiguredName(row.hero_media_primary || "");
+    const preferredHeroSecondary = normalizeConfiguredName(row.hero_media_secondary || "");
+    const explicitViewerMedia = parsePipeList(row.viewer_media).map((name) => normalizeConfiguredName(name));
     const heroPrimary = preferredHeroPrimary || mediaFileNames[0] || "";
     const heroSecondary = preferredHeroSecondary;
     const viewerMedia = explicitViewerMedia.length > 0 ? explicitViewerMedia : mergeViewerMedia([], mediaFileNames);
