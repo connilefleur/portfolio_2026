@@ -89,6 +89,11 @@ body.cursor-text-nav-active * {
   overflow: hidden;
 }
 
+.tile[data-tile-id^="project-viewer-"] {
+  padding: 0;
+  overflow: hidden;
+}
+
 .tile-frame {
   display: flex;
   position: relative;
