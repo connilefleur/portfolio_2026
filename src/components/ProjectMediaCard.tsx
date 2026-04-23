@@ -33,6 +33,7 @@ function MediaBody({
 
   const src = buildAssetUrl(assetBasePath, media.src);
   const srcSet = buildImageSrcSet(assetBasePath, media);
+  const posterSrc = media.posterSrc ? buildAssetUrl(assetBasePath, media.posterSrc) : undefined;
 
   if (media.type === "image") {
     return (
@@ -62,6 +63,7 @@ function MediaBody({
         <video
           className="project-media-card__asset"
           src={src}
+          poster={posterSrc}
           autoPlay
           muted
           loop

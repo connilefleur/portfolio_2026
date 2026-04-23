@@ -1,8 +1,12 @@
 {
-  "generatedAt": "2026-04-23T12:34:31.979Z",
+  "generatedAt": "2026-04-23T13:35:27.657Z",
   "projectCount": 9,
   "failureCount": 0,
   "warningCount": 1,
+  "videoBytesBefore": 326517518,
+  "videoBytesAfter": 85086968,
+  "videoSavedBytes": 241430550,
+  "videoSavedPercent": 73.94,
   "failures": [],
   "warnings": [
     {
@@ -21,11 +25,14 @@
         "projectId": "data_viz",
         "total": 10,
         "copied": 5,
-        "remuxed": 0,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 5,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -34,12 +41,14 @@
           "target": "images/data-viz-rop-image1-0001.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4707376,
+          "targetSizeBytes": 4707376
         },
         {
           "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0001.jpg",
-          "target": "images/data-viz-rop-image1-0001.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -50,12 +59,14 @@
           "target": "images/data-viz-rop-image1-0002.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 3835460,
+          "targetSizeBytes": 3835460
         },
         {
           "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0002.jpg",
-          "target": "images/data-viz-rop-image1-0002.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -66,12 +77,14 @@
           "target": "images/data-viz-rop-image1-0003.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4480726,
+          "targetSizeBytes": 4480726
         },
         {
           "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0003.jpg",
-          "target": "images/data-viz-rop-image1-0003.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -82,12 +95,14 @@
           "target": "images/data-viz-rop-image1-0004.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5024354,
+          "targetSizeBytes": 5024354
         },
         {
           "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0004.jpg",
-          "target": "images/data-viz-rop-image1-0004.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -98,12 +113,14 @@
           "target": "images/data-viz-rop-image1-0005.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4296010,
+          "targetSizeBytes": 4296010
         },
         {
           "projectId": "data_viz",
           "source": "images/Data_Viz.rop_image1.0005.jpg",
-          "target": "images/data-viz-rop-image1-0005.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -116,11 +133,14 @@
         "projectId": "e30",
         "total": 10,
         "copied": 5,
-        "remuxed": 0,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 5,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -129,12 +149,14 @@
           "target": "images/cars-pressurized-rop-image1-0001.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4415774,
+          "targetSizeBytes": 4415774
         },
         {
           "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0001.jpg",
-          "target": "images/cars-pressurized-rop-image1-0001.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -145,12 +167,14 @@
           "target": "images/cars-pressurized-rop-image1-0002.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5500302,
+          "targetSizeBytes": 5500302
         },
         {
           "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0002.jpg",
-          "target": "images/cars-pressurized-rop-image1-0002.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -161,12 +185,14 @@
           "target": "images/cars-pressurized-rop-image1-0003.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4876219,
+          "targetSizeBytes": 4876219
         },
         {
           "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0003.jpg",
-          "target": "images/cars-pressurized-rop-image1-0003.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -177,12 +203,14 @@
           "target": "images/cars-pressurized-rop-image1-0004.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5229848,
+          "targetSizeBytes": 5229848
         },
         {
           "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0004.jpg",
-          "target": "images/cars-pressurized-rop-image1-0004.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -193,12 +221,14 @@
           "target": "images/cars-pressurized-rop-image1-0006.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5273256,
+          "targetSizeBytes": 5273256
         },
         {
           "projectId": "e30",
           "source": "images/Cars_Pressurized.rop_image1.0006.jpg",
-          "target": "images/cars-pressurized-rop-image1-0006.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -209,78 +239,185 @@
       "projectId": "experiments",
       "summary": {
         "projectId": "experiments",
-        "total": 8,
-        "copied": 7,
-        "remuxed": 1,
+        "total": 16,
+        "copied": 0,
+        "optimizedVideos": 8,
         "skipped": 0,
         "responsiveJobs": 0,
+        "posters": 8,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 102888860,
+        "videoBytesAfter": 24898130
       },
       "items": [
         {
           "projectId": "experiments",
           "source": "videos/0001-0200.MP4",
           "target": "videos/0001-0200.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 20713628,
+          "targetSizeBytes": 7719898,
+          "savedBytes": 12993730,
+          "savedPercent": 62.73
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/0001-0200.MP4",
+          "target": "videos/0001-0200.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 119757
         },
         {
           "projectId": "experiments",
           "source": "videos/bubble_burst.mp4",
           "target": "videos/bubble-burst.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 13822815,
+          "targetSizeBytes": 3684068,
+          "savedBytes": 10138747,
+          "savedPercent": 73.35
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/bubble_burst.mp4",
+          "target": "videos/bubble-burst.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 62515
         },
         {
           "projectId": "experiments",
           "source": "videos/ct_scan.mp4",
           "target": "videos/ct-scan.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 16020829,
+          "targetSizeBytes": 1200103,
+          "savedBytes": 14820726,
+          "savedPercent": 92.51
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/ct_scan.mp4",
+          "target": "videos/ct-scan.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 55754
         },
         {
           "projectId": "experiments",
           "source": "videos/fluid_image.mp4",
           "target": "videos/fluid-image.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 25203976,
+          "targetSizeBytes": 2482465,
+          "savedBytes": 22721511,
+          "savedPercent": 90.15
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/fluid_image.mp4",
+          "target": "videos/fluid-image.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 53527
         },
         {
           "projectId": "experiments",
           "source": "videos/liberty_lady.MP4",
           "target": "videos/liberty-lady.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 5580659,
+          "targetSizeBytes": 4706820,
+          "savedBytes": 873839,
+          "savedPercent": 15.66
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/liberty_lady.MP4",
+          "target": "videos/liberty-lady.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 138191
         },
         {
           "projectId": "experiments",
           "source": "videos/melting_landscapes.mp4",
           "target": "videos/melting-landscapes.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 6701562,
+          "targetSizeBytes": 2767201,
+          "savedBytes": 3934361,
+          "savedPercent": 58.71
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/melting_landscapes.mp4",
+          "target": "videos/melting-landscapes.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 190447
         },
         {
           "projectId": "experiments",
           "source": "videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4",
           "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1280.",
+          "sourceSizeBytes": 9382318,
+          "targetSizeBytes": 1791077,
+          "savedBytes": 7591241,
+          "savedPercent": 80.91
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4",
+          "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 118818
         },
         {
           "projectId": "experiments",
           "source": "videos/spektrum_logo_final.mov",
           "target": "videos/spektrum-logo-final.mp4",
-          "action": "remux-mov-to-mp4",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Lossless stream-copy remuxed .mov into .mp4 without re-encoding video or audio."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1080.",
+          "sourceSizeBytes": 5463073,
+          "targetSizeBytes": 546498,
+          "savedBytes": 4916575,
+          "savedPercent": 90
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/spektrum_logo_final.mov",
+          "target": "videos/spektrum-logo-final.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 11305
         }
       ]
     },
@@ -288,38 +425,80 @@
       "projectId": "ggl",
       "summary": {
         "projectId": "ggl",
-        "total": 3,
-        "copied": 3,
-        "remuxed": 0,
+        "total": 6,
+        "copied": 0,
+        "optimizedVideos": 3,
         "skipped": 0,
         "responsiveJobs": 0,
+        "posters": 3,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 51773915,
+        "videoBytesAfter": 13387786
       },
       "items": [
         {
           "projectId": "ggl",
           "source": "videos/GGL_Christmas_Anna_Stare.mp4",
           "target": "videos/ggl-christmas-anna-stare.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 17063738,
+          "targetSizeBytes": 2485913,
+          "savedBytes": 14577825,
+          "savedPercent": 85.43
+        },
+        {
+          "projectId": "ggl",
+          "source": "videos/GGL_Christmas_Anna_Stare.mp4",
+          "target": "videos/ggl-christmas-anna-stare.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 73227
         },
         {
           "projectId": "ggl",
           "source": "videos/GGL_Christmas_Anna_x_Ducks.MP4",
           "target": "videos/ggl-christmas-anna-x-ducks.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 17545233,
+          "targetSizeBytes": 5853685,
+          "savedBytes": 11691548,
+          "savedPercent": 66.64
+        },
+        {
+          "projectId": "ggl",
+          "source": "videos/GGL_Christmas_Anna_x_Ducks.MP4",
+          "target": "videos/ggl-christmas-anna-x-ducks.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 18320
         },
         {
           "projectId": "ggl",
           "source": "videos/GGL_Christmas_AnnaOrange_MultiBag.MP4",
           "target": "videos/ggl-christmas-annaorange-multibag.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "sourceSizeBytes": 17164944,
+          "targetSizeBytes": 5048188,
+          "savedBytes": 12116756,
+          "savedPercent": 70.59
+        },
+        {
+          "projectId": "ggl",
+          "source": "videos/GGL_Christmas_AnnaOrange_MultiBag.MP4",
+          "target": "videos/ggl-christmas-annaorange-multibag.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 91699
         }
       ]
     },
@@ -329,11 +508,14 @@
         "projectId": "glasses",
         "total": 6,
         "copied": 3,
-        "remuxed": 0,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 3,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -342,12 +524,14 @@
           "target": "images/oct-glass-silhuettes-image-0017-shot-002-denoisedbeauty.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2068740,
+          "targetSizeBytes": 2068740
         },
         {
           "projectId": "glasses",
           "source": "images/oct_Glass_Silhuettes_Image_0017_Shot_002_DenoisedBeauty.jpg",
-          "target": "images/oct-glass-silhuettes-image-0017-shot-002-denoisedbeauty.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -358,12 +542,14 @@
           "target": "images/oct-glass-silhuettes-image-0030-shot-004-animation-denoisedbeauty.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 1802306,
+          "targetSizeBytes": 1802306
         },
         {
           "projectId": "glasses",
           "source": "images/oct_Glass_Silhuettes_Image_0030_Shot_004_animation_DenoisedBeauty.jpg",
-          "target": "images/oct-glass-silhuettes-image-0030-shot-004-animation-denoisedbeauty.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -374,12 +560,14 @@
           "target": "images/oct-glass-silhuettes-image-0089-shot-1-denoisedbeauty.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2196530,
+          "targetSizeBytes": 2196530
         },
         {
           "projectId": "glasses",
           "source": "images/oct_Glass_Silhuettes_Image_0089_Shot_1_DenoisedBeauty.jpg",
-          "target": "images/oct-glass-silhuettes-image-0089-shot-1-denoisedbeauty.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -392,11 +580,14 @@
         "projectId": "kapaunenstraße",
         "total": 20,
         "copied": 10,
-        "remuxed": 0,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 10,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -405,12 +596,14 @@
           "target": "images/house-01-garden.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 1774319,
+          "targetSizeBytes": 1774319
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/House_01_Garden.jpg",
-          "target": "images/house-01-garden.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -421,12 +614,14 @@
           "target": "images/house-02-garden.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2262528,
+          "targetSizeBytes": 2262528
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/House_02_Garden.jpg",
-          "target": "images/house-02-garden.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -437,12 +632,14 @@
           "target": "images/house-06-front.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 1980884,
+          "targetSizeBytes": 1980884
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/House_06_Front.jpg",
-          "target": "images/house-06-front.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -453,12 +650,14 @@
           "target": "images/house-09-front.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 1881980,
+          "targetSizeBytes": 1881980
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/House_09_Front.jpg",
-          "target": "images/house-09-front.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -469,12 +668,14 @@
           "target": "images/kapaunenstra-e-bathroom-image-01.png",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 45331490,
+          "targetSizeBytes": 45331490
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/Kapaunenstraße_Bathroom_Image_01.png",
-          "target": "images/kapaunenstra-e-bathroom-image-01.png",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -485,12 +686,14 @@
           "target": "images/kapaunenstra-e-bathroom-image-02.png",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 8926581,
+          "targetSizeBytes": 8926581
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/Kapaunenstraße_Bathroom_Image_02.png",
-          "target": "images/kapaunenstra-e-bathroom-image-02.png",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -501,12 +704,14 @@
           "target": "images/kapaunenstra-e-bathroom-image-03.png",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 9025177,
+          "targetSizeBytes": 9025177
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/Kapaunenstraße_Bathroom_Image_03.png",
-          "target": "images/kapaunenstra-e-bathroom-image-03.png",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -517,12 +722,14 @@
           "target": "images/oct-kapaunenstra-e-4k-aces-09-roof.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2073755,
+          "targetSizeBytes": 2073755
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/oct_Kapaunenstraße_4K_Aces_09_Roof.jpg",
-          "target": "images/oct-kapaunenstra-e-4k-aces-09-roof.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -533,12 +740,14 @@
           "target": "images/oct-kapaunenstra-e-4k-aces-18-appartements-05.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 1451327,
+          "targetSizeBytes": 1451327
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/oct_Kapaunenstraße_4K_Aces_18_Appartements_05.jpg",
-          "target": "images/oct-kapaunenstra-e-4k-aces-18-appartements-05.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -549,12 +758,14 @@
           "target": "images/oct-kapaunenstra-e-4k-aces-29-appartements-09.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 1627341,
+          "targetSizeBytes": 1627341
         },
         {
           "projectId": "kapaunenstraße",
           "source": "images/oct_Kapaunenstraße_4K_Aces_29_Appartements_09.jpg",
-          "target": "images/oct-kapaunenstra-e-4k-aces-29-appartements-09.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -567,11 +778,14 @@
         "projectId": "lookbook",
         "total": 26,
         "copied": 13,
-        "remuxed": 0,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 13,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -580,12 +794,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look01-1037.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5191436,
+          "targetSizeBytes": 5191436
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1037.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look01-1037.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -596,12 +812,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look01-1095.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 8100021,
+          "targetSizeBytes": 8100021
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1095.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look01-1095.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -612,12 +830,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look02-1158.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 6935051,
+          "targetSizeBytes": 6935051
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look02_1158.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look02-1158.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -628,12 +848,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look04-1409.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4666950,
+          "targetSizeBytes": 4666950
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1409.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1409.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -644,12 +866,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look04-1422.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4503442,
+          "targetSizeBytes": 4503442
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1422.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1422.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -660,12 +884,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look04-1428.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 6108282,
+          "targetSizeBytes": 6108282
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1428.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1428.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -676,12 +902,14 @@
           "target": "images/20241213-balletshofer-2024-006-ecom-look04-1461.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5915831,
+          "targetSizeBytes": 5915831
         },
         {
           "projectId": "lookbook",
           "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1461.jpg",
-          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1461.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -692,12 +920,14 @@
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-01-1620.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5508551,
+          "targetSizeBytes": 5508551
         },
         {
           "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_01_1620.jpg",
-          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-01-1620.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -708,12 +938,14 @@
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-03-1705.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 6036452,
+          "targetSizeBytes": 6036452
         },
         {
           "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_03_1705.jpg",
-          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-03-1705.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -724,12 +956,14 @@
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-05-1883.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5377573,
+          "targetSizeBytes": 5377573
         },
         {
           "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_05_1883.jpg",
-          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-05-1883.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -740,12 +974,14 @@
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-07-1980.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5451397,
+          "targetSizeBytes": 5451397
         },
         {
           "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_07_1980.jpg",
-          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-07-1980.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -756,12 +992,14 @@
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-08-2064.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5570841,
+          "targetSizeBytes": 5570841
         },
         {
           "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_08_2064.jpg",
-          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-08-2064.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -772,12 +1010,14 @@
           "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-10-2121.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 5732087,
+          "targetSizeBytes": 5732087
         },
         {
           "projectId": "lookbook",
           "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_10_2121.jpg",
-          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-10-2121.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -790,11 +1030,14 @@
         "projectId": "su7",
         "total": 6,
         "copied": 3,
-        "remuxed": 0,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 3,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -803,12 +1046,14 @@
           "target": "images/xaomi-su7-rop-image1-0001.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 3781438,
+          "targetSizeBytes": 3781438
         },
         {
           "projectId": "su7",
           "source": "images/Xaomi_SU7.rop_image1.0001.jpg",
-          "target": "images/xaomi-su7-rop-image1-0001.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -819,12 +1064,14 @@
           "target": "images/xaomi-su7-rop-image1-0003.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4034655,
+          "targetSizeBytes": 4034655
         },
         {
           "projectId": "su7",
           "source": "images/Xaomi_SU7.rop_image1.0003.jpg",
-          "target": "images/xaomi-su7-rop-image1-0003.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -835,12 +1082,14 @@
           "target": "images/xaomi-su7-rop-image1-0004.jpg",
           "action": "copy",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4721368,
+          "targetSizeBytes": 4721368
         },
         {
           "projectId": "su7",
           "source": "images/Xaomi_SU7.rop_image1.0004.jpg",
-          "target": "images/xaomi-su7-rop-image1-0004.jpg",
+          "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
           "detail": "Generated 2 responsive image variants without changing aspect ratio."
@@ -851,13 +1100,16 @@
       "projectId": "vfx",
       "summary": {
         "projectId": "vfx",
-        "total": 3,
-        "copied": 2,
-        "remuxed": 0,
+        "total": 5,
+        "copied": 0,
+        "optimizedVideos": 2,
         "skipped": 1,
         "responsiveJobs": 0,
+        "posters": 2,
         "warnings": 1,
-        "failures": 0
+        "failures": 0,
+        "videoBytesBefore": 171854743,
+        "videoBytesAfter": 46801052
       },
       "items": [
         {
@@ -872,17 +1124,43 @@
           "projectId": "vfx",
           "source": "videos/skrtcobain_sohigh_online_v07_H264.mp4",
           "target": "videos/skrtcobain-sohigh-online-v07-h264.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1080.",
+          "sourceSizeBytes": 169771456,
+          "targetSizeBytes": 45610150,
+          "savedBytes": 124161306,
+          "savedPercent": 73.13
+        },
+        {
+          "projectId": "vfx",
+          "source": "videos/skrtcobain_sohigh_online_v07_H264.mp4",
+          "target": "videos/skrtcobain-sohigh-online-v07-h264.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 88574
         },
         {
           "projectId": "vfx",
           "source": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
           "target": "videos/sohigh-vfxbd-spktrm-comp.mp4",
-          "action": "copy",
+          "action": "optimize-video",
           "status": "success",
-          "detail": "Copied without recompression or visual changes."
+          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1080.",
+          "sourceSizeBytes": 2083287,
+          "targetSizeBytes": 1190902,
+          "savedBytes": 892385,
+          "savedPercent": 42.84
+        },
+        {
+          "projectId": "vfx",
+          "source": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
+          "target": "videos/sohigh-vfxbd-spktrm-comp.poster.jpg",
+          "action": "generate-video-poster",
+          "status": "success",
+          "detail": "Generated poster image for faster first paint before playback.",
+          "targetSizeBytes": 110265
         }
       ]
     }

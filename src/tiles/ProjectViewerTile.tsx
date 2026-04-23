@@ -87,6 +87,7 @@ function ViewerMedia({
 
   const src = buildAssetUrl(project.path, media.src);
   const srcSet = buildImageSrcSet(project.path, media);
+  const posterSrc = media.posterSrc ? buildAssetUrl(project.path, media.posterSrc) : undefined;
 
   if (media.type === "image") {
     return (
@@ -115,6 +116,7 @@ function ViewerMedia({
           ref={videoRef}
           className="project-viewer-stage__asset"
           src={src}
+          poster={posterSrc}
           playsInline
           muted={muted}
           loop

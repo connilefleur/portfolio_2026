@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import path from "node:path";
@@ -12,6 +12,12 @@ const outputPath = path.join(root, "public", "projects-index.json");
 const normalizationReportPath = path.join(root, "public", "asset-normalization-report.json");
 const responsiveImageWidths = [960, 1600];
 const responsiveImageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const videoExtensions = new Set([".mp4", ".webm", ".mov"]);
+const videoMaxEdge = 1920;
+const posterMaxEdge = 1600;
+const videoCrf = 23;
+const videoPreset = "slow";
+const videoAudioBitrate = "128k";
 
 const mediaExtensions = new Set([
   ".jpg",
@@ -27,11 +33,8 @@ const mediaExtensions = new Set([
   ".gltf"
 ]);
 
-const mp4VideoCopyCodecs = new Set(["h264", "hevc"]);
-const mp4AudioCopyCodecs = new Set(["aac", "mp3", "ac3", "eac3", "alac", "none"]);
-
 function extensionToType(ext) {
-  if ([".mp4", ".webm", ".mov"].includes(ext)) return "video";
+  if (videoExtensions.has(ext)) return "video";
   if ([".glb", ".gltf"].includes(ext)) return "3d-model";
   return "image";
 }
@@ -137,21 +140,6 @@ function probeMediaDimensions(filePath) {
   }
 }
 
-function probeMediaInfo(filePath) {
-  try {
-    const out = execFileSync("ffprobe", [
-      "-v", "error",
-      "-print_format", "json",
-      "-show_streams",
-      "-show_format",
-      filePath,
-    ], { encoding: "utf8" });
-    return JSON.parse(out);
-  } catch {
-    return null;
-  }
-}
-
 function normalizeAssetSegment(value) {
   const normalized = value
     .normalize("NFKD")
@@ -195,31 +183,33 @@ function buildUniqueNormalizedRelativePath(sourceRelPath, usedPaths, extOverride
   return candidate;
 }
 
-function canLosslesslyRemuxMovToMp4(mediaInfo) {
-  if (!mediaInfo) {
-    return { ok: false, reason: "ffprobe failed" };
+function buildPosterRelativePath(targetRelPath, usedPaths) {
+  const parsed = path.posix.parse(targetRelPath);
+  const base = parsed.dir ? `${parsed.dir}/${parsed.name}.poster.jpg` : `${parsed.name}.poster.jpg`;
+  if (!usedPaths.has(base)) {
+    usedPaths.add(base);
+    return base;
   }
 
-  const streams = mediaInfo.streams ?? [];
-  const videoStreams = streams.filter((stream) => stream.codec_type === "video");
-  if (videoStreams.length === 0) {
-    return { ok: false, reason: "missing video stream" };
+  const digest = createHash("sha1").update(targetRelPath).digest("hex").slice(0, 8);
+  let counter = 1;
+  let candidate = parsed.dir ? `${parsed.dir}/${parsed.name}-${digest}.poster.jpg` : `${parsed.name}-${digest}.poster.jpg`;
+  while (usedPaths.has(candidate)) {
+    counter += 1;
+    candidate = parsed.dir ? `${parsed.dir}/${parsed.name}-${digest}-${counter}.poster.jpg` : `${parsed.name}-${digest}-${counter}.poster.jpg`;
   }
+  usedPaths.add(candidate);
+  return candidate;
+}
 
-  const primaryVideo = videoStreams[0];
-  if (!mp4VideoCopyCodecs.has(primaryVideo.codec_name)) {
-    return { ok: false, reason: `video codec ${primaryVideo.codec_name || "unknown"} not safe for stream-copy mp4 remux` };
-  }
+function buildResponsiveRelativeDir(targetRelPath) {
+  const parsed = path.posix.parse(targetRelPath);
+  return parsed.dir ? `${parsed.dir}/_responsive` : "_responsive";
+}
 
-  const audioStreams = streams.filter((stream) => stream.codec_type === "audio");
-  for (const audio of audioStreams) {
-    const codec = audio.codec_name || "unknown";
-    if (!mp4AudioCopyCodecs.has(codec)) {
-      return { ok: false, reason: `audio codec ${codec} not safe for stream-copy mp4 remux` };
-    }
-  }
-
-  return { ok: true };
+function computeSavedPercent(sourceSizeBytes, targetSizeBytes) {
+  if (!sourceSizeBytes || sourceSizeBytes <= 0 || targetSizeBytes == null) return null;
+  return Number((((sourceSizeBytes - targetSizeBytes) / sourceSizeBytes) * 100).toFixed(2));
 }
 
 async function discoverMedia(projectFolderPath) {
@@ -247,12 +237,29 @@ function summarizeProjectReport(projectId, items) {
     summary.total += 1;
     if (item.status === "failure") summary.failures += 1;
     if (item.status === "warning") summary.warnings += 1;
-    if (item.action === "copy") summary.copied += 1;
-    if (item.action === "remux-mov-to-mp4") summary.remuxed += 1;
+    if (item.action === "copy" && item.status === "success") summary.copied += 1;
+    if (item.action === "optimize-video" && item.status === "success") {
+      summary.optimizedVideos += 1;
+      summary.videoBytesBefore += item.sourceSizeBytes ?? 0;
+      summary.videoBytesAfter += item.targetSizeBytes ?? 0;
+    }
     if (item.action === "skip-duplicate-mov") summary.skipped += 1;
-    if (item.action === "responsive-images") summary.responsiveJobs += 1;
+    if (item.action === "responsive-images" && item.status === "success") summary.responsiveJobs += 1;
+    if (item.action === "generate-video-poster" && item.status === "success") summary.posters += 1;
     return summary;
-  }, { projectId, total: 0, copied: 0, remuxed: 0, skipped: 0, responsiveJobs: 0, warnings: 0, failures: 0 });
+  }, {
+    projectId,
+    total: 0,
+    copied: 0,
+    optimizedVideos: 0,
+    skipped: 0,
+    responsiveJobs: 0,
+    posters: 0,
+    warnings: 0,
+    failures: 0,
+    videoBytesBefore: 0,
+    videoBytesAfter: 0,
+  });
 }
 
 function generateResponsiveImageVariants(sourceFile, targetDir, targetRelPath) {
@@ -260,7 +267,7 @@ function generateResponsiveImageVariants(sourceFile, targetDir, targetRelPath) {
   if (!responsiveImageExtensions.has(sourceExt)) return [];
 
   const parsedTarget = path.posix.parse(targetRelPath);
-  const relativeDir = parsedTarget.dir ? `${parsedTarget.dir}/_responsive` : "_responsive";
+  const relativeDir = buildResponsiveRelativeDir(targetRelPath);
   const outputDir = path.join(targetDir, parsedTarget.dir, "_responsive");
   const outputPrefix = parsedTarget.name;
   const out = execFileSync("python3", [
@@ -276,11 +283,28 @@ function generateResponsiveImageVariants(sourceFile, targetDir, targetRelPath) {
   return JSON.parse(out);
 }
 
+function renderOptimizedVideoAsset(sourceFile, targetFile, posterFile) {
+  const out = execFileSync("python3", [
+    path.join(root, "scripts", "render-web-video.py"),
+    "--input", sourceFile,
+    "--video-output", targetFile,
+    "--poster-output", posterFile,
+    "--video-max-edge", String(videoMaxEdge),
+    "--poster-max-edge", String(posterMaxEdge),
+    "--crf", String(videoCrf),
+    "--preset", videoPreset,
+    "--audio-bitrate", videoAudioBitrate,
+  ], { encoding: "utf8" }).trim();
+
+  return out ? JSON.parse(out) : {};
+}
+
 async function copyProjectAssets(slug) {
   const sourceDir = path.join(contentProjectsRoot, slug);
   const targetDir = path.join(projectsRoot, slug);
   const fileNameMap = new Map();
   const responsiveSourcesByTarget = new Map();
+  const posterSourcesByTarget = new Map();
   const reportItems = [];
 
   try {
@@ -290,21 +314,26 @@ async function copyProjectAssets(slug) {
       .filter((filePath) => !isGeneratedPosterFileName(path.basename(filePath)))
       .sort((a, b) => a.localeCompare(b));
 
-    const records = mediaFiles.map((sourceFile) => {
+    const records = await Promise.all(mediaFiles.map(async (sourceFile) => {
       const sourceRelPath = path.relative(sourceDir, sourceFile);
       const parsed = path.parse(sourceRelPath);
+      const sourceExt = parsed.ext.toLowerCase();
+      const sourceStats = await stat(sourceFile);
       return {
         sourceFile,
         sourceRelPath,
-        sourceExt: parsed.ext.toLowerCase(),
+        sourceExt,
         sourceDir: parsed.dir,
         sourceBaseName: parsed.name,
         sourceFileName: path.basename(sourceFile),
-        action: "copy",
+        mediaType: extensionToType(sourceExt),
+        action: videoExtensions.has(sourceExt) ? "optimize-video" : "copy",
         targetRelPath: null,
+        posterRelPath: null,
         aliasTargetRecord: null,
+        sourceSizeBytes: sourceStats.size,
       };
-    });
+    }));
 
     const siblingMp4Map = new Map();
     for (const record of records) {
@@ -316,35 +345,17 @@ async function copyProjectAssets(slug) {
     for (const record of records) {
       if (record.sourceExt !== ".mov") continue;
       const siblingMp4 = siblingMp4Map.get(`${record.sourceDir.toLowerCase()}::${record.sourceBaseName.toLowerCase()}`);
-      if (siblingMp4) {
-        record.action = "skip-duplicate-mov";
-        record.aliasTargetRecord = siblingMp4;
-        reportItems.push({
-          projectId: slug,
-          source: record.sourceRelPath.split(path.sep).join("/"),
-          target: siblingMp4.sourceRelPath.split(path.sep).join("/"),
-          action: "skip-duplicate-mov",
-          status: "warning",
-          detail: "Skipped .mov because a sibling .mp4 source already exists for the same asset.",
-        });
-        continue;
-      }
-
-      const mediaInfo = probeMediaInfo(record.sourceFile);
-      const remux = canLosslesslyRemuxMovToMp4(mediaInfo);
-      if (remux.ok) {
-        record.action = "remux-mov-to-mp4";
-      } else {
-        record.action = "copy";
-        reportItems.push({
-          projectId: slug,
-          source: record.sourceRelPath.split(path.sep).join("/"),
-          target: record.sourceRelPath.split(path.sep).join("/"),
-          action: "copy",
-          status: "warning",
-          detail: `Kept original .mov because lossless mp4 remux is not safe: ${remux.reason}.`,
-        });
-      }
+      if (!siblingMp4) continue;
+      record.action = "skip-duplicate-mov";
+      record.aliasTargetRecord = siblingMp4;
+      reportItems.push({
+        projectId: slug,
+        source: record.sourceRelPath.split(path.sep).join("/"),
+        target: siblingMp4.sourceRelPath.split(path.sep).join("/"),
+        action: "skip-duplicate-mov",
+        status: "warning",
+        detail: "Skipped .mov because a sibling .mp4 source already exists for the same asset.",
+      });
     }
 
     const usedPaths = new Set();
@@ -352,8 +363,11 @@ async function copyProjectAssets(slug) {
 
     for (const record of records) {
       if (record.action === "skip-duplicate-mov") continue;
-      const extOverride = record.action === "remux-mov-to-mp4" ? ".mp4" : undefined;
+      const extOverride = record.action === "optimize-video" ? ".mp4" : undefined;
       record.targetRelPath = buildUniqueNormalizedRelativePath(record.sourceRelPath, usedPaths, extOverride);
+      if (record.action === "optimize-video") {
+        record.posterRelPath = buildPosterRelativePath(record.targetRelPath, usedPaths);
+      }
     }
 
     for (const record of records) {
@@ -373,26 +387,37 @@ async function copyProjectAssets(slug) {
       const targetFile = path.join(targetDir, record.targetRelPath);
       await mkdir(path.dirname(targetFile), { recursive: true });
 
-      if (record.action === "remux-mov-to-mp4") {
+      if (record.action === "optimize-video") {
         try {
-          execFileSync("ffmpeg", [
-            "-y",
-            "-i", record.sourceFile,
-            "-map", "0:v:0",
-            "-map", "0:a?",
-            "-dn",
-            "-c", "copy",
-            "-movflags", "+faststart",
-            targetFile,
-          ], { stdio: "pipe" });
+          if (!record.posterRelPath) {
+            throw new Error(`Missing poster path for ${record.sourceRelPath}`);
+          }
+          const posterFile = path.join(targetDir, record.posterRelPath);
+          await mkdir(path.dirname(posterFile), { recursive: true });
+          const renderResult = renderOptimizedVideoAsset(record.sourceFile, targetFile, posterFile);
+          const savedBytes = record.sourceSizeBytes - (renderResult.videoSizeBytes ?? 0);
           reportItems.push({
             projectId: slug,
             source: record.sourceRelPath.split(path.sep).join("/"),
             target: record.targetRelPath,
-            action: "remux-mov-to-mp4",
+            action: "optimize-video",
             status: "success",
-            detail: "Lossless stream-copy remuxed .mov into .mp4 without re-encoding video or audio.",
+            detail: `Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio${renderResult.width && renderResult.height ? ` at ${renderResult.width}x${renderResult.height}` : ""}.`,
+            sourceSizeBytes: record.sourceSizeBytes,
+            targetSizeBytes: renderResult.videoSizeBytes ?? null,
+            savedBytes,
+            savedPercent: computeSavedPercent(record.sourceSizeBytes, renderResult.videoSizeBytes ?? null),
           });
+          reportItems.push({
+            projectId: slug,
+            source: record.sourceRelPath.split(path.sep).join("/"),
+            target: record.posterRelPath,
+            action: "generate-video-poster",
+            status: "success",
+            detail: "Generated poster image for faster first paint before playback.",
+            targetSizeBytes: renderResult.posterSizeBytes ?? null,
+          });
+          posterSourcesByTarget.set(record.targetRelPath, record.posterRelPath);
         } catch (error) {
           const fallbackTargetRelPath = buildUniqueNormalizedRelativePath(record.sourceRelPath, usedPaths);
           const fallbackTargetFile = path.join(targetDir, fallbackTargetRelPath);
@@ -403,26 +428,34 @@ async function copyProjectAssets(slug) {
             projectId: slug,
             source: record.sourceRelPath.split(path.sep).join("/"),
             target: fallbackTargetRelPath,
-            action: "copy",
+            action: "optimize-video",
             status: "failure",
-            detail: `Lossless .mov -> .mp4 remux failed; kept normalized original instead. ${error instanceof Error ? error.message : String(error)}`,
+            detail: `Video optimization failed; kept normalized original as fallback. ${error instanceof Error ? error.message : String(error)}`,
+            sourceSizeBytes: record.sourceSizeBytes,
+            targetSizeBytes: record.sourceSizeBytes,
+            savedBytes: 0,
+            savedPercent: 0,
           });
         }
       } else {
         await copyFile(record.sourceFile, targetFile);
-        if (!reportItems.some((item) => item.projectId === slug && item.source === record.sourceRelPath.split(path.sep).join("/") && item.action === "copy" && item.status !== "success")) {
-          reportItems.push({
-            projectId: slug,
-            source: record.sourceRelPath.split(path.sep).join("/"),
-            target: record.targetRelPath,
-            action: "copy",
-            status: "success",
-            detail: "Copied without recompression or visual changes.",
-          });
-        }
+        reportItems.push({
+          projectId: slug,
+          source: record.sourceRelPath.split(path.sep).join("/"),
+          target: record.targetRelPath,
+          action: "copy",
+          status: "success",
+          detail: "Copied without recompression or visual changes.",
+          sourceSizeBytes: record.sourceSizeBytes,
+          targetSizeBytes: record.sourceSizeBytes,
+        });
       }
 
       fileNameMap.set(sourceKeyName, path.posix.basename(record.targetRelPath));
+
+      if (record.mediaType !== "image") {
+        continue;
+      }
 
       try {
         const responsiveSources = generateResponsiveImageVariants(record.sourceFile, targetDir, record.targetRelPath);
@@ -431,7 +464,7 @@ async function copyProjectAssets(slug) {
           reportItems.push({
             projectId: slug,
             source: record.sourceRelPath.split(path.sep).join("/"),
-            target: record.targetRelPath,
+            target: buildResponsiveRelativeDir(record.targetRelPath),
             action: "responsive-images",
             status: "success",
             detail: `Generated ${responsiveSources.length} responsive image variants without changing aspect ratio.`,
@@ -453,6 +486,7 @@ async function copyProjectAssets(slug) {
       ok: true,
       fileNameMap,
       responsiveSourcesByTarget,
+      posterSourcesByTarget,
       reportItems,
       summary: summarizeProjectReport(slug, reportItems),
     };
@@ -469,6 +503,7 @@ async function copyProjectAssets(slug) {
       ok: false,
       fileNameMap,
       responsiveSourcesByTarget,
+      posterSourcesByTarget,
       reportItems,
       summary: summarizeProjectReport(slug, reportItems),
     };
@@ -544,10 +579,11 @@ async function buildIndex() {
 
     media = media.map((item) => {
       const responsiveSources = copyResult.responsiveSourcesByTarget.get(item.src) ?? [];
-      if (responsiveSources.length === 0) return item;
+      const posterSrc = copyResult.posterSourcesByTarget.get(item.src);
       return {
         ...item,
-        responsiveSources,
+        ...(responsiveSources.length > 0 ? { responsiveSources } : {}),
+        ...(posterSrc ? { posterSrc } : {}),
       };
     });
 
@@ -599,6 +635,10 @@ async function buildIndex() {
     });
   }
 
+  const totalVideoBytesBefore = normalizationProjects.reduce((sum, project) => sum + (project.summary.videoBytesBefore ?? 0), 0);
+  const totalVideoBytesAfter = normalizationProjects.reduce((sum, project) => sum + (project.summary.videoBytesAfter ?? 0), 0);
+  const totalVideoSavedBytes = totalVideoBytesBefore - totalVideoBytesAfter;
+
   const payload = {
     generatedAt: new Date().toISOString(),
     count: projects.length,
@@ -610,6 +650,10 @@ async function buildIndex() {
     projectCount: normalizationProjects.length,
     failureCount: normalizationFailures.length,
     warningCount: normalizationWarnings.length,
+    videoBytesBefore: totalVideoBytesBefore,
+    videoBytesAfter: totalVideoBytesAfter,
+    videoSavedBytes: totalVideoSavedBytes,
+    videoSavedPercent: computeSavedPercent(totalVideoBytesBefore, totalVideoBytesAfter),
     failures: normalizationFailures,
     warnings: normalizationWarnings,
     projects: normalizationProjects,

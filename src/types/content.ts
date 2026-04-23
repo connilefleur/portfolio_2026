@@ -37,6 +37,7 @@ export type ProjectMedia = {
   width?: number;
   height?: number;
   responsiveSources?: ProjectMediaSource[];
+  posterSrc?: string;
 };
 
 export type ProjectDetailPanel = {
