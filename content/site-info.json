@@ -1,17 +1,17 @@
 {
   "meta": {
     "title": "Portfolio",
-    "description": "Creative Developer & Digital Artist – Conrad Löffler"
+    "description": "Conrad Löffler is a Houdini artist and creative developer building procedural 3D systems, custom HDAs, AI visual workflows, and agentic web experiences."
   },
   "brand": {
     "name": "Conrad Loeffler",
-    "tagline": "Creative Developer & Digital Artist",
-    "subtitle": "Building beautiful digital experiences"
+    "tagline": "Houdini Artist, Tool Builder & Creative Developer",
+    "subtitle": "Procedural 3D, VEX, AI visuals, and agentic web systems"
   },
   "contact": {
     "email": "connilefleur@protonmail.com",
     "instagram": "connilefleur",
-    "blurb": "Feel free to reach out for collaborations, questions, or just to say hello."
+    "blurb": "I work across Houdini, VEX, custom HDAs, LLM-powered workflows, Copernicus post processing, AI visual pipelines, and web builds with a strong technical backbone."
   },
   "imprint": {
     "name": "Conrad Löffler",

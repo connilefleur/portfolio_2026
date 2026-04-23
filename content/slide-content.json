@@ -3,25 +3,63 @@
     "cards": [
       {
         "id": "overview-1",
-        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+        "title": "Procedural 3D",
+        "services": [
+          "Houdini-heavy workflows",
+          "VEX where it matters",
+          "Custom HDAs",
+          "Tools built for real use",
+          "Flexible technical setups",
+          "Look development through systems"
+        ]
       },
       {
         "id": "overview-2",
-        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+        "title": "Technical Tooling",
+        "services": [
+          "LLM integration inside Houdini",
+          "Copernicus post workflows",
+          "Custom utility tools",
+          "Pipeline-minded problem solving",
+          "Fast iteration without chaos",
+          "Automation that saves time"
+        ]
       },
       {
         "id": "overview-3",
-        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+        "title": "Web Systems",
+        "services": [
+          "Agentic web coding",
+          "Strong frontend / backend understanding",
+          "Technical UX decisions",
+          "Prototypes that can become products",
+          "Infrastructure with intention",
+          "Shipping without hand-waving"
+        ]
       },
       {
         "id": "overview-4",
-        "services": ["Logotype", "Strategy", "Packaging", "Product design", "Web design", "Photography"]
+        "title": "AI Workflows",
+        "services": [
+          "ComfyUI and visual toolchains",
+          "OTOY Studio Canvas experiments",
+          "Self-hosted OpenClaw orchestration",
+          "Multi-agent setups for real work",
+          "Creative automation",
+          "AI used as leverage, not decoration"
+        ]
       }
     ]
   },
   "recognition": {
     "title": "Recognition",
-    "columns": ["Award", "Year", "Publication", "Description", "Link"],
+    "columns": [
+      "Award",
+      "Year",
+      "Publication",
+      "Description",
+      "Link"
+    ],
     "items": [
       {
         "id": "1",
