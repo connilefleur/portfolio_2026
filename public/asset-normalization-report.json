@@ -1,0 +1,569 @@
+{
+  "generatedAt": "2026-04-23T12:03:13.502Z",
+  "projectCount": 9,
+  "failureCount": 0,
+  "warningCount": 1,
+  "failures": [],
+  "warnings": [
+    {
+      "projectId": "vfx",
+      "source": "videos/SoHigh_VFXBD_Spktrm_comp.mov",
+      "target": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
+      "action": "skip-duplicate-mov",
+      "status": "warning",
+      "detail": "Skipped .mov because a sibling .mp4 source already exists for the same asset."
+    }
+  ],
+  "projects": [
+    {
+      "projectId": "data_viz",
+      "summary": {
+        "projectId": "data_viz",
+        "total": 5,
+        "copied": 5,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0001.jpg",
+          "target": "images/data-viz-rop-image1-0001.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0002.jpg",
+          "target": "images/data-viz-rop-image1-0002.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0003.jpg",
+          "target": "images/data-viz-rop-image1-0003.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0004.jpg",
+          "target": "images/data-viz-rop-image1-0004.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "data_viz",
+          "source": "images/Data_Viz.rop_image1.0005.jpg",
+          "target": "images/data-viz-rop-image1-0005.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "e30",
+      "summary": {
+        "projectId": "e30",
+        "total": 5,
+        "copied": 5,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0001.jpg",
+          "target": "images/cars-pressurized-rop-image1-0001.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0002.jpg",
+          "target": "images/cars-pressurized-rop-image1-0002.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0003.jpg",
+          "target": "images/cars-pressurized-rop-image1-0003.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0004.jpg",
+          "target": "images/cars-pressurized-rop-image1-0004.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "e30",
+          "source": "images/Cars_Pressurized.rop_image1.0006.jpg",
+          "target": "images/cars-pressurized-rop-image1-0006.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "experiments",
+      "summary": {
+        "projectId": "experiments",
+        "total": 8,
+        "copied": 7,
+        "remuxed": 1,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "experiments",
+          "source": "videos/0001-0200.MP4",
+          "target": "videos/0001-0200.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/bubble_burst.mp4",
+          "target": "videos/bubble-burst.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/ct_scan.mp4",
+          "target": "videos/ct-scan.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/fluid_image.mp4",
+          "target": "videos/fluid-image.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/liberty_lady.MP4",
+          "target": "videos/liberty-lady.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/melting_landscapes.mp4",
+          "target": "videos/melting-landscapes.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4",
+          "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "experiments",
+          "source": "videos/spektrum_logo_final.mov",
+          "target": "videos/spektrum-logo-final.mp4",
+          "action": "remux-mov-to-mp4",
+          "status": "success",
+          "detail": "Lossless stream-copy remuxed .mov into .mp4 without re-encoding video or audio."
+        }
+      ]
+    },
+    {
+      "projectId": "ggl",
+      "summary": {
+        "projectId": "ggl",
+        "total": 3,
+        "copied": 3,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "ggl",
+          "source": "videos/GGL_Christmas_Anna_Stare.mp4",
+          "target": "videos/ggl-christmas-anna-stare.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "ggl",
+          "source": "videos/GGL_Christmas_Anna_x_Ducks.MP4",
+          "target": "videos/ggl-christmas-anna-x-ducks.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "ggl",
+          "source": "videos/GGL_Christmas_AnnaOrange_MultiBag.MP4",
+          "target": "videos/ggl-christmas-annaorange-multibag.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "glasses",
+      "summary": {
+        "projectId": "glasses",
+        "total": 3,
+        "copied": 3,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "glasses",
+          "source": "images/oct_Glass_Silhuettes_Image_0017_Shot_002_DenoisedBeauty.jpg",
+          "target": "images/oct-glass-silhuettes-image-0017-shot-002-denoisedbeauty.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "glasses",
+          "source": "images/oct_Glass_Silhuettes_Image_0030_Shot_004_animation_DenoisedBeauty.jpg",
+          "target": "images/oct-glass-silhuettes-image-0030-shot-004-animation-denoisedbeauty.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "glasses",
+          "source": "images/oct_Glass_Silhuettes_Image_0089_Shot_1_DenoisedBeauty.jpg",
+          "target": "images/oct-glass-silhuettes-image-0089-shot-1-denoisedbeauty.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "kapaunenstraße",
+      "summary": {
+        "projectId": "kapaunenstraße",
+        "total": 10,
+        "copied": 10,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/House_01_Garden.jpg",
+          "target": "images/house-01-garden.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/House_02_Garden.jpg",
+          "target": "images/house-02-garden.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/House_06_Front.jpg",
+          "target": "images/house-06-front.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/House_09_Front.jpg",
+          "target": "images/house-09-front.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/Kapaunenstraße_Bathroom_Image_01.png",
+          "target": "images/kapaunenstra-e-bathroom-image-01.png",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/Kapaunenstraße_Bathroom_Image_02.png",
+          "target": "images/kapaunenstra-e-bathroom-image-02.png",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/Kapaunenstraße_Bathroom_Image_03.png",
+          "target": "images/kapaunenstra-e-bathroom-image-03.png",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/oct_Kapaunenstraße_4K_Aces_09_Roof.jpg",
+          "target": "images/oct-kapaunenstra-e-4k-aces-09-roof.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/oct_Kapaunenstraße_4K_Aces_18_Appartements_05.jpg",
+          "target": "images/oct-kapaunenstra-e-4k-aces-18-appartements-05.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "kapaunenstraße",
+          "source": "images/oct_Kapaunenstraße_4K_Aces_29_Appartements_09.jpg",
+          "target": "images/oct-kapaunenstra-e-4k-aces-29-appartements-09.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "lookbook",
+      "summary": {
+        "projectId": "lookbook",
+        "total": 13,
+        "copied": 13,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1037.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look01-1037.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look01_1095.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look01-1095.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look02_1158.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look02-1158.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1409.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1409.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1422.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1422.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1428.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1428.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20241213_Balletshofer_2024_006_ECOM_Look04_1461.jpg",
+          "target": "images/20241213-balletshofer-2024-006-ecom-look04-1461.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_01_1620.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-01-1620.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_03_1705.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-03-1705.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_05_1883.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-05-1883.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_07_1980.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-07-1980.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_08_2064.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-08-2064.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "lookbook",
+          "source": "images/20250120_Balletshofer_BerlinerZeitung_Druckerei_Look_10_2121.jpg",
+          "target": "images/20250120-balletshofer-berlinerzeitung-druckerei-look-10-2121.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "su7",
+      "summary": {
+        "projectId": "su7",
+        "total": 3,
+        "copied": 3,
+        "remuxed": 0,
+        "skipped": 0,
+        "warnings": 0,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "su7",
+          "source": "images/Xaomi_SU7.rop_image1.0001.jpg",
+          "target": "images/xaomi-su7-rop-image1-0001.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "su7",
+          "source": "images/Xaomi_SU7.rop_image1.0003.jpg",
+          "target": "images/xaomi-su7-rop-image1-0003.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "su7",
+          "source": "images/Xaomi_SU7.rop_image1.0004.jpg",
+          "target": "images/xaomi-su7-rop-image1-0004.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    },
+    {
+      "projectId": "vfx",
+      "summary": {
+        "projectId": "vfx",
+        "total": 3,
+        "copied": 2,
+        "remuxed": 0,
+        "skipped": 1,
+        "warnings": 1,
+        "failures": 0
+      },
+      "items": [
+        {
+          "projectId": "vfx",
+          "source": "videos/SoHigh_VFXBD_Spktrm_comp.mov",
+          "target": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
+          "action": "skip-duplicate-mov",
+          "status": "warning",
+          "detail": "Skipped .mov because a sibling .mp4 source already exists for the same asset."
+        },
+        {
+          "projectId": "vfx",
+          "source": "videos/skrtcobain_sohigh_online_v07_H264.mp4",
+          "target": "videos/skrtcobain-sohigh-online-v07-h264.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        },
+        {
+          "projectId": "vfx",
+          "source": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
+          "target": "videos/sohigh-vfxbd-spktrm-comp.mp4",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes."
+        }
+      ]
+    }
+  ]
+}
