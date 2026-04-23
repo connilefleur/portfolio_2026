@@ -8,6 +8,7 @@ import {
   getProjectViewerSlugFromTileId,
   getTileRegistry,
   isProjectTileId,
+  isProjectViewerTileId,
   parseTileId
 } from "./canvas/tileRegistry";
 import { loadProjectsIndex, siteInfo, slideContent } from "./data/siteData";
@@ -261,17 +262,18 @@ export default function App() {
   );
 
   const appReady = projectsLoaded && initialTileResolved;
+  const isViewerActive = isProjectViewerTileId(activeTileId);
 
   if (!appReady) {
     return (
-      <main className="app-shell" data-theme={themeMode} data-intro={introPhase}>
+      <main className="app-shell" data-theme={themeMode} data-intro={introPhase} data-viewer-active={isViewerActive ? "true" : undefined}>
         <div className="app-loading" aria-live="polite" aria-label="Loading portfolio" />
       </main>
     );
   }
 
   return (
-    <main className="app-shell" data-theme={themeMode} data-intro={introPhase}>
+    <main className="app-shell" data-theme={themeMode} data-intro={introPhase} data-viewer-active={isViewerActive ? "true" : undefined}>
       <div className="app-content">
         <CanvasEngine
           activeTileId={activeTileId}
