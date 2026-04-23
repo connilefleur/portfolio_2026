@@ -16,6 +16,11 @@ npm run dev
 
 Open `http://localhost:5173`.
 
+## Constraints
+
+- Run the local portfolio server on `127.0.0.1:5173` by default.
+- If port `5173` is already in use, stop the existing listener first instead of silently falling back to another port.
+
 ## Build / Validation
 
 ```bash
