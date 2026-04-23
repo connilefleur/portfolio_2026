@@ -52,12 +52,12 @@
     ]
   },
   "recognition": {
-    "title": "Recognition",
+    "title": "List",
     "columns": [
-      "Award",
+      "Project",
       "Year",
-      "Publication",
-      "Description",
+      "Category",
+      "Client",
       "Link"
     ],
     "items": [
@@ -158,10 +158,10 @@
     "labels": {
       "instagram": "Instagram",
       "email": "Email",
-      "recognition": "Recognition"
+      "recognition": "List"
     },
     "actions": {
-      "recognition": "VIEW DETAILS"
+      "recognition": "OPEN LIST"
     }
   }
 }

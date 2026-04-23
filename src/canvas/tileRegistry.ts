@@ -16,10 +16,10 @@ export type TileConfig = {
   label: string;
 };
 
-export const NAV_TILE_IDS: TileId[] = ["landing", "work-together", "recognition", "imprint"];
+export const NAV_TILE_IDS: TileId[] = ["landing", "recognition", "work-together", "imprint"];
 
 const STATIC_TILES: TileConfig[] = [
-  { id: "recognition", x: 1, y: 0, label: "Recognition" },
+  { id: "recognition", x: 1, y: 0, label: "List" },
   { id: "landing", x: 1, y: 1, label: "Landing" },
   { id: "work-together", x: 2, y: 1, label: "Work together" },
   { id: "imprint", x: 2, y: 0, label: "Imprint" }

@@ -253,7 +253,7 @@ export default function App() {
             />
           );
         case "recognition":
-          return <MoreWorkTile content={slideContent.recognition} goToTile={goToTile} />;
+          return <MoreWorkTile content={slideContent.recognition} projects={projects} goToTile={goToTile} />;
         case "about-me":
           return <ProjectOverviewTile content={slideContent.overview} projects={projects} goToTile={goToTile} />;
         case "work-together":

@@ -1,15 +1,14 @@
 import type { TileId } from "../canvas/tileRegistry";
 import { HomeNavButton } from "../components/HomeNavButton";
 import { SlideShell } from "../components/SlideShell";
-import type { ProjectItem, SlideContent } from "../types/content";
+import type { SlideContent } from "../types/content";
 
 type MoreWorkTileProps = {
   content: SlideContent["recognition"];
-  projects: ProjectItem[];
   goToTile: (id: TileId) => void;
 };
 
-export function MoreWorkTile({ content, projects, goToTile }: MoreWorkTileProps) {
+export function MoreWorkTileArchive20260423({ content, goToTile }: MoreWorkTileProps) {
   return (
     <SlideShell headerStart={<HomeNavButton goToTile={goToTile} />}>
       <h2 className="tile-title">{content.title}</h2>
@@ -22,14 +21,14 @@ export function MoreWorkTile({ content, projects, goToTile }: MoreWorkTileProps)
           <span className="align-right">{content.columns[4]}</span>
         </div>
         <div className="work-body">
-          {projects.map((project) => (
-            <div key={project.id || project.slug} className="work-row">
-              <span>{project.title}</span>
-              <span>{project.year}</span>
-              <span>{project.category}</span>
-              <span>{project.client || "—"}</span>
-              <button className="text-link align-right" onClick={() => goToTile(`project-${project.slug}` as TileId)}>
-                VIEW
+          {content.items.map((recognition) => (
+            <div key={recognition.id} className="work-row">
+              <span>{recognition.title}</span>
+              <span>{recognition.year}</span>
+              <span>{recognition.publication}</span>
+              <span>{recognition.description}</span>
+              <button className="text-link align-right" onClick={() => goToTile(recognition.targetSlide as TileId)}>
+                {recognition.actionLabel}
               </button>
             </div>
           ))}
