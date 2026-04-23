@@ -28,6 +28,8 @@ export type ProjectMedia = {
   type: "image" | "video" | "3d-model" | "image-stack";
   src: string;
   description?: string;
+  width?: number;
+  height?: number;
 };
 
 export type ProjectDetailPanel = {

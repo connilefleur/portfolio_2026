@@ -61,6 +61,11 @@ function resolveHeroDisplayMedia(media: ProjectItem["media"][number] | undefined
   return media;
 }
 
+function getMediaAspectRatio(media: ProjectItem["media"][number] | undefined) {
+  if (!media?.width || !media?.height) return 0;
+  return media.width / media.height;
+}
+
 function getViewerMedia(project: ProjectItem) {
   const media = getRenderableMedia(project);
   const names = (project.detail.media.viewerMedia ?? []).filter((name) => !isGeneratedPosterFileName(name));
@@ -100,7 +105,7 @@ function resolveDistinctSecondaryHero(
     return { source: candidate, display: candidate };
   }
 
-  return { source: preferredSource, display: resolveHeroDisplayMedia(preferredSource) };
+  return { source: undefined, display: undefined };
 }
 
 const PROJECT_HERO_WIDE_ASPECT_RATIO = 1.3;
@@ -122,11 +127,12 @@ export function ProjectDarkTile({ project, projects, goToTile, onOpenViewer }: P
     primaryMediaSource,
     primaryMedia,
   );
-  const [primaryHeroAspectRatio, setPrimaryHeroAspectRatio] = useState(1);
+  const initialPrimaryHeroAspectRatio = getMediaAspectRatio(primaryMedia) || 1;
+  const [primaryHeroAspectRatio, setPrimaryHeroAspectRatio] = useState(initialPrimaryHeroAspectRatio);
 
   useEffect(() => {
-    setPrimaryHeroAspectRatio(1);
-  }, [displayProject.slug, primaryMedia?.id]);
+    setPrimaryHeroAspectRatio(getMediaAspectRatio(primaryMedia) || 1);
+  }, [displayProject.slug, primaryMedia?.id, primaryMedia?.width, primaryMedia?.height]);
 
   const usesSingleWideHero = primaryHeroAspectRatio >= PROJECT_HERO_WIDE_ASPECT_RATIO;
   const primaryHeroStyle = useMemo(
@@ -186,7 +192,7 @@ export function ProjectDarkTile({ project, projects, goToTile, onOpenViewer }: P
         style={usesSingleWideHero ? primaryHeroStyle : undefined}
         onAspectRatioChange={setPrimaryHeroAspectRatio}
       />
-      {!usesSingleWideHero ? (
+      {!usesSingleWideHero && secondaryMedia ? (
         <ProjectMediaCard
           className="project-media-card--hero-secondary"
           media={secondaryMedia}

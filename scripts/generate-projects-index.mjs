@@ -1,4 +1,5 @@
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 
 const root = process.cwd();
@@ -112,6 +113,23 @@ async function walkFiles(dirPath) {
   return files;
 }
 
+function probeMediaDimensions(filePath) {
+  try {
+    const out = execFileSync('ffprobe', [
+      '-v', 'error',
+      '-select_streams', 'v:0',
+      '-show_entries', 'stream=width,height',
+      '-of', 'csv=p=0:s=x',
+      filePath,
+    ], { encoding: 'utf8' }).trim();
+    const [width, height] = out.split('x').map((value) => Number.parseInt(value, 10));
+    if (!width || !height) return {};
+    return { width, height };
+  } catch {
+    return {};
+  }
+}
+
 async function discoverMedia(projectFolderPath) {
   const files = await walkFiles(projectFolderPath);
   return files
@@ -125,7 +143,8 @@ async function discoverMedia(projectFolderPath) {
         id: `${path.parse(relPath).name}-${index}`,
         type: extensionToType(ext),
         src: relPath,
-        description: ""
+        description: "",
+        ...probeMediaDimensions(filePath)
       };
     });
 }
@@ -217,9 +236,10 @@ async function buildIndex() {
       .filter((name) => !isGeneratedPosterFileName(name));
     const preferredHeroPrimary = isGeneratedPosterFileName(row.hero_media_primary || "") ? "" : row.hero_media_primary;
     const preferredHeroSecondary = isGeneratedPosterFileName(row.hero_media_secondary || "") ? "" : row.hero_media_secondary;
+    const explicitViewerMedia = parsePipeList(row.viewer_media);
     const heroPrimary = preferredHeroPrimary || mediaFileNames[0] || "";
-    const heroSecondary = preferredHeroSecondary || mediaFileNames.find((name) => name !== heroPrimary) || mediaFileNames[1] || "";
-    const viewerMedia = mergeViewerMedia(parsePipeList(row.viewer_media), mediaFileNames);
+    const heroSecondary = preferredHeroSecondary;
+    const viewerMedia = explicitViewerMedia.length > 0 ? explicitViewerMedia : mergeViewerMedia([], mediaFileNames);
 
     projects.push({
       id: row.id || slug,
