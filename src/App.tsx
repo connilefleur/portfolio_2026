@@ -63,6 +63,9 @@ export default function App() {
     return saved === "light" ? "light" : "dark";
   });
   const [projectViewerIndex, setProjectViewerIndex] = useState<Record<string, number>>({});
+  const [viewerOverlayActive, setViewerOverlayActive] = useState(false);
+  const viewerOverlayTimerRef = useRef<number | null>(null);
+  const viewerOverlayInitializedRef = useRef(false);
 
   useEffect(() => {
     document.title = siteInfo.meta.title;
@@ -198,6 +201,9 @@ export default function App() {
       if (introTimerRef.current) {
         window.clearTimeout(introTimerRef.current);
       }
+      if (viewerOverlayTimerRef.current) {
+        window.clearTimeout(viewerOverlayTimerRef.current);
+      }
     };
   }, []);
 
@@ -264,16 +270,39 @@ export default function App() {
   const appReady = projectsLoaded && initialTileResolved;
   const isViewerActive = isProjectViewerTileId(activeTileId);
 
+  useEffect(() => {
+    if (!viewerOverlayInitializedRef.current) {
+      setViewerOverlayActive(isViewerActive);
+      viewerOverlayInitializedRef.current = true;
+      return;
+    }
+
+    if (viewerOverlayTimerRef.current) {
+      window.clearTimeout(viewerOverlayTimerRef.current);
+      viewerOverlayTimerRef.current = null;
+    }
+
+    if (isViewerActive) {
+      viewerOverlayTimerRef.current = window.setTimeout(() => {
+        setViewerOverlayActive(true);
+        viewerOverlayTimerRef.current = null;
+      }, 80);
+      return;
+    }
+
+    setViewerOverlayActive(false);
+  }, [isViewerActive]);
+
   if (!appReady) {
     return (
-      <main className="app-shell" data-theme={themeMode} data-intro={introPhase} data-viewer-active={isViewerActive ? "true" : undefined}>
+      <main className="app-shell" data-theme={themeMode} data-intro={introPhase} data-viewer-active={viewerOverlayActive ? "true" : undefined}>
         <div className="app-loading" aria-live="polite" aria-label="Loading portfolio" />
       </main>
     );
   }
 
   return (
-    <main className="app-shell" data-theme={themeMode} data-intro={introPhase} data-viewer-active={isViewerActive ? "true" : undefined}>
+    <main className="app-shell" data-theme={themeMode} data-intro={introPhase} data-viewer-active={viewerOverlayActive ? "true" : undefined}>
       <div className="app-content">
         <CanvasEngine
           activeTileId={activeTileId}
