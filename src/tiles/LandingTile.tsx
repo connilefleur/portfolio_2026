@@ -20,9 +20,9 @@ function getLinks(projects: ProjectItem[]): Array<{ label: string; index?: strin
   });
   return [
     ...projectLinks,
-    { label: "List", target: "recognition" },
     { label: "Contact", target: "work-together" },
-    { label: "Imprint", target: "imprint" }
+    { label: "Imprint", target: "imprint" },
+    { label: "List", target: "recognition" }
   ];
 }
 
