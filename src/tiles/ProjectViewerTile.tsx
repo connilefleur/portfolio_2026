@@ -169,13 +169,15 @@ export function ProjectViewerTile({ project, currentIndex, onBack, onSelectIndex
     return resolved.length > 0 ? resolved : media;
   }, [displayProject]);
 
-  const safeLength = viewerMedia.length || 1;
-  const normalizedIndex = ((currentIndex % safeLength) + safeLength) % safeLength;
+  const mediaCount = viewerMedia.length;
+  const normalizedIndex = mediaCount > 0 ? Math.min(Math.max(currentIndex, 0), mediaCount - 1) : 0;
   const activeMedia = viewerMedia[normalizedIndex];
   const [animationDirection, setAnimationDirection] = useState<"next" | "previous">("next");
   const [viewerFitMode, setViewerFitMode] = useState<ViewerFitMode>("portrait");
   const [viewerAspectRatio, setViewerAspectRatio] = useState(1);
   const [isMuted, setIsMuted] = useState(true);
+  const canGoPrevious = mediaCount > 1 && normalizedIndex > 0;
+  const canGoNext = mediaCount > 1 && normalizedIndex < mediaCount - 1;
 
   useEffect(() => {
     setAnimationDirection("next");
@@ -202,13 +204,15 @@ export function ProjectViewerTile({ project, currentIndex, onBack, onSelectIndex
   };
 
   const goPrevious = () => {
+    if (!canGoPrevious) return;
     setAnimationDirection("previous");
-    onSelectIndex((normalizedIndex - 1 + safeLength) % safeLength);
+    onSelectIndex(normalizedIndex - 1);
   };
 
   const goNext = () => {
+    if (!canGoNext) return;
     setAnimationDirection("next");
-    onSelectIndex((normalizedIndex + 1) % safeLength);
+    onSelectIndex(normalizedIndex + 1);
   };
 
   const viewerStyle = {
@@ -226,7 +230,7 @@ export function ProjectViewerTile({ project, currentIndex, onBack, onSelectIndex
               <BackIcon className="nav-icon" />
             </NavAnchorButton>
             {isVideo ? (
-              <NavAnchorButton className="project-viewer__top-action project-viewer__top-action--secondary" onClick={() => setIsMuted((value) => !value)} ariaLabel={isMuted ? "Unmute video" : "Mute video"}>
+              <NavAnchorButton className="project-viewer__top-action project-viewer__top-action--secondary" onClick={() => setIsMuted((value) => !value)} ariaLabel={isMuted ? "Unmute video" : "Mute video"} staticIcon>
                 {isMuted ? <VolumeOffIcon className="nav-icon" /> : <VolumeOnIcon className="nav-icon" />}
               </NavAnchorButton>
             ) : null}
@@ -239,7 +243,7 @@ export function ProjectViewerTile({ project, currentIndex, onBack, onSelectIndex
               <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--home" onClick={handleBack} ariaLabel="Back to project">
                 <BackIcon className="nav-icon" />
               </NavAnchorButton>
-              <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--left" onClick={goPrevious} ariaLabel="Previous media">
+              <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--left" onClick={goPrevious} ariaLabel="Previous media" disabled={!canGoPrevious}>
                 <ChevronLeftIcon className="nav-icon" />
               </NavAnchorButton>
             </div>
@@ -263,11 +267,11 @@ export function ProjectViewerTile({ project, currentIndex, onBack, onSelectIndex
           {usesSideNav ? (
             <div className={`project-viewer__side-column project-viewer__side-column--right${isVideo ? " project-viewer__side-column--split" : ""}`}>
               {isVideo ? (
-                <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--mute" onClick={() => setIsMuted((value) => !value)} ariaLabel={isMuted ? "Unmute video" : "Mute video"}>
+                <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--mute" onClick={() => setIsMuted((value) => !value)} ariaLabel={isMuted ? "Unmute video" : "Mute video"} staticIcon>
                   {isMuted ? <VolumeOffIcon className="nav-icon" /> : <VolumeOnIcon className="nav-icon" />}
                 </NavAnchorButton>
               ) : null}
-              <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--right" onClick={goNext} ariaLabel="Next media">
+              <NavAnchorButton className="project-viewer__nav project-viewer__nav--side project-viewer__nav--right" onClick={goNext} ariaLabel="Next media" disabled={!canGoNext}>
                 <ChevronRightIcon className="nav-icon" />
               </NavAnchorButton>
             </div>
@@ -276,10 +280,10 @@ export function ProjectViewerTile({ project, currentIndex, onBack, onSelectIndex
 
         {!usesSideNav ? (
           <div className="project-viewer__nav-layer">
-            <NavAnchorButton className="project-viewer__nav project-viewer__nav--left" onClick={goPrevious} ariaLabel="Previous media">
+            <NavAnchorButton className="project-viewer__nav project-viewer__nav--left" onClick={goPrevious} ariaLabel="Previous media" disabled={!canGoPrevious}>
               <ChevronLeftIcon className="nav-icon" />
             </NavAnchorButton>
-            <NavAnchorButton className="project-viewer__nav project-viewer__nav--right" onClick={goNext} ariaLabel="Next media">
+            <NavAnchorButton className="project-viewer__nav project-viewer__nav--right" onClick={goNext} ariaLabel="Next media" disabled={!canGoNext}>
               <ChevronRightIcon className="nav-icon" />
             </NavAnchorButton>
           </div>

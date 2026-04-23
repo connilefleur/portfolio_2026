@@ -247,15 +247,15 @@ body.cursor-text-nav-active * {
   opacity: 1;
 }
 
-.text-link[data-nav-anchor="true"]:has(.nav-icon):hover .nav-icon__fill,
-.text-link[data-nav-anchor="true"]:has(.nav-icon):active .nav-icon__fill,
-.text-link[data-nav-anchor="true"][data-active="true"] .nav-icon__fill {
+.text-link[data-nav-anchor="true"]:not([data-static-icon="true"]):has(.nav-icon):hover .nav-icon__fill,
+.text-link[data-nav-anchor="true"]:not([data-static-icon="true"]):has(.nav-icon):active .nav-icon__fill,
+.text-link[data-nav-anchor="true"]:not([data-static-icon="true"])[data-active="true"] .nav-icon__fill {
   opacity: 1;
 }
 
-.text-link[data-nav-anchor="true"]:has(.nav-icon):hover .nav-icon__stroke,
-.text-link[data-nav-anchor="true"]:has(.nav-icon):active .nav-icon__stroke,
-.text-link[data-nav-anchor="true"][data-active="true"] .nav-icon__stroke {
+.text-link[data-nav-anchor="true"]:not([data-static-icon="true"]):has(.nav-icon):hover .nav-icon__stroke,
+.text-link[data-nav-anchor="true"]:not([data-static-icon="true"]):has(.nav-icon):active .nav-icon__stroke,
+.text-link[data-nav-anchor="true"]:not([data-static-icon="true"])[data-active="true"] .nav-icon__stroke {
   opacity: 0;
 }
 
@@ -291,6 +291,12 @@ body.cursor-text-nav-active * {
   border-color: transparent;
   background: var(--surface-text);
   color: var(--surface-bg);
+}
+
+.text-link[data-nav-anchor="true"]:disabled {
+  cursor: default;
+  opacity: 0.34;
+  pointer-events: none;
 }
 
 .app-shell[data-theme="light"] .text-link[data-nav-anchor="true"] {
@@ -649,7 +655,7 @@ body.cursor-text-nav-active * {
   align-items: center;
   justify-content: center;
   overflow: visible;
-  background: transparent;
+  background: #1a1a1d;
   border: 0;
   box-shadow: none;
   backdrop-filter: none;
@@ -668,6 +674,7 @@ body.cursor-text-nav-active * {
   grid-template-rows: none;
   gap: 0;
   position: relative;
+  background: inherit;
 }
 
 .tile-frame.project-viewer-shell > .tile-inner > :only-child {
@@ -885,21 +892,21 @@ body.cursor-text-nav-active * {
 
 .project-viewer__top-action.text-link[data-nav-anchor="true"],
 .project-viewer__nav.text-link[data-nav-anchor="true"] {
-  color: #111;
-  border-color: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 255, 255, 0.22);
   background: transparent;
 }
 
 .project-viewer__top-action.text-link[data-nav-anchor="true"]:hover,
 .project-viewer__nav.text-link[data-nav-anchor="true"]:hover {
-  border-color: rgba(0, 0, 0, 0.34);
-  background-color: rgba(0, 0, 0, 0.04);
+  border-color: rgba(255, 255, 255, 0.34);
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 .project-viewer__top-action.text-link[data-nav-anchor="true"]:active,
 .project-viewer__nav.text-link[data-nav-anchor="true"]:active {
-  border-color: rgba(0, 0, 0, 0.42);
-  background-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(255, 255, 255, 0.42);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 
