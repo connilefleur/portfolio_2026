@@ -1,13 +1,170 @@
 {
-  "generatedAt": "2026-04-23T13:35:27.657Z",
-  "projectCount": 9,
-  "failureCount": 0,
+  "generatedAt": "2026-04-30T12:40:47.525Z",
+  "projectCount": 10,
+  "failureCount": 13,
   "warningCount": 1,
-  "videoBytesBefore": 326517518,
-  "videoBytesAfter": 85086968,
-  "videoSavedBytes": 241430550,
-  "videoSavedPercent": 73.94,
-  "failures": [],
+  "videoBytesBefore": 0,
+  "videoBytesAfter": 0,
+  "videoSavedBytes": 0,
+  "videoSavedPercent": null,
+  "failures": [
+    {
+      "projectId": "experiments",
+      "source": "videos/0001-0200.MP4",
+      "target": "videos/0001-0200-b5c2db65.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/0001-0200.MP4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/0001-0200.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/0001-0200.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 20713628,
+      "targetSizeBytes": 20713628,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/bubble_burst.mp4",
+      "target": "videos/bubble-burst-dd2b2e4a.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/bubble_burst.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/bubble-burst.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/bubble-burst.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 13822815,
+      "targetSizeBytes": 13822815,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/ct_scan.mp4",
+      "target": "videos/ct-scan-339bb785.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/ct_scan.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/ct-scan.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/ct-scan.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 16020829,
+      "targetSizeBytes": 16020829,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/fluid_image.mp4",
+      "target": "videos/fluid-image-9040954f.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/fluid_image.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/fluid-image.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/fluid-image.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 25203976,
+      "targetSizeBytes": 25203976,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/liberty_lady.MP4",
+      "target": "videos/liberty-lady-958c537b.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/liberty_lady.MP4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/liberty-lady.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/liberty-lady.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 5580659,
+      "targetSizeBytes": 5580659,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/melting_landscapes.mp4",
+      "target": "videos/melting-landscapes-4f0ab15d.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/melting_landscapes.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/melting-landscapes.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/melting-landscapes.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 6701562,
+      "targetSizeBytes": 6701562,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4",
+      "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32-ba50c582.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 9382318,
+      "targetSizeBytes": 9382318,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "experiments",
+      "source": "videos/spektrum_logo_final.mov",
+      "target": "videos/spektrum-logo-final.mov",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/spektrum_logo_final.mov --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/spektrum-logo-final.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/spektrum-logo-final.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 5463073,
+      "targetSizeBytes": 5463073,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "ggl",
+      "source": "videos/GGL_Christmas_Anna_Stare.mp4",
+      "target": "videos/ggl-christmas-anna-stare-31aa2915.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/ggl/videos/GGL_Christmas_Anna_Stare.mp4 --video-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-stare.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-stare.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 17063738,
+      "targetSizeBytes": 17063738,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "ggl",
+      "source": "videos/GGL_Christmas_Anna_x_Ducks.MP4",
+      "target": "videos/ggl-christmas-anna-x-ducks-e5e42c08.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/ggl/videos/GGL_Christmas_Anna_x_Ducks.MP4 --video-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-x-ducks.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-x-ducks.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 17545233,
+      "targetSizeBytes": 17545233,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "ggl",
+      "source": "videos/GGL_Christmas_AnnaOrange_MultiBag.MP4",
+      "target": "videos/ggl-christmas-annaorange-multibag-6917ac59.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/ggl/videos/GGL_Christmas_AnnaOrange_MultiBag.MP4 --video-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-annaorange-multibag.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-annaorange-multibag.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 17164944,
+      "targetSizeBytes": 17164944,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "vfx",
+      "source": "videos/skrtcobain_sohigh_online_v07_H264.mp4",
+      "target": "videos/skrtcobain-sohigh-online-v07-h264-1d10d472.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/vfx/videos/skrtcobain_sohigh_online_v07_H264.mp4 --video-output /home/deployer/projects/portfolio/public/projects/vfx/videos/skrtcobain-sohigh-online-v07-h264.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/vfx/videos/skrtcobain-sohigh-online-v07-h264.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 169771456,
+      "targetSizeBytes": 169771456,
+      "savedBytes": 0,
+      "savedPercent": 0
+    },
+    {
+      "projectId": "vfx",
+      "source": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
+      "target": "videos/sohigh-vfxbd-spktrm-comp-162a9a6e.mp4",
+      "action": "optimize-video",
+      "status": "failure",
+      "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/vfx/videos/SoHigh_VFXBD_Spktrm_comp.mp4 --video-output /home/deployer/projects/portfolio/public/projects/vfx/videos/sohigh-vfxbd-spktrm-comp.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/vfx/videos/sohigh-vfxbd-spktrm-comp.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
+      "sourceSizeBytes": 2083287,
+      "targetSizeBytes": 2083287,
+      "savedBytes": 0,
+      "savedPercent": 0
+    }
+  ],
   "warnings": [
     {
       "projectId": "vfx",
@@ -239,185 +396,113 @@
       "projectId": "experiments",
       "summary": {
         "projectId": "experiments",
-        "total": 16,
+        "total": 8,
         "copied": 0,
-        "optimizedVideos": 8,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 0,
-        "posters": 8,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0,
-        "videoBytesBefore": 102888860,
-        "videoBytesAfter": 24898130
+        "failures": 8,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
           "projectId": "experiments",
           "source": "videos/0001-0200.MP4",
-          "target": "videos/0001-0200.mp4",
+          "target": "videos/0001-0200-b5c2db65.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/0001-0200.MP4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/0001-0200.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/0001-0200.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 20713628,
-          "targetSizeBytes": 7719898,
-          "savedBytes": 12993730,
-          "savedPercent": 62.73
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/0001-0200.MP4",
-          "target": "videos/0001-0200.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 119757
+          "targetSizeBytes": 20713628,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/bubble_burst.mp4",
-          "target": "videos/bubble-burst.mp4",
+          "target": "videos/bubble-burst-dd2b2e4a.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/bubble_burst.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/bubble-burst.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/bubble-burst.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 13822815,
-          "targetSizeBytes": 3684068,
-          "savedBytes": 10138747,
-          "savedPercent": 73.35
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/bubble_burst.mp4",
-          "target": "videos/bubble-burst.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 62515
+          "targetSizeBytes": 13822815,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/ct_scan.mp4",
-          "target": "videos/ct-scan.mp4",
+          "target": "videos/ct-scan-339bb785.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/ct_scan.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/ct-scan.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/ct-scan.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 16020829,
-          "targetSizeBytes": 1200103,
-          "savedBytes": 14820726,
-          "savedPercent": 92.51
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/ct_scan.mp4",
-          "target": "videos/ct-scan.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 55754
+          "targetSizeBytes": 16020829,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/fluid_image.mp4",
-          "target": "videos/fluid-image.mp4",
+          "target": "videos/fluid-image-9040954f.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/fluid_image.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/fluid-image.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/fluid-image.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 25203976,
-          "targetSizeBytes": 2482465,
-          "savedBytes": 22721511,
-          "savedPercent": 90.15
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/fluid_image.mp4",
-          "target": "videos/fluid-image.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 53527
+          "targetSizeBytes": 25203976,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/liberty_lady.MP4",
-          "target": "videos/liberty-lady.mp4",
+          "target": "videos/liberty-lady-958c537b.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/liberty_lady.MP4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/liberty-lady.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/liberty-lady.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 5580659,
-          "targetSizeBytes": 4706820,
-          "savedBytes": 873839,
-          "savedPercent": 15.66
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/liberty_lady.MP4",
-          "target": "videos/liberty-lady.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 138191
+          "targetSizeBytes": 5580659,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/melting_landscapes.mp4",
-          "target": "videos/melting-landscapes.mp4",
+          "target": "videos/melting-landscapes-4f0ab15d.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/melting_landscapes.mp4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/melting-landscapes.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/melting-landscapes.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 6701562,
-          "targetSizeBytes": 2767201,
-          "savedBytes": 3934361,
-          "savedPercent": 58.71
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/melting_landscapes.mp4",
-          "target": "videos/melting-landscapes.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 190447
+          "targetSizeBytes": 6701562,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4",
-          "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.mp4",
+          "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32-ba50c582.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1280.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4 --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 9382318,
-          "targetSizeBytes": 1791077,
-          "savedBytes": 7591241,
-          "savedPercent": 80.91
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/otoy_studio_video_Hyperlapse_transitioning_from_desaturated__teal_to_2025-12-19T20-41-32.MP4",
-          "target": "videos/otoy-studio-video-hyperlapse-transitioning-from-desaturated-teal-to-2025-12-19t20-41-32.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 118818
+          "targetSizeBytes": 9382318,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "experiments",
           "source": "videos/spektrum_logo_final.mov",
-          "target": "videos/spektrum-logo-final.mp4",
+          "target": "videos/spektrum-logo-final.mov",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1080.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/experiments/videos/spektrum_logo_final.mov --video-output /home/deployer/projects/portfolio/public/projects/experiments/videos/spektrum-logo-final.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/experiments/videos/spektrum-logo-final.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 5463073,
-          "targetSizeBytes": 546498,
-          "savedBytes": 4916575,
-          "savedPercent": 90
-        },
-        {
-          "projectId": "experiments",
-          "source": "videos/spektrum_logo_final.mov",
-          "target": "videos/spektrum-logo-final.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 11305
+          "targetSizeBytes": 5463073,
+          "savedBytes": 0,
+          "savedPercent": 0
         }
       ]
     },
@@ -425,80 +510,53 @@
       "projectId": "ggl",
       "summary": {
         "projectId": "ggl",
-        "total": 6,
+        "total": 3,
         "copied": 0,
-        "optimizedVideos": 3,
+        "optimizedVideos": 0,
         "skipped": 0,
         "responsiveJobs": 0,
-        "posters": 3,
+        "posters": 0,
         "warnings": 0,
-        "failures": 0,
-        "videoBytesBefore": 51773915,
-        "videoBytesAfter": 13387786
+        "failures": 3,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
           "projectId": "ggl",
           "source": "videos/GGL_Christmas_Anna_Stare.mp4",
-          "target": "videos/ggl-christmas-anna-stare.mp4",
+          "target": "videos/ggl-christmas-anna-stare-31aa2915.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/ggl/videos/GGL_Christmas_Anna_Stare.mp4 --video-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-stare.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-stare.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 17063738,
-          "targetSizeBytes": 2485913,
-          "savedBytes": 14577825,
-          "savedPercent": 85.43
-        },
-        {
-          "projectId": "ggl",
-          "source": "videos/GGL_Christmas_Anna_Stare.mp4",
-          "target": "videos/ggl-christmas-anna-stare.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 73227
+          "targetSizeBytes": 17063738,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "ggl",
           "source": "videos/GGL_Christmas_Anna_x_Ducks.MP4",
-          "target": "videos/ggl-christmas-anna-x-ducks.mp4",
+          "target": "videos/ggl-christmas-anna-x-ducks-e5e42c08.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/ggl/videos/GGL_Christmas_Anna_x_Ducks.MP4 --video-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-x-ducks.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-anna-x-ducks.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 17545233,
-          "targetSizeBytes": 5853685,
-          "savedBytes": 11691548,
-          "savedPercent": 66.64
-        },
-        {
-          "projectId": "ggl",
-          "source": "videos/GGL_Christmas_Anna_x_Ducks.MP4",
-          "target": "videos/ggl-christmas-anna-x-ducks.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 18320
+          "targetSizeBytes": 17545233,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "ggl",
           "source": "videos/GGL_Christmas_AnnaOrange_MultiBag.MP4",
-          "target": "videos/ggl-christmas-annaorange-multibag.mp4",
+          "target": "videos/ggl-christmas-annaorange-multibag-6917ac59.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1080x1920.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/ggl/videos/GGL_Christmas_AnnaOrange_MultiBag.MP4 --video-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-annaorange-multibag.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/ggl/videos/ggl-christmas-annaorange-multibag.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 17164944,
-          "targetSizeBytes": 5048188,
-          "savedBytes": 12116756,
-          "savedPercent": 70.59
-        },
-        {
-          "projectId": "ggl",
-          "source": "videos/GGL_Christmas_AnnaOrange_MultiBag.MP4",
-          "target": "videos/ggl-christmas-annaorange-multibag.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 91699
+          "targetSizeBytes": 17164944,
+          "savedBytes": 0,
+          "savedPercent": 0
         }
       ]
     },
@@ -567,204 +625,6 @@
         {
           "projectId": "glasses",
           "source": "images/oct_Glass_Silhuettes_Image_0089_Shot_1_DenoisedBeauty.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        }
-      ]
-    },
-    {
-      "projectId": "kapaunenstraße",
-      "summary": {
-        "projectId": "kapaunenstraße",
-        "total": 20,
-        "copied": 10,
-        "optimizedVideos": 0,
-        "skipped": 0,
-        "responsiveJobs": 10,
-        "posters": 0,
-        "warnings": 0,
-        "failures": 0,
-        "videoBytesBefore": 0,
-        "videoBytesAfter": 0
-      },
-      "items": [
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_01_Garden.jpg",
-          "target": "images/house-01-garden.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 1774319,
-          "targetSizeBytes": 1774319
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_01_Garden.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_02_Garden.jpg",
-          "target": "images/house-02-garden.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 2262528,
-          "targetSizeBytes": 2262528
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_02_Garden.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_06_Front.jpg",
-          "target": "images/house-06-front.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 1980884,
-          "targetSizeBytes": 1980884
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_06_Front.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_09_Front.jpg",
-          "target": "images/house-09-front.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 1881980,
-          "targetSizeBytes": 1881980
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/House_09_Front.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/Kapaunenstraße_Bathroom_Image_01.png",
-          "target": "images/kapaunenstra-e-bathroom-image-01.png",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 45331490,
-          "targetSizeBytes": 45331490
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/Kapaunenstraße_Bathroom_Image_01.png",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/Kapaunenstraße_Bathroom_Image_02.png",
-          "target": "images/kapaunenstra-e-bathroom-image-02.png",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 8926581,
-          "targetSizeBytes": 8926581
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/Kapaunenstraße_Bathroom_Image_02.png",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/Kapaunenstraße_Bathroom_Image_03.png",
-          "target": "images/kapaunenstra-e-bathroom-image-03.png",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 9025177,
-          "targetSizeBytes": 9025177
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/Kapaunenstraße_Bathroom_Image_03.png",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/oct_Kapaunenstraße_4K_Aces_09_Roof.jpg",
-          "target": "images/oct-kapaunenstra-e-4k-aces-09-roof.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 2073755,
-          "targetSizeBytes": 2073755
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/oct_Kapaunenstraße_4K_Aces_09_Roof.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/oct_Kapaunenstraße_4K_Aces_18_Appartements_05.jpg",
-          "target": "images/oct-kapaunenstra-e-4k-aces-18-appartements-05.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 1451327,
-          "targetSizeBytes": 1451327
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/oct_Kapaunenstraße_4K_Aces_18_Appartements_05.jpg",
-          "target": "images/_responsive",
-          "action": "responsive-images",
-          "status": "success",
-          "detail": "Generated 2 responsive image variants without changing aspect ratio."
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/oct_Kapaunenstraße_4K_Aces_29_Appartements_09.jpg",
-          "target": "images/oct-kapaunenstra-e-4k-aces-29-appartements-09.jpg",
-          "action": "copy",
-          "status": "success",
-          "detail": "Copied without recompression or visual changes.",
-          "sourceSizeBytes": 1627341,
-          "targetSizeBytes": 1627341
-        },
-        {
-          "projectId": "kapaunenstraße",
-          "source": "images/oct_Kapaunenstraße_4K_Aces_29_Appartements_09.jpg",
           "target": "images/_responsive",
           "action": "responsive-images",
           "status": "success",
@@ -1100,16 +960,16 @@
       "projectId": "vfx",
       "summary": {
         "projectId": "vfx",
-        "total": 5,
+        "total": 3,
         "copied": 0,
-        "optimizedVideos": 2,
+        "optimizedVideos": 0,
         "skipped": 1,
         "responsiveJobs": 0,
-        "posters": 2,
+        "posters": 0,
         "warnings": 1,
-        "failures": 0,
-        "videoBytesBefore": 171854743,
-        "videoBytesAfter": 46801052
+        "failures": 2,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
       },
       "items": [
         {
@@ -1123,44 +983,224 @@
         {
           "projectId": "vfx",
           "source": "videos/skrtcobain_sohigh_online_v07_H264.mp4",
-          "target": "videos/skrtcobain-sohigh-online-v07-h264.mp4",
+          "target": "videos/skrtcobain-sohigh-online-v07-h264-1d10d472.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1080.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/vfx/videos/skrtcobain_sohigh_online_v07_H264.mp4 --video-output /home/deployer/projects/portfolio/public/projects/vfx/videos/skrtcobain-sohigh-online-v07-h264.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/vfx/videos/skrtcobain-sohigh-online-v07-h264.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 169771456,
-          "targetSizeBytes": 45610150,
-          "savedBytes": 124161306,
-          "savedPercent": 73.13
-        },
-        {
-          "projectId": "vfx",
-          "source": "videos/skrtcobain_sohigh_online_v07_H264.mp4",
-          "target": "videos/skrtcobain-sohigh-online-v07-h264.poster.jpg",
-          "action": "generate-video-poster",
-          "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 88574
+          "targetSizeBytes": 169771456,
+          "savedBytes": 0,
+          "savedPercent": 0
         },
         {
           "projectId": "vfx",
           "source": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
-          "target": "videos/sohigh-vfxbd-spktrm-comp.mp4",
+          "target": "videos/sohigh-vfxbd-spktrm-comp-162a9a6e.mp4",
           "action": "optimize-video",
-          "status": "success",
-          "detail": "Generated optimized H.264/AAC MP4 delivery copy with +faststart and preserved aspect ratio at 1920x1080.",
+          "status": "failure",
+          "detail": "Video optimization failed; kept normalized original as fallback. Command failed: python3 /home/deployer/projects/portfolio/scripts/render-web-video.py --input /home/deployer/projects/portfolio/content/projects/vfx/videos/SoHigh_VFXBD_Spktrm_comp.mp4 --video-output /home/deployer/projects/portfolio/public/projects/vfx/videos/sohigh-vfxbd-spktrm-comp.mp4 --poster-output /home/deployer/projects/portfolio/public/projects/vfx/videos/sohigh-vfxbd-spktrm-comp.poster.jpg --video-max-edge 1920 --poster-max-edge 1600 --crf 23 --preset slow --audio-bitrate 128k\nTraceback (most recent call last):\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 131, in <module>\n    main()\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 57, in main\n    source_info = ffprobe_json(input_path)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/deployer/projects/portfolio/scripts/render-web-video.py\", line 21, in ffprobe_json\n    return json.loads(subprocess.check_output(cmd, text=True))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'\n",
           "sourceSizeBytes": 2083287,
-          "targetSizeBytes": 1190902,
-          "savedBytes": 892385,
-          "savedPercent": 42.84
+          "targetSizeBytes": 2083287,
+          "savedBytes": 0,
+          "savedPercent": 0
+        }
+      ]
+    },
+    {
+      "projectId": "boss-sr23",
+      "summary": {
+        "projectId": "boss-sr23",
+        "total": 10,
+        "copied": 5,
+        "optimizedVideos": 0,
+        "skipped": 0,
+        "responsiveJobs": 5,
+        "posters": 0,
+        "warnings": 0,
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
+      },
+      "items": [
+        {
+          "projectId": "boss-sr23",
+          "source": "20220601_HBME_BWB_SF_SR23_M05_002.jpg",
+          "target": "20220601-hbme-bwb-sf-sr23-m05-002.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2161684,
+          "targetSizeBytes": 2161684
         },
         {
-          "projectId": "vfx",
-          "source": "videos/SoHigh_VFXBD_Spktrm_comp.mp4",
-          "target": "videos/sohigh-vfxbd-spktrm-comp.poster.jpg",
-          "action": "generate-video-poster",
+          "projectId": "boss-sr23",
+          "source": "20220601_HBME_BWB_SF_SR23_M05_002.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
           "status": "success",
-          "detail": "Generated poster image for faster first paint before playback.",
-          "targetSizeBytes": 110265
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M05_074.jpg",
+          "target": "20220605-hbme-bwb-sf-sr23-m05-074.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2772320,
+          "targetSizeBytes": 2772320
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M05_074.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M13_045 1.jpg",
+          "target": "20220605-hbme-bwb-sf-sr23-m13-045-1.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2424617,
+          "targetSizeBytes": 2424617
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M13_045 1.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M32_ML_097.jpg",
+          "target": "20220605-hbme-bwb-sf-sr23-m32-ml-097.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 3350757,
+          "targetSizeBytes": 3350757
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M32_ML_097.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M53_ML_068.jpg",
+          "target": "20220605-hbme-bwb-sf-sr23-m53-ml-068.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 3180239,
+          "targetSizeBytes": 3180239
+        },
+        {
+          "projectId": "boss-sr23",
+          "source": "20220605_HBME_BWB_SF_SR23_M53_ML_068.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        }
+      ]
+    },
+    {
+      "projectId": "farnsworth-house",
+      "summary": {
+        "projectId": "farnsworth-house",
+        "total": 8,
+        "copied": 4,
+        "optimizedVideos": 0,
+        "skipped": 0,
+        "responsiveJobs": 4,
+        "posters": 0,
+        "warnings": 0,
+        "failures": 0,
+        "videoBytesBefore": 0,
+        "videoBytesAfter": 0
+      },
+      "items": [
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_01.jpg",
+          "target": "miesvanderrohe-farnworth-spektrumportofolio-01.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 9376253,
+          "targetSizeBytes": 9376253
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_01.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_02.jpg",
+          "target": "miesvanderrohe-farnworth-spektrumportofolio-02.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2247731,
+          "targetSizeBytes": 2247731
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_02.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_03.jpg",
+          "target": "miesvanderrohe-farnworth-spektrumportofolio-03.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 4519463,
+          "targetSizeBytes": 4519463
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_03.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_04.jpg",
+          "target": "miesvanderrohe-farnworth-spektrumportofolio-04.jpg",
+          "action": "copy",
+          "status": "success",
+          "detail": "Copied without recompression or visual changes.",
+          "sourceSizeBytes": 2465825,
+          "targetSizeBytes": 2465825
+        },
+        {
+          "projectId": "farnsworth-house",
+          "source": "MiesvanderRohe_Farnworth_SpektrumPortofolio_04.jpg",
+          "target": "_responsive",
+          "action": "responsive-images",
+          "status": "success",
+          "detail": "Generated 2 responsive image variants without changing aspect ratio."
         }
       ]
     }

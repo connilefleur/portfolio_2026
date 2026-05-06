@@ -76,38 +76,6 @@ function getViewerMedia(project: ProjectItem) {
   return resolved.length > 0 ? resolved : media;
 }
 
-function resolveDistinctSecondaryHero(
-  preferredSource: ProjectItem["media"][number] | undefined,
-  viewerMedia: ProjectItem["media"],
-  primarySource: ProjectItem["media"][number] | undefined,
-  primaryDisplay: ProjectItem["media"][number] | undefined,
-) {
-  const seen = new Set<string>();
-  const candidates = [preferredSource, ...viewerMedia].filter(
-    (item): item is NonNullable<typeof item> => Boolean(item),
-  );
-
-  for (const candidate of candidates) {
-    const key = candidate.id || candidate.src;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const display = resolveHeroDisplayMedia(candidate);
-    if (!display) continue;
-    if (!primaryDisplay || display.id !== primaryDisplay.id) {
-      return { source: candidate, display };
-    }
-  }
-
-  for (const candidate of candidates) {
-    const candidateKey = candidate.id || candidate.src;
-    const primaryKey = primarySource?.id || primarySource?.src;
-    if (candidateKey === primaryKey) continue;
-    return { source: candidate, display: candidate };
-  }
-
-  return { source: undefined, display: undefined };
-}
-
 const PROJECT_HERO_WIDE_ASPECT_RATIO = 1.3;
 
 export function ProjectDarkTile({ project, projects, goToTile, onOpenViewer }: ProjectDarkTileProps) {
@@ -117,16 +85,15 @@ export function ProjectDarkTile({ project, projects, goToTile, onOpenViewer }: P
   const activeProjectIndex = projectIndex >= 0 ? projectIndex : 0;
 
   const viewerMedia = getViewerMedia(displayProject);
-  const primaryMediaSource = resolveMediaByFileName(displayProject, displayProject.detail.media.heroPrimary) ?? viewerMedia[0];
-  const preferredSecondaryMediaSource =
-    resolveMediaByFileName(displayProject, displayProject.detail.media.heroSecondary) ?? viewerMedia[1];
+  const heroPrimary = displayProject.detail.media.heroPrimary;
+  const heroSecondary = displayProject.detail.media.heroSecondary;
+  const primaryMediaSource =
+    resolveMediaByFileName(displayProject, heroPrimary) ?? (!heroPrimary ? viewerMedia[0] : undefined);
+  const secondaryMediaSource = heroSecondary
+    ? resolveMediaByFileName(displayProject, heroSecondary)
+    : undefined;
   const primaryMedia = resolveHeroDisplayMedia(primaryMediaSource);
-  const { source: secondaryMediaSource, display: secondaryMedia } = resolveDistinctSecondaryHero(
-    preferredSecondaryMediaSource,
-    viewerMedia,
-    primaryMediaSource,
-    primaryMedia,
-  );
+  const secondaryMedia = resolveHeroDisplayMedia(secondaryMediaSource);
   const initialPrimaryHeroAspectRatio = getMediaAspectRatio(primaryMedia) || 1;
   const [primaryHeroAspectRatio, setPrimaryHeroAspectRatio] = useState(initialPrimaryHeroAspectRatio);
 

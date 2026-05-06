@@ -41,3 +41,10 @@ public/projects-index.json
 tmp/
 public/review/
 drop_in/
+
+# Video files — served from external storage, not git
+*.mp4
+*.mov
+*.webm
+*.avi
+*.mkv

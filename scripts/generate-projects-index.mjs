@@ -7,6 +7,8 @@ const root = process.cwd();
 const contentRoot = path.join(root, "content");
 const projectsCsvPath = path.join(contentRoot, "projects.csv");
 const contentProjectsRoot = path.join(contentRoot, "projects");
+const dropInRoot = path.join(root, "drop_in");
+const dropInCsvPath = path.join(dropInRoot, "projects.csv");
 const projectsRoot = path.join(root, "public", "projects");
 const outputPath = path.join(root, "public", "projects-index.json");
 const normalizationReportPath = path.join(root, "public", "asset-normalization-report.json");
@@ -299,8 +301,7 @@ function renderOptimizedVideoAsset(sourceFile, targetFile, posterFile) {
   return out ? JSON.parse(out) : {};
 }
 
-async function copyProjectAssets(slug) {
-  const sourceDir = path.join(contentProjectsRoot, slug);
+async function copyProjectAssets(slug, sourceDir = path.join(contentProjectsRoot, slug)) {
   const targetDir = path.join(projectsRoot, slug);
   const fileNameMap = new Map();
   const responsiveSourcesByTarget = new Map();
@@ -542,9 +543,19 @@ async function buildIndex() {
   if (!csvRaw) {
     throw new Error(`Missing CSV data source: ${projectsCsvPath}`);
   }
-  const rows = parseCsv(csvRaw);
+  const rows = parseCsv(csvRaw).map((row) => ({ ...row, _sourceRoot: contentProjectsRoot }));
   if (rows.length === 0) {
     throw new Error(`CSV has no project rows: ${projectsCsvPath}`);
+  }
+
+  const dropInCsvRaw = await safeReadText(dropInCsvPath);
+  if (dropInCsvRaw) {
+    const dropInRows = parseCsv(dropInCsvRaw).map((row) => ({
+      ...row,
+      _sourceRoot: dropInRoot,
+      _folder: row.folder || row.slug,
+    }));
+    rows.push(...dropInRows);
   }
 
   const projects = [];
@@ -562,7 +573,9 @@ async function buildIndex() {
       throw new Error("CSV row is missing required field: slug");
     }
 
-    const copyResult = await copyProjectAssets(slug);
+    const folder = row._folder || slug;
+    const sourceDir = path.join(row._sourceRoot || contentProjectsRoot, folder);
+    const copyResult = await copyProjectAssets(slug, sourceDir);
     normalizationProjects.push({
       projectId: slug,
       summary: copyResult.summary,
