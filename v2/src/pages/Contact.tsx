@@ -1,6 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Layout, Clock } from '../components/Layout';
 
+const ENC = '7981269 2151 94+';
+
 export function Contact() {
+  const [phone, setPhone] = useState('');
+  useEffect(() => { setPhone(ENC.split('').reverse().join('')); }, []);
+
   const meta = (
     <>
       <span className="dot" />
@@ -38,8 +44,20 @@ export function Contact() {
           </div>
         </div>
 
+        {phone && (
+          <div className="field">
+            <span className="field-idx">002</span>
+            <div>
+              <div className="field-label">Phone</div>
+              <div className="field-value">
+                <a href={`tel:${phone.replace(/\s/g, '')}`}>{phone}</a>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="field">
-          <span className="field-idx">002</span>
+          <span className="field-idx">003</span>
           <div>
             <div className="field-label">Studio</div>
             <div className="field-value">Hamburg, DE · Remote</div>
@@ -47,7 +65,7 @@ export function Contact() {
         </div>
 
         <div className="field">
-          <span className="field-idx">003</span>
+          <span className="field-idx">004</span>
           <div>
             <div className="field-label">Availability</div>
             <div className="field-value">
@@ -60,7 +78,7 @@ export function Contact() {
         </div>
 
         <div className="field">
-          <span className="field-idx">004</span>
+          <span className="field-idx">005</span>
           <div>
             <div className="field-label">Focus</div>
             <div className="field-value is-mute">
@@ -71,7 +89,7 @@ export function Contact() {
         </div>
 
         <div className="field">
-          <span className="field-idx">005</span>
+          <span className="field-idx">006</span>
           <div>
             <div className="field-label">Services</div>
             <div className="field-value is-mute">
@@ -86,7 +104,7 @@ export function Contact() {
         </div>
 
         <div className="field">
-          <span className="field-idx">006</span>
+          <span className="field-idx">007</span>
           <div>
             <div className="field-label">Tools</div>
             <div className="field-value is-mute">
@@ -98,7 +116,7 @@ export function Contact() {
         </div>
 
         <div className="field">
-          <span className="field-idx">007</span>
+          <span className="field-idx">008</span>
           <div>
             <div className="field-label">Environment</div>
             <div className="field-value is-mute">Linux Native</div>

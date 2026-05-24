@@ -12,7 +12,7 @@ const R_MIN = 120, R_MAX = 250;
 const LABEL_OFFSET = 52;
 
 const AXES: { key: AxisKey; angle: number; label: string }[] = [
-  { key: 'video', angle: 90,  label: 'Video'            },
+  { key: 'video', angle: 90,  label: 'Edit'             },
   { key: 'cgi',   angle: 210, label: 'CGI'              },
   { key: 'code',  angle: 330, label: 'Code' },
 ];
@@ -43,6 +43,8 @@ function convexHull(pts: { x: number; y: number }[]) {
 }
 
 const SPRING_DURATION = 550;
+const BOOT_DURATION   = 520;
+const BOOT_STAGGER    = 65;
 
 function evalCubicBezier(P1x: number, P1y: number, P2x: number, P2y: number) {
   function B(t: number, p1: number, p2: number) {
@@ -158,6 +160,10 @@ export function Scope() {
   const [activeId, setActiveId]           = useState<string | null>(null);
   const [activeCat, setActiveCat]         = useState<AxisKey | null>(null);
   const [, setSearchParams]               = useSearchParams();
+  const [isBooted, setIsBooted]           = useState(false);
+  const [bootDone, setBootDone]           = useState(false);
+  const [scopeCenter, setScopeCenter]     = useState<{ left: number; top: number } | null>(null);
+  const bootedRef                         = useRef(false);
 
   const nodes = useMemo(() => computePositions(), []);
   const hull  = useMemo(() => {
@@ -188,6 +194,17 @@ export function Scope() {
       const pos: Record<string, { left: number; top: number }> = {};
       nodes.forEach(n => { pos[n.id] = { left: offX + n.x * scale, top: offY + n.y * scale }; });
       setCssPos(pos);
+      setScopeCenter({ left: offX + CX * scale, top: offY + CY * scale });
+      if (!bootedRef.current) {
+        bootedRef.current = true;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setIsBooted(true);
+            const totalDuration = (nodes.length - 1) * BOOT_STAGGER + BOOT_DURATION + 100;
+            setTimeout(() => setBootDone(true), totalDuration);
+          });
+        });
+      }
     }
     update();
     const ro = new ResizeObserver(update);
@@ -309,38 +326,49 @@ export function Scope() {
       <section className="map" ref={mapRef} onClick={handleMapClick}>
         <svg id="scope-svg" viewBox={`0 0 ${VBW} ${VBH}`} preserveAspectRatio="xMidYMid meet">
 
-          {/* Convex hull — subtle fill + dashed border */}
+          {/* Hull — clean wireframe, fades in after nodes arrive */}
           {hull.length > 2 && (
             <polygon
+              className="scope-hull"
               points={hull.map(p => `${p.x},${p.y}`).join(' ')}
-              fill="color-mix(in srgb, var(--ink) 4%, transparent)"
-              stroke="color-mix(in srgb, var(--ink) 20%, transparent)"
-              strokeWidth={0.7}
-              strokeDasharray="3 5"
+              fill="none"
+              stroke="color-mix(in srgb, var(--ink) 16%, transparent)"
+              strokeWidth={0.8}
             />
           )}
 
           <g id="graticule">
 
+            {/* Reference rings */}
+            <circle className="scope-ring" cx={CX} cy={CY} r={R_MIN} fill="none" stroke="color-mix(in srgb, var(--ink) 7%, transparent)" strokeWidth={0.5} />
+            <circle className="scope-ring" cx={CX} cy={CY} r={R_MAX} fill="none" stroke="color-mix(in srgb, var(--ink) 9%, transparent)" strokeWidth={0.5} />
 
-            {/* Axis lines + labels — font size targets 10px on screen regardless of zoom */}
+            {/* Axis lines + labels */}
             {(() => {
-              const svgFs  = Math.max(9, 10 / viewScale);
-              const charW  = svgFs * 0.62;
+              const svgFs = Math.max(8, 9 / viewScale);
+              const charW = svgFs * 0.62;
               return AXES.map(ax => {
                 const outer       = toXY(ax.angle, R_MAX + LABEL_OFFSET);
-                const inner       = toXY(ax.angle, 12);
+                const inner       = toXY(ax.angle, 18);
                 const axEnd       = toXY(ax.angle, R_MAX);
                 const isCatActive = activeCat === ax.key;
-                const fullText    = '[ ' + ax.label.toUpperCase() + ' ]';
-                const labelW      = fullText.length * charW + 12;
-                const labelH      = svgFs + 8;
+                const labelText   = ax.label.toUpperCase();
+                const labelW      = labelText.length * charW + 20;
+                const labelH      = svgFs + 10;
+                const perpRad     = (ax.angle + 90) * Math.PI / 180;
+                const tickA       = { x: axEnd.x + Math.cos(perpRad) * 5, y: axEnd.y - Math.sin(perpRad) * 5 };
+                const tickB       = { x: axEnd.x - Math.cos(perpRad) * 5, y: axEnd.y + Math.sin(perpRad) * 5 };
                 return (
-                  <g key={ax.key}>
+                  <g key={ax.key} className="scope-axis">
                     <line
                       x1={inner.x} y1={inner.y} x2={axEnd.x} y2={axEnd.y}
-                      stroke={isCatActive ? 'var(--hi)' : 'color-mix(in srgb, var(--ink) 22%, transparent)'}
+                      stroke={isCatActive ? 'var(--hi)' : 'color-mix(in srgb, var(--ink) 14%, transparent)'}
                       strokeWidth={isCatActive ? 0.8 : 0.5}
+                    />
+                    <line
+                      x1={tickA.x} y1={tickA.y} x2={tickB.x} y2={tickB.y}
+                      stroke={isCatActive ? 'var(--hi)' : 'color-mix(in srgb, var(--ink) 22%, transparent)'}
+                      strokeWidth={isCatActive ? 0.8 : 0.6}
                     />
                     <g
                       transform={`translate(${outer.x},${outer.y})`}
@@ -351,10 +379,10 @@ export function Scope() {
                       <text
                         x={0} y={0}
                         textAnchor="middle" dominantBaseline="middle"
-                        fontFamily="var(--mono)" fontSize={svgFs} fontWeight={500} letterSpacing="0.1em"
-                        fill={isCatActive ? 'var(--hi)' : 'color-mix(in srgb, var(--ink) 45%, transparent)'}
+                        fontFamily="var(--mono)" fontSize={svgFs} fontWeight={500} letterSpacing="0.14em"
+                        fill={isCatActive ? 'var(--hi)' : 'color-mix(in srgb, var(--ink) 32%, transparent)'}
                       >
-                        {fullText}
+                        {labelText}
                       </text>
                     </g>
                   </g>
@@ -362,42 +390,61 @@ export function Scope() {
               });
             })()}
 
-            <circle cx={CX} cy={CY} r={2} fill="color-mix(in srgb, var(--ink) 28%, transparent)" />
+            {/* Origin — target crosshair */}
+            <g className="scope-origin">
+              <circle cx={CX} cy={CY} r={9}   fill="none" stroke="color-mix(in srgb, var(--ink) 18%, transparent)" strokeWidth={0.5} />
+              <circle cx={CX} cy={CY} r={3.5} fill="none" stroke="color-mix(in srgb, var(--ink) 28%, transparent)" strokeWidth={0.7} />
+              <circle cx={CX} cy={CY} r={1.2} fill="color-mix(in srgb, var(--ink) 38%, transparent)" />
+              <line x1={CX - 16} y1={CY} x2={CX - 6} y2={CY} stroke="color-mix(in srgb, var(--ink) 18%, transparent)" strokeWidth={0.5} />
+              <line x1={CX + 6}  y1={CY} x2={CX + 16} y2={CY} stroke="color-mix(in srgb, var(--ink) 18%, transparent)" strokeWidth={0.5} />
+              <line x1={CX} y1={CY - 16} x2={CX} y2={CY - 6} stroke="color-mix(in srgb, var(--ink) 18%, transparent)" strokeWidth={0.5} />
+              <line x1={CX} y1={CY + 6}  x2={CX} y2={CY + 16} stroke="color-mix(in srgb, var(--ink) 18%, transparent)" strokeWidth={0.5} />
+            </g>
           </g>
 
-          {/* Node anchor dots */}
+          {/* Node anchor dots with pulse */}
           {nodes.map(n => {
             const isActiveCat = activeCat === n.axis;
             const isActiveId  = activeId === n.id;
             const isDimmed    = activeId ? !isActiveId : activeCat ? !isActiveCat : false;
             return (
-              <circle key={n.id}
-                cx={n.x} cy={n.y} r={2.5}
-                fill={isActiveId || isActiveCat ? 'var(--hi)' : 'color-mix(in srgb, var(--mute) 50%, transparent)'}
-                opacity={isDimmed ? 0.2 : 1}
-                style={{ pointerEvents: 'none' }}
-              />
+              <g key={n.id} style={{ pointerEvents: 'none' }}>
+                {isActiveId && (
+                  <circle cx={n.x} cy={n.y} r={2} className="dot-pulse-ring" />
+                )}
+                <circle
+                  cx={n.x} cy={n.y} r={2}
+                  className={isActiveId ? 'node-dot node-dot--active' : 'node-dot'}
+                  fill={isActiveId || isActiveCat ? 'var(--hi)' : 'color-mix(in srgb, var(--mute) 55%, transparent)'}
+                  opacity={isDimmed ? 0.1 : 1}
+                />
+              </g>
             );
           })}
         </svg>
 
-        {nodes.map(p => {
-          const pos   = cssPos[p.id];
-          const off   = dragOffsets[p.id];
-          const isSpr = springing.has(p.id);
-          const nid   = `${p.idx} · ${p.yearShort}`;
-          const transform = off !== undefined
-            ? `translate(calc(-50% + ${off.dx}px), calc(-50% + ${off.dy}px))`
-            : undefined;
+        {nodes.map((p, i) => {
+          const pos     = cssPos[p.id];
+          const off     = dragOffsets[p.id];
+          const isSpr   = springing.has(p.id);
+          const nid     = `${p.idx} · ${p.yearShort}`;
+          const delay   = i * BOOT_STAGGER;
+          const bootDx  = (!isBooted && scopeCenter && pos) ? scopeCenter.left - pos.left : 0;
+          const bootDy  = (!isBooted && scopeCenter && pos) ? scopeCenter.top  - pos.top  : 0;
+          const totalDx = (off?.dx ?? 0) + bootDx;
+          const totalDy = (off?.dy ?? 0) + bootDy;
+          const transform  = `translate(calc(-50% + ${totalDx}px), calc(-50% + ${totalDy}px))`;
           const transition = isSpr
             ? `transform ${SPRING_DURATION}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
-            : 'none';
+            : (isBooted && !bootDone && off === undefined)
+              ? `transform ${BOOT_DURATION}ms cubic-bezier(0.34,1.56,0.64,1) ${delay}ms, opacity ${Math.round(BOOT_DURATION * 0.6)}ms ease ${delay}ms`
+              : 'none';
           return (
             <div
               key={p.id}
               className={nodeClasses(p.id, p.axis)}
               style={pos
-                ? { left: pos.left, top: pos.top, transform, transition }
+                ? { left: pos.left, top: pos.top, transform, transition, opacity: isBooted ? undefined : 0 }
                 : { opacity: 0 }}
               onMouseEnter={() => { if (!draggingRef.current) setActiveId(p.id); }}
               onMouseLeave={() => { if (draggingRef.current?.id !== p.id) setActiveId(null); }}
@@ -427,7 +474,7 @@ export function Scope() {
           );
         })}
 
-        <div className="sig" aria-hidden="true">Conrad Löffler</div>
+        <div className="sig" aria-hidden="true">Conrad<br />Loeffler</div>
       </section>
     </Layout>
   );

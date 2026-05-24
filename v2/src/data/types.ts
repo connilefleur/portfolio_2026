@@ -2,7 +2,10 @@ export type AxisKey = 'video' | 'cgi' | 'code';
 
 export interface MediaItem {
   url: string;
+  srcSet?: string;
   type: 'image' | 'video';
+  label?: string;
+  secondary?: boolean;
 }
 
 export interface Project {
@@ -21,5 +24,6 @@ export interface Project {
   info1: string;
   info2h: string;
   info2: string;
+  link?: { label: string; url: string };
   media: MediaItem[];
 }

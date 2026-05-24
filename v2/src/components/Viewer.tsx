@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PROJECTS_BY_ID } from '../data/projects';
-function mediaLabel(type: 'image' | 'video', typeIdx: number): string {
+function mediaLabel(type: 'image' | 'video', typeIdx: number, label?: string): string {
+  if (label) return label;
   const kind = type === 'video' ? 'Video' : 'Image';
   return `${kind} ${String(typeIdx + 1).padStart(3, '0')}`;
 }
@@ -45,6 +46,8 @@ export function Viewer() {
       vid.pause(); vid.style.display = 'none';
       img.style.display = 'block';
       img.src = item.url;
+      img.srcset = item.srcSet ?? '';
+      img.sizes = item.srcSet ? '(max-width: 768px) 100vw, calc(100vw - 360px)' : '';
     }
   }, [activeIdx, project]);
 
@@ -88,6 +91,11 @@ export function Viewer() {
                 <p className="vw-is-block-p">{project.info2}</p>
               </div>
             </div>
+            {project.link && (
+              <a className="vw-is-link" href={project.link.url} target="_blank" rel="noopener noreferrer">
+                {project.link.label} ↗
+              </a>
+            )}
           </div>
         )}
 
@@ -95,19 +103,24 @@ export function Viewer() {
           <div className="vw-media-list">
             {(() => {
               const typeCount: Record<string, number> = {};
+              let dividerInserted = false;
               return project.media.map((item, i) => {
                 const typeIdx = typeCount[item.type] ?? 0;
                 typeCount[item.type] = typeIdx + 1;
+                const showDivider = item.secondary && !dividerInserted;
+                if (showDivider) dividerInserted = true;
                 return (
-                  <button
-                    key={i}
-                    className={`vw-media-row${activeIdx === i ? ' vw-media-row--active' : ''}`}
-                    onClick={() => setActiveIdx(i)}
-                  >
-                    <span className="vw-mr-idx">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="vw-mr-type">{item.type === 'video' ? 'vid' : 'img'}</span>
-                    <span className="vw-mr-label">{mediaLabel(item.type, typeIdx)}</span>
-                  </button>
+                  <div key={i}>
+                    {showDivider && <div className="vw-media-divider" />}
+                    <button
+                      className={`vw-media-row${activeIdx === i ? ' vw-media-row--active' : ''}${item.secondary ? ' vw-media-row--secondary' : ''}`}
+                      onClick={() => setActiveIdx(i)}
+                    >
+                      <span className="vw-mr-idx">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="vw-mr-type">{item.type === 'video' ? 'vid' : 'img'}</span>
+                      <span className="vw-mr-label">{mediaLabel(item.type, typeIdx, item.label)}</span>
+                    </button>
+                  </div>
                 );
               });
             })()}
@@ -120,7 +133,7 @@ export function Viewer() {
         {project && project.media.length === 0 && (
           <span className="vw-no-media">Media coming soon</span>
         )}
-        <img ref={imgRef} className="vw-img" alt="" style={{ display: 'none' }} />
+        <img ref={imgRef} className="vw-img" alt="" decoding="async" style={{ display: 'none' }} />
         <video ref={vidRef} className="vw-vid" autoPlay muted loop playsInline style={{ display: 'none' }} />
       </div>
     </div>
