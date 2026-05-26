@@ -3,20 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Physarum — Portfolio Prototype</title>
+<title>BZ Reaction-Diffusion — Portfolio Prototype</title>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 100%; height: 100%; background: #f5f6f8; overflow: hidden; }
+html, body { width: 100%; height: 100%; background: #08090c; overflow: hidden; }
 canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
 
-/* Project labels — no dot, pure text floating over the WebGL canvas */
+/* Project labels */
 #nodes {
   position: fixed; inset: 0;
   pointer-events: none; z-index: 5;
 }
 .nlabel {
   position: absolute;
-  /* sits below the node ring (ring radius ~28px on screen) */
   transform: translate(-50%, 26px);
   font: 400 13px/1 "JetBrains Mono", "Fira Mono", monospace;
   text-transform: uppercase;
@@ -25,60 +24,80 @@ canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; c
   white-space: nowrap;
   pointer-events: auto;
   cursor: pointer;
-  opacity: 0.9;
+  opacity: 0.85;
   transition: opacity 0.12s;
-  /* legible on both light bg and dark trail */
-  text-shadow:
-    0 0 10px rgba(0,0,0,0.85),
-    0  1px  4px rgba(0,0,0,0.95);
+  text-shadow: 0 0 10px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.95);
 }
 .nlabel:hover { opacity: 1; letter-spacing: 0.22em; }
 
 #hud {
   position: fixed; bottom: 18px; left: 20px; z-index: 10;
-  color: #9aa0ad; font: 10px/2 "JetBrains Mono", monospace;
+  color: #2e333e; font: 10px/2 "JetBrains Mono", monospace;
   pointer-events: none; user-select: none;
 }
-#hud b { color: #6a7180; font-weight: 400; }
+#hud b { color: #252830; font-weight: 400; }
+
+/* Parameter panel */
+#params {
+  position: fixed; bottom: 18px; right: 20px; z-index: 10;
+  color: #3a404d; font: 10px/1.9 "JetBrains Mono", monospace;
+  display: flex; flex-direction: column; gap: 5px; align-items: flex-end;
+}
+.presets { display: flex; gap: 5px; }
+#params button {
+  background: none; border: 1px solid #1a1e28; color: #3a404d;
+  font: 9px "JetBrains Mono", monospace; padding: 2px 8px; cursor: pointer;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: color 0.1s, border-color 0.1s;
+}
+#params button:hover    { color: #7a8090; border-color: #2e333e; }
+#params button.active   { color: #e8c44a; border-color: #e8c44a; }
+#params label {
+  display: flex; align-items: center; gap: 8px;
+}
+#params input[type=range] {
+  width: 80px; height: 2px; -webkit-appearance: none;
+  background: #1a1e28; outline: none; border-radius: 2px;
+  accent-color: #e8c44a;
+}
+#params input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 8px; height: 8px;
+  border-radius: 50%; background: #e8c44a; cursor: pointer;
+}
+.pval { color: #50576a; min-width: 36px; text-align: right; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="nodes"></div>
-<div id="hud">physarum · <b id="fps">—</b> fps</div>
+<div id="hud">barkley-rd · <b id="fps">—</b> fps</div>
+<div id="params">
+  <div class="presets">
+    <button id="bSpiral"  class="active">spirals</button>
+    <button id="bTarget">target</button>
+    <button id="bTurb">turbulent</button>
+    <button id="bReset">reset</button>
+  </div>
+  <label>ε <input type="range" id="sEps" min="0.010" max="0.120" step="0.001" value="0.025"><span class="pval" id="vEps">0.025</span></label>
+  <label>a <input type="range" id="sA"   min="0.40"  max="1.20"  step="0.010" value="0.75"> <span class="pval" id="vA">0.750</span></label>
+  <label>b <input type="range" id="sB"   min="0.000" max="0.200" step="0.005" value="0.010"><span class="pval" id="vB">0.010</span></label>
+</div>
 
 <script>
 'use strict';
 
-// ─── Constants ────────────────────────────────────────────────────────────
-const NUM_AGENTS  = 400 * 1024;  // 409 600
-const ATW         = 1024;
-const ATH         = NUM_AGENTS / ATW; // 400
-const SIM_SCALE   = 0.5;
-const SPAWN_K     = 1500; // max agents born per source per frame (mouse)
+// ─── Config ───────────────────────────────────────────────────────────────
+const SIM_SCALE = 0.75;   // trail texture fraction of screen size
+const SUBSTEPS  = 4;       // RD steps per animation frame
+const SEED_R    = 8;       // seed disk radius (trail-space px) at project nodes
 
 const P = {
-  sensorAngle  : 30.0 * Math.PI / 180,  // wider fan → agents can see crossing trails → forms loops
-  sensorDist   : 5.0,                    // medium range → reinforces nearby veins without creating highways
-  turnSpeed    : 0.44,
-  moveSpeed    : 1.2,
-  deposit      : 0.10,   // very light — trails build slowly but persist for many seconds
-  decay        : 0.986,  // very slow decay — abandoned branch takes ~5 s to fade, not 1 s
-  diffuse      : 0.10,
-  trailCap     : 4.5,    // soft ceiling keeps individual veins thin while allowing density
-  // Project nodes
-  nodeStrength : 50.0,
-  nodeRadius   : 28.0,
-  nodeSpawnK   : 340,
-  nodeScatter  : 30.0,
-  // Mouse
-  mouseSwirlStr : 0.55,
-  mouseSwirlRad : 48.0,
-  mouseScatter  : 24.0,
-  mouseSpawnK   : 900,
+  eps: 0.025, a: 0.75, b: 0.01,  // Barkley params
+  Du : 0.25,  dt: 0.10,           // diffusion & timestep
+  mouseRad: 18,                    // excitation radius (trail-space px)
 };
 
-// Projects — (x,y) in 0..1, y=0 is BOTTOM (GL convention)
+// Project nodes — GL convention (y=0 bottom)
 const PROJECTS = [
   { slug: 'e30',      x: 0.50, y: 0.60 },
   { slug: 'glasses',  x: 0.30, y: 0.38 },
@@ -87,20 +106,17 @@ const PROJECTS = [
   { slug: 'ai-pipe',  x: 0.78, y: 0.65 },
 ];
 
-// Obstacles — CSS convention (y=0 = top), floated in between project nodes.
-// Physarum routes around these exactly like the biological organism routes
-// around physical barriers to find the optimal connecting path.
+// Obstacles — CSS convention (y=0 top); buildWallTex() handles Y-flip
 const OBSTACLES = [
-  // Name large — acts as a physical barrier, invisible in display
-  { type:'text', text:'LÖFFLER', cx:0.50, cy:0.500, size:88 },
+  { type: 'text', text: 'LÖFFLER', cx: 0.50, cy: 0.500, size: 88 },
 ];
 
-// ─── Canvas & WebGL2 ──────────────────────────────────────────────────────
+// ─── Canvas / WebGL2 ──────────────────────────────────────────────────────
 const canvas = document.getElementById('c');
-const gl = canvas.getContext('webgl2', { antialias:false, alpha:false, powerPreference:'high-performance' });
+const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
 if (!gl) { die('WebGL2 not supported.'); throw 0; }
 if (!gl.getExtension('EXT_color_buffer_float')) { die('EXT_color_buffer_float missing.'); throw 0; }
-function die(m) { document.body.innerHTML = `<p style="color:#1a1e2a;padding:2rem;font-family:monospace">${m}</p>`; }
+function die(m) { document.body.innerHTML = `<p style="color:#e4e8f2;padding:2rem;font-family:monospace">${m}</p>`; }
 gl.disable(gl.DEPTH_TEST);
 gl.disable(gl.STENCIL_TEST);
 
@@ -118,452 +134,373 @@ setSize();
 const QUAD_VS = `#version 300 es
 layout(location=0) in vec2 aPos;
 out vec2 vUv;
-void main() { vUv=aPos*.5+.5; gl_Position=vec4(aPos,0,1); }`;
+void main() { vUv = aPos*0.5+0.5; gl_Position = vec4(aPos,0,1); }`;
 
-// ── Agent: sense trail, steer, move, wall-bounce ──────────────────────────
-const AGENT_FS = `#version 300 es
+// ── Barkley excitable-medium reaction-diffusion ───────────────────────────
+// State texture: RG32F — u = R (activator), v = G (inhibitor)
+// Equations (Barkley 1991):
+//   ∂u/∂t = (1/ε)·u·(1-u)·(u − (v+b)/a) + Du·∇²u
+//   ∂v/∂t = u − v
+// Produces spiral / target waves (BZ-reaction aesthetic).
+const REACT_FS = `#version 300 es
 precision highp float;
-uniform sampler2D uAgents, uTrail, uWall;
-uniform float uSA, uSD, uTS, uMS;
-uniform vec2  uTSz;
-uniform float uTime;
-uniform vec2  uMPos;
-uniform float uMRad, uMStr;
+uniform sampler2D uState;    // RG32F: u=R, v=G
+uniform sampler2D uWall;     // R8:   obstacle mask (1=wall)
+uniform float uEps, uA, uB, uDu, uDt;
+uniform vec2  uMPos;         // mouse pos in trail-space pixels
+uniform float uMRad;
 uniform int   uMAct;
-in vec2 vUv; out vec4 fragColor;
-
-float hash(vec2 p){ p=fract(p*vec2(127.34,311.71)); p+=dot(p,p+34.23); return fract(p.x*p.y); }
-
-// Trail sense — clamp at edges (no wrapping), walls read as zero food
-float tr(vec2 p){
-  vec2 uv=clamp(p/uTSz,0.0,1.0);
-  float w=texture(uWall,uv).r;
-  return texture(uTrail,uv).r*(1.-step(0.5,w));
-}
-
-void main(){
-  vec4  ag=texture(uAgents,vUv); vec2 pos=ag.xy; float a=ag.z;
-  float rnd=hash(pos.yx+uTime*1.3e-4);
-
-  float fC=tr(pos+vec2(cos(a),     sin(a))    *uSD);
-  float lC=tr(pos+vec2(cos(a+uSA), sin(a+uSA))*uSD);
-  float rC=tr(pos+vec2(cos(a-uSA), sin(a-uSA))*uSD);
-  if(fC>=lC&&fC>=rC){}
-  else if(lC>rC) a+=uTS;
-  else if(rC>lC) a-=uTS;
-  else           a+=(rnd-.5)*uTS*2.;
-
-  // Mouse vortex — pure angular disturbance, no trail deposit
-  if(uMAct==1){
-    vec2  d=pos-uMPos;
-    float infl=exp(-dot(d,d)/(uMRad*uMRad))*uMStr;
-    float tangent=atan(-d.x,d.y);
-    float diff=tangent-a;
-    diff=diff-6.28318*floor((diff+3.14159)/6.28318);
-    a+=infl*diff;
-  }
-
-  // Obstacle + edge bounce
-  vec2 step=vec2(cos(a),sin(a))*uMS;
-  vec2 nxt=pos+step;
-  // Bounce off walls
-  if(texture(uWall,clamp(nxt/uTSz,0.,1.)).r>0.5){
-    a+=3.14159+(rnd-.5)*1.4;
-    step=vec2(cos(a),sin(a))*uMS;
-    nxt=pos+step;
-  }
-  // Bounce off canvas edges — reflect the relevant axis
-  if(nxt.x<1.0||nxt.x>uTSz.x-1.0){ a=3.14159-a; step=vec2(cos(a),sin(a))*uMS; nxt=pos+step; }
-  if(nxt.y<1.0||nxt.y>uTSz.y-1.0){ a=-a;         step=vec2(cos(a),sin(a))*uMS; nxt=pos+step; }
-  // Hard clamp as safety net
-  nxt=clamp(nxt,vec2(1.),uTSz-1.);
-
-  fragColor=vec4(nxt,a,ag.w);
-}`;
-
-// ── Deposit agents → trail (GL_POINTS additive) ───────────────────────────
-const DEPOSIT_VS = `#version 300 es
-layout(location=0) in float aIdx;
-uniform sampler2D uAgents; uniform vec2 uTSz;
-void main(){
-  int i=int(aIdx);
-  vec4 ag=texelFetch(uAgents,ivec2(i%${ATW},i/${ATW}),0);
-  gl_Position=vec4((ag.xy/uTSz)*2.-1.,0,1); gl_PointSize=1.;
-}`;
-const DEPOSIT_FS = `#version 300 es
-precision mediump float;
-uniform float uAmt; out vec4 fragColor;
-void main(){ fragColor=vec4(uAmt,0,0,1); }`;
-
-// ── Point food source (GL_POINTS additive into trail) ─────────────────────
-const FOOD_VS = `#version 300 es
-layout(location=0) in vec2 aPos; uniform float uR;
-void main(){ gl_Position=vec4(aPos,0,1); gl_PointSize=uR; }`;
-const FOOD_FS = `#version 300 es
-precision mediump float;
-uniform float uStr; out vec4 fragColor;
-void main(){
-  float d=length(gl_PointCoord-.5)*2.; float a=clamp(1.-d,0.,1.);
-  fragColor=vec4(uStr*a*a*a,0,0,1);
-}`;
-
-// ── Agent spawner ─────────────────────────────────────────────────────────
-// VS picks random texels in the agent texture (varied by frame + seedOff).
-// FS overwrites those texels with agents born near a given trail-space point.
-const SPAWN_VS = `#version 300 es
-layout(location=0) in float aIdx;
-uniform float uFrame, uSeedOff;
-void main(){
-  float s=aIdx*1337.+uFrame*13.71+uSeedOff*97.13;
-  float tx=fract(sin(s*127.34+1.)*43758.5);
-  float ty=fract(sin(s*311.71+2.)*43758.5);
-  gl_Position=vec4(tx*2.-1.,ty*2.-1.,0,1); gl_PointSize=1.;
-}`;
-const SPAWN_FS = `#version 300 es
-precision highp float;
-uniform vec2  uBorn;   // birth centre in trail space
-uniform float uFrame, uScat;
-uniform vec2  uTSz;
+in vec2 vUv;
 out vec4 fragColor;
-void main(){
-  vec2  fc=gl_FragCoord.xy;
-  float h1=fract(sin(dot(fc,vec2(127.34,311.71))+uFrame*7.13)*43758.5);
-  float h2=fract(sin(dot(fc,vec2(269.5, 183.3)) +uFrame*3.07)*43758.5);
-  float h3=fract(sin(dot(fc,vec2(419.2, 371.9)) +uFrame*1.31)*43758.5);
-  float angle=(h1)*6.28318;
-  vec2  scatter=(vec2(h2,h3)-.5)*2.*uScat;
-  fragColor=vec4(mod(uBorn+scatter+uTSz,uTSz), angle, 0.);
-}`;
 
-// ── Diffuse + decay ───────────────────────────────────────────────────────
-const DIFFUSE_FS = `#version 300 es
-precision highp float;
-uniform sampler2D uTrail, uWall; uniform float uDecay,uDiffuse,uCap;
-in vec2 vUv; out vec4 fragColor;
-void main(){
-  vec2 t=1./vec2(textureSize(uTrail,0)); float s=0.;
-  for(int x=-1;x<=1;x++) for(int y=-1;y<=1;y++) s+=texture(uTrail,vUv+vec2(x,y)*t).r;
-  float v=mix(texture(uTrail,vUv).r,s/9.,uDiffuse)*uDecay;
-  // Walls absorb all trail — no accumulation inside obstacle shapes
-  v*=(1.-step(0.5,texture(uWall,vUv).r));
-  fragColor=vec4(min(v,uCap),0,0,1);
+void main() {
+  // Wall pixels: held at zero (absorbing boundary inside obstacles)
+  if (texture(uWall, vUv).r > 0.5) {
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    return;
+  }
+
+  // Mouse: inject fresh excitation at cursor position
+  if (uMAct == 1) {
+    vec2 fp = vUv * vec2(textureSize(uState, 0));
+    if (length(fp - uMPos) < uMRad) {
+      fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      return;
+    }
+  }
+
+  vec2  px = 1.0 / vec2(textureSize(uState, 0));
+  float u  = texture(uState, vUv).r;
+  float v  = texture(uState, vUv).g;
+
+  // Zero-flux Laplacian: if a neighbour is a wall, reflect (use current u)
+  // CLAMP_TO_EDGE already handles canvas-edge reflection automatically.
+  vec2 p1 = vec2(px.x, 0.0), p2 = vec2(0.0, px.y);
+  float uR = mix(texture(uState, vUv+p1).r, u, step(0.5, texture(uWall, vUv+p1).r));
+  float uL = mix(texture(uState, vUv-p1).r, u, step(0.5, texture(uWall, vUv-p1).r));
+  float uU = mix(texture(uState, vUv+p2).r, u, step(0.5, texture(uWall, vUv+p2).r));
+  float uD = mix(texture(uState, vUv-p2).r, u, step(0.5, texture(uWall, vUv-p2).r));
+  float lap_u = uR + uL + uU + uD - 4.0*u;
+
+  // Barkley reaction terms
+  float thresh = (v + uB) / uA;
+  float du = (1.0/uEps) * u*(1.0-u)*(u - thresh) + uDu*lap_u;
+  float dv = u - v;
+
+  fragColor = vec4(
+    clamp(u + uDt*du, 0.0, 1.0),
+    clamp(v + uDt*dv, 0.0, 1.0),
+    0.0, 1.0
+  );
 }`;
 
 // ── Display ───────────────────────────────────────────────────────────────
-// Manual bilinear upsample from the half-res trail texture eliminates the
-// 2×2 pixel block artifact from NEAREST upscaling — gives the soft blurred
-// look of the diffusion without hard pixel edges.
-// Node markers are computed analytically (no texture blend).
+// Manual bilinear upsampling avoids NEAREST-filter pixel-block artifacts.
+// Colormap: dark bg → gold/amber (excited u) | deep blue (refractory v).
+// Node markers rendered analytically as ring overlays.
 const DISPLAY_FS = `#version 300 es
 precision highp float;
-uniform sampler2D uTrail, uWall;
+uniform sampler2D uState;
 uniform int   uNC;
 uniform vec2  uNP[8];
-uniform float uAR, uTime;
-in vec2 vUv; out vec4 fragColor;
+uniform float uAR;
+in vec2 vUv;
+out vec4 fragColor;
 
-float trailSmooth(vec2 uv) {
-  vec2  sz = vec2(textureSize(uTrail,0));
-  vec2  px = uv*sz-0.5; vec2 f=fract(px);
-  vec2  b  = (floor(px)+0.5)/sz; vec2 s=1.0/sz;
-  float tl=texture(uTrail,b).r;
-  float tr=texture(uTrail,b+vec2(s.x,0)).r;
-  float bl=texture(uTrail,b+vec2(0,s.y)).r;
-  float br=texture(uTrail,b+s).r;
-  return mix(mix(tl,tr,f.x),mix(bl,br,f.x),f.y);
+vec2 bilinear(vec2 uv) {
+  vec2 sz = vec2(textureSize(uState, 0));
+  vec2 px = uv*sz - 0.5;
+  vec2 f  = fract(px);
+  vec2 b  = (floor(px)+0.5)/sz;
+  vec2 s  = 1.0/sz;
+  vec2 tl = texture(uState, b).rg;
+  vec2 tr = texture(uState, b+vec2(s.x, 0)).rg;
+  vec2 bl = texture(uState, b+vec2(0, s.y)).rg;
+  vec2 br = texture(uState, b+s).rg;
+  return mix(mix(tl,tr,f.x), mix(bl,br,f.x), f.y);
 }
 
-void main(){
-  float raw = trailSmooth(vUv);
-  float t   = clamp(1.0-exp(-raw*0.52),0.0,1.0);
-  // Subtle pulsing: slow spatial travelling wave mimics protoplasm shuttle flow
-  float wave = 0.93 + 0.07*sin(uTime*0.00165 + vUv.x*4.8 + vUv.y*2.6);
-  t = clamp(t*wave, 0.0, 1.0);
+void main() {
+  vec2  st = bilinear(vUv);
+  float u  = st.r;
+  float v  = st.g;
 
-  float clear=0.; float ring=0.;
-  for(int i=0;i<8;i++){
-    if(i>=uNC) break;
-    vec2  d=vUv-uNP[i]; d.x*=uAR;
-    float dist=length(d);
-    clear+=exp(-dist*dist*16000.0);
-    float r=dist-0.022;
-    ring+=exp(-r*r*55000.0)*0.7;
+  // Colour palette: BZ-reaction / Arte documentary blob
+  vec3 bg      = vec3(0.031, 0.035, 0.047);   // #080912 near-black
+  vec3 excited = vec3(0.918, 0.769, 0.282);   // #eac448 amber-gold
+  vec3 refrac  = vec3(0.051, 0.067, 0.149);   // #0d1126 deep blue
+
+  float eu = smoothstep(0.04, 0.62, u);                  // excited wave front
+  float rv = v * clamp(1.0 - u*2.2, 0.0, 1.0);          // refractory: v high, u low
+
+  vec3 col = mix(bg, excited, eu);
+  col = mix(col, refrac, clamp(rv * 0.72, 0.0, 0.88));
+
+  // Analytical node rings (project markers)
+  float clear = 0.0, ring = 0.0;
+  for (int i = 0; i < 8; i++) {
+    if (i >= uNC) break;
+    vec2  d    = vUv - uNP[i]; d.x *= uAR;
+    float dist = length(d);
+    clear += exp(-dist*dist * 16000.0);
+    float r = dist - 0.022;
+    ring  += exp(-r*r * 55000.0) * 0.7;
   }
-  t=t*(1.-clamp(clear*0.92,0.,0.95));
-  t=clamp(t+ring*0.45,0.,1.);
+  col  = col * (1.0 - clamp(clear * 0.88, 0.0, 0.92));
+  col += vec3(0.52, 0.70, 1.00) * ring * 0.28;
 
-  fragColor=vec4(mix(vec3(0.96,0.97,0.98),vec3(0.04,0.08,0.24),t),1.0);
+  fragColor = vec4(col, 1.0);
 }`;
 
 // ─── GL helpers ───────────────────────────────────────────────────────────
-function mkShader(type,src){
-  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
-  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+function mkShader(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
   return s;
 }
-function mkProg(vs,fs){
-  const p=gl.createProgram();
-  gl.attachShader(p,mkShader(gl.VERTEX_SHADER,vs));
-  gl.attachShader(p,mkShader(gl.FRAGMENT_SHADER,fs));
+function mkProg(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, mkShader(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, mkShader(gl.FRAGMENT_SHADER, fs));
   gl.linkProgram(p);
-  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
   return p;
 }
-function mkTex(w,h,ifmt,fmt,type,data){
-  const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
-  gl.texImage2D(gl.TEXTURE_2D,0,ifmt,w,h,0,fmt,type,data??null);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+function mkTex(w, h, ifmt, fmt, type, data) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, ifmt, w, h, 0, fmt, type, data ?? null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   return t;
 }
-function mkFBO(tex){
-  const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
-  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE) throw new Error('FBO');
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null); return f;
+function mkFBO(tex) {
+  const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('FBO incomplete');
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); return f;
 }
-const u1f=(p,n,v)=>gl.uniform1f(gl.getUniformLocation(p,n),v);
-const u1i=(p,n,v)=>gl.uniform1i(gl.getUniformLocation(p,n),v);
-const u2f=(p,n,x,y)=>gl.uniform2f(gl.getUniformLocation(p,n),x,y);
-function bindTex(unit,tex){ gl.activeTexture(gl.TEXTURE0+unit); gl.bindTexture(gl.TEXTURE_2D,tex); }
+const u1f = (p,n,v)   => gl.uniform1f(gl.getUniformLocation(p,n), v);
+const u1i = (p,n,v)   => gl.uniform1i(gl.getUniformLocation(p,n), v);
+const u2f = (p,n,x,y) => gl.uniform2f(gl.getUniformLocation(p,n), x, y);
+function bindTex(unit, tex) { gl.activeTexture(gl.TEXTURE0+unit); gl.bindTexture(gl.TEXTURE_2D, tex); }
 
-// ─── Programs ─────────────────────────────────────────────────────────────
-let pAgent,pDeposit,pFood,pSpawn,pDiffuse,pDisplay;
-function buildPrograms(){
-  pAgent  =mkProg(QUAD_VS,   AGENT_FS);
-  pDeposit=mkProg(DEPOSIT_VS,DEPOSIT_FS);
-  pFood   =mkProg(FOOD_VS,   FOOD_FS);
-  pSpawn  =mkProg(SPAWN_VS,  SPAWN_FS);
-  pDiffuse=mkProg(QUAD_VS,   DIFFUSE_FS);
-  pDisplay=mkProg(QUAD_VS,   DISPLAY_FS);
+// ─── Programs & geometry ──────────────────────────────────────────────────
+let pReact, pDisplay, quadVAO;
+
+function buildPrograms() {
+  pReact   = mkProg(QUAD_VS, REACT_FS);
+  pDisplay = mkProg(QUAD_VS, DISPLAY_FS);
 }
 
-// ─── Geometry ─────────────────────────────────────────────────────────────
-let quadVAO, agentVAO, nodeVAO, nodeBuf, mouseVAO, mouseBuf, spawnVAO;
-
-function buildGeometry(){
-  // Fullscreen quad
-  quadVAO=gl.createVertexArray();
-  const qb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,qb);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  gl.bindVertexArray(quadVAO); gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0); gl.bindVertexArray(null);
-
-  // Agent indices 0..N-1
-  agentVAO=gl.createVertexArray();
-  const ab=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,ab);
-  const idx=new Float32Array(NUM_AGENTS); for(let i=0;i<NUM_AGENTS;i++) idx[i]=i;
-  gl.bufferData(gl.ARRAY_BUFFER,idx,gl.STATIC_DRAW);
-  gl.bindVertexArray(agentVAO); gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0,1,gl.FLOAT,false,0,0); gl.bindVertexArray(null);
-
-  // Project node food (clip-space vec2 per node, static)
-  nodeBuf=gl.createBuffer(); nodeVAO=gl.createVertexArray();
-  gl.bindVertexArray(nodeVAO); gl.bindBuffer(gl.ARRAY_BUFFER,nodeBuf);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+function buildGeometry() {
+  quadVAO = gl.createVertexArray();
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  gl.bindVertexArray(quadVAO);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.bindVertexArray(null);
-  uploadNodePositions();
-
-  // Mouse food (single dynamic point)
-  mouseBuf=gl.createBuffer(); mouseVAO=gl.createVertexArray();
-  gl.bindVertexArray(mouseVAO); gl.bindBuffer(gl.ARRAY_BUFFER,mouseBuf);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null);
-
-  // Spawn indices (shared by mouse and node spawning)
-  spawnVAO=gl.createVertexArray();
-  const sb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,sb);
-  const si=new Float32Array(SPAWN_K); for(let i=0;i<SPAWN_K;i++) si[i]=i;
-  gl.bufferData(gl.ARRAY_BUFFER,si,gl.STATIC_DRAW);
-  gl.bindVertexArray(spawnVAO); gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0,1,gl.FLOAT,false,0,0); gl.bindVertexArray(null);
 }
 
-function uploadNodePositions(){
-  const d=new Float32Array(PROJECTS.flatMap(p=>[p.x*2-1, p.y*2-1]));
-  gl.bindBuffer(gl.ARRAY_BUFFER,nodeBuf);
-  gl.bufferData(gl.ARRAY_BUFFER,d,gl.STATIC_DRAW);
+// ─── Simulation textures (RG32F ping-pong) ────────────────────────────────
+let rdTex = [null, null], rdFBO = [null, null], wallTex = null;
+let rd = 0;
+
+function seedInitial() {
+  // RG32F: 2 floats per pixel (u, v)
+  const d = new Float32Array(TW * TH * 2);
+
+  // Low-amplitude ambient noise everywhere — breaks symmetry, nucleates
+  // spontaneous waves over the whole canvas (Barkley threshold ≈ (0+b)/a ≈ 0.013)
+  for (let i = 0; i < TW * TH; i++) {
+    d[i*2]   = 0.04 + Math.random() * 0.12;  // u: small perturbation
+    d[i*2+1] = 0.0;                           // v: quiescent
+  }
+
+  // Strong seeds at project node positions (fully excited disk)
+  function seedDisk(cx, cy, r, uVal, vVal) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx*dx + dy*dy > r*r) continue;
+        const xx = cx+dx, yy = cy+dy;
+        if (xx < 0 || xx >= TW || yy < 0 || yy >= TH) continue;
+        const idx = (yy*TW + xx) * 2;
+        d[idx]   = uVal;
+        d[idx+1] = vVal;
+      }
+    }
+  }
+
+  PROJECTS.forEach(p => seedDisk(
+    Math.round(p.x * TW), Math.round(p.y * TH),
+    SEED_R, 0.95, 0.0
+  ));
+
+  // A handful of additional random seeds for visual variety
+  for (let k = 0; k < 18; k++) {
+    seedDisk(
+      Math.floor(Math.random() * TW),
+      Math.floor(Math.random() * TH),
+      4, 0.9, 0.0
+    );
+  }
+
+  return d;
 }
 
-// ─── Simulation textures ──────────────────────────────────────────────────
-let agTex=[null,null],agFBO=[null,null],trTex=[null,null],trFBO=[null,null];
-let wallTex=null;
-
-function initTextures(){
-  for(let i=0;i<2;i++){
-    if(agTex[i]){ gl.deleteTexture(agTex[i]); gl.deleteFramebuffer(agFBO[i]); }
-    if(trTex[i]){ gl.deleteTexture(trTex[i]); gl.deleteFramebuffer(trFBO[i]); }
+function initTextures() {
+  for (let i = 0; i < 2; i++) {
+    if (rdTex[i]) { gl.deleteTexture(rdTex[i]); gl.deleteFramebuffer(rdFBO[i]); }
   }
-  // Agents start at their project nodes — small cluster per node
-  const d=new Float32Array(ATW*ATH*4);
-  for(let i=0;i<NUM_AGENTS;i++){
-    const proj=PROJECTS[i % PROJECTS.length];
-    const r=(Math.random()-.5)*TW*.04;  // tight initial scatter
-    d[i*4]  =proj.x*TW + r;
-    d[i*4+1]=proj.y*TH + r;
-    d[i*4+2]=Math.random()*Math.PI*2;
-    d[i*4+3]=0;
-  }
-  for(let i=0;i<2;i++){
-    agTex[i]=mkTex(ATW,ATH,gl.RGBA32F,gl.RGBA,gl.FLOAT,i===0?d:null);
-    agFBO[i]=mkFBO(agTex[i]);
-    trTex[i]=mkTex(TW,TH,gl.R32F,gl.RED,gl.FLOAT,null);
-    trFBO[i]=mkFBO(trTex[i]);
-    gl.bindFramebuffer(gl.FRAMEBUFFER,trFBO[i]);
-    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
-  }
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-}
-
-// ─── HTML label overlay ───────────────────────────────────────────────────
-function buildLabels(){
-  const c=document.getElementById('nodes');
-  c.innerHTML='';
-  PROJECTS.forEach(p=>{
-    const el=document.createElement('div');
-    el.className='nlabel';
-    el.style.left=(p.x*100)+'vw';
-    el.style.top=((1-p.y)*100)+'vh';
-    el.textContent=p.slug;
-    el.addEventListener('click',()=>console.log('open:',p.slug));
-    c.appendChild(el);
-  });
+  const seed = seedInitial();
+  rdTex[0] = mkTex(TW, TH, gl.RG32F, gl.RG, gl.FLOAT, seed);
+  rdFBO[0] = mkFBO(rdTex[0]);
+  rdTex[1] = mkTex(TW, TH, gl.RG32F, gl.RG, gl.FLOAT, null);
+  rdFBO[1] = mkFBO(rdTex[1]);
+  // Clear ping-pong buffer 1
+  gl.bindFramebuffer(gl.FRAMEBUFFER, rdFBO[1]);
+  gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  rd = 0;
 }
 
 // ─── Wall / obstacle texture ──────────────────────────────────────────────
-// Renders OBSTACLES into a CPU canvas, flips Y for GL, uploads as R8 texture.
-// Physarum senses walls as zero food and physically bounces off them.
-function buildWallTex(){
-  const oc=document.createElement('canvas');
-  oc.width=TW; oc.height=TH;
-  const ctx=oc.getContext('2d');
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,TW,TH);
-  ctx.fillStyle='#fff';
-  OBSTACLES.forEach(o=>{
-    if(o.type==='rect'){
+function buildWallTex() {
+  const oc = document.createElement('canvas');
+  oc.width = TW; oc.height = TH;
+  const ctx = oc.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, TW, TH);
+  ctx.fillStyle = '#fff';
+  OBSTACLES.forEach(o => {
+    if (o.type === 'rect') {
       ctx.fillRect(o.x*TW, o.y*TH, o.w*TW, o.h*TH);
-    } else if(o.type==='text'){
-      ctx.font=`900 ${o.size}px "JetBrains Mono","Arial Black",monospace`;
-      ctx.textAlign='center'; ctx.textBaseline='middle';
+    } else if (o.type === 'text') {
+      ctx.font = `900 ${o.size}px "JetBrains Mono","Arial Black",monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(o.text, o.cx*TW, o.cy*TH);
     }
   });
   // Flip Y: CSS y=0 top → GL y=0 bottom
-  const id=ctx.getImageData(0,0,TW,TH);
-  const data=new Uint8Array(TW*TH);
-  for(let y=0;y<TH;y++) for(let x=0;x<TW;x++){
-    data[y*TW+x]=id.data[((TH-1-y)*TW+x)*4]>64?255:0;
+  const id   = ctx.getImageData(0, 0, TW, TH);
+  const data = new Uint8Array(TW * TH);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+    data[y*TW+x] = id.data[((TH-1-y)*TW+x)*4] > 64 ? 255 : 0;
   }
-  if(wallTex) gl.deleteTexture(wallTex);
-  wallTex=mkTex(TW,TH,gl.R8,gl.RED,gl.UNSIGNED_BYTE,data);
+  if (wallTex) gl.deleteTexture(wallTex);
+  wallTex = mkTex(TW, TH, gl.R8, gl.RED, gl.UNSIGNED_BYTE, data);
 }
 
-// ─── Spawn helper — writes K agents born at (bx,by) trail coords ──────────
-// seedOff must differ per source so each picks different agent texels
-function spawnAt(bx, by, k, seedOff){
-  gl.bindFramebuffer(gl.FRAMEBUFFER,agFBO[ag]);
-  gl.viewport(0,0,ATW,ATH);
-  gl.useProgram(pSpawn);
-  u1f(pSpawn,'uFrame',  frameN);
-  u1f(pSpawn,'uSeedOff',seedOff);
-  u2f(pSpawn,'uBorn',   bx, by);
-  u1f(pSpawn,'uScat',   seedOff===0 ? P.mouseScatter : P.nodeScatter);
-  u2f(pSpawn,'uTSz',    TW, TH);
-  gl.bindVertexArray(spawnVAO);
-  gl.drawArrays(gl.POINTS,0,k);
+// ─── HTML label overlay ───────────────────────────────────────────────────
+function buildLabels() {
+  const c = document.getElementById('nodes'); c.innerHTML = '';
+  PROJECTS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'nlabel';
+    el.style.left = (p.x * 100) + 'vw';
+    el.style.top  = ((1 - p.y) * 100) + 'vh';
+    el.textContent = p.slug;
+    el.addEventListener('click', () => console.log('open:', p.slug));
+    c.appendChild(el);
+  });
 }
 
-// ─── Mouse state ──────────────────────────────────────────────────────────
-let mouseX=0.5, mouseY=0.5, mouseActive=false;
+// ─── Mouse / touch interaction ────────────────────────────────────────────
+// Moving the cursor injects u=1 excitation — creates a persistent pacemaker
+// while held, or a trail of wave-emitters when dragged slowly.
+let mouseX = 0.5, mouseY = 0.5, mouseActive = false;
+function onMove(cx, cy) {
+  mouseX = cx / canvas.width;
+  mouseY = 1 - cy / canvas.height;
+  mouseActive = true;
+}
+canvas.addEventListener('mousemove',  e => onMove(e.clientX, e.clientY));
+canvas.addEventListener('mouseleave', () => { mouseActive = false; });
+canvas.addEventListener('touchmove',  e => {
+  e.preventDefault();
+  onMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+canvas.addEventListener('touchend', () => { mouseActive = false; });
 
 // ─── Render loop ──────────────────────────────────────────────────────────
-let ag=0, tr=0, frameN=0, lastT=performance.now();
+let frameN = 0, lastT = performance.now();
 
-function frame(now){
+function frame(now) {
   requestAnimationFrame(frame);
-  const dt=now-lastT; lastT=now;
-  if(++frameN%60===0) document.getElementById('fps').textContent=(1000/dt|0);
+  const dt = now - lastT; lastT = now;
+  if (++frameN % 60 === 0) document.getElementById('fps').textContent = (1000/dt | 0);
 
-  // ── 1. Agent update ──────────────────────────────────────────────────
-  gl.bindFramebuffer(gl.FRAMEBUFFER,agFBO[1-ag]);
-  gl.viewport(0,0,ATW,ATH);
-  gl.useProgram(pAgent);
-  bindTex(0,agTex[ag]); u1i(pAgent,'uAgents',0);
-  bindTex(1,trTex[tr]); u1i(pAgent,'uTrail', 1);
-  bindTex(2,wallTex);   u1i(pAgent,'uWall',  2);
-  u1f(pAgent,'uSA',P.sensorAngle); u1f(pAgent,'uSD',P.sensorDist);
-  u1f(pAgent,'uTS',P.turnSpeed);   u1f(pAgent,'uMS',P.moveSpeed);
-  u2f(pAgent,'uTSz',TW,TH);        u1f(pAgent,'uTime',now);
-  u2f(pAgent,'uMPos', mouseX*TW, mouseY*TH);
-  u1f(pAgent,'uMRad', P.mouseSwirlRad);
-  u1f(pAgent,'uMStr', P.mouseSwirlStr);
-  u1i(pAgent,'uMAct', mouseActive ? 1 : 0);
-  gl.bindVertexArray(quadVAO); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-  ag=1-ag;
+  gl.bindVertexArray(quadVAO);
 
-  // ── 1b. Spawn: project nodes (seedOff=1..N) + mouse (seedOff=0) ──────
-  // Each source uses a different seedOff → distinct random texels overwritten
-  PROJECTS.forEach((p,i)=>spawnAt(p.x*TW, p.y*TH, P.nodeSpawnK, i+1));
-  if(mouseActive) spawnAt(mouseX*TW, mouseY*TH, P.mouseSpawnK, 0);
+  // ── RD substeps ──────────────────────────────────────────────────────
+  gl.useProgram(pReact);
+  u1f(pReact, 'uEps',  P.eps);
+  u1f(pReact, 'uA',    P.a);
+  u1f(pReact, 'uB',    P.b);
+  u1f(pReact, 'uDu',   P.Du);
+  u1f(pReact, 'uDt',   P.dt);
+  u2f(pReact, 'uMPos', mouseX*TW, mouseY*TH);
+  u1f(pReact, 'uMRad', P.mouseRad);
+  u1i(pReact, 'uMAct', mouseActive ? 1 : 0);
+  u1i(pReact, 'uState', 0);
+  u1i(pReact, 'uWall',  1);
+  bindTex(1, wallTex);
 
-  // ── 2. Diffuse + decay ───────────────────────────────────────────────
-  gl.bindFramebuffer(gl.FRAMEBUFFER,trFBO[1-tr]);
-  gl.viewport(0,0,TW,TH);
-  gl.useProgram(pDiffuse);
-  bindTex(0,trTex[tr]); u1i(pDiffuse,'uTrail',0);
-  bindTex(1,wallTex);   u1i(pDiffuse,'uWall', 1);
-  u1f(pDiffuse,'uDecay',P.decay); u1f(pDiffuse,'uDiffuse',P.diffuse); u1f(pDiffuse,'uCap',P.trailCap);
-  gl.bindVertexArray(quadVAO); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  for (let s = 0; s < SUBSTEPS; s++) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, rdFBO[1-rd]);
+    gl.viewport(0, 0, TW, TH);
+    bindTex(0, rdTex[rd]);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    rd = 1 - rd;
+  }
 
-  // ── 3. Additive deposits: agents + food ──────────────────────────────
-  gl.enable(gl.BLEND); gl.blendEquation(gl.FUNC_ADD); gl.blendFunc(gl.ONE,gl.ONE);
-
-  // Agent trail deposit
-  gl.useProgram(pDeposit);
-  bindTex(0,agTex[ag]); u1i(pDeposit,'uAgents',0);
-  u2f(pDeposit,'uTSz',TW,TH); u1f(pDeposit,'uAmt',P.deposit);
-  gl.bindVertexArray(agentVAO); gl.drawArrays(gl.POINTS,0,NUM_AGENTS);
-
-  // Project node food — pulsed strength mimics real Physarum's oscillating cytoplasm flow
-  const pulse = 0.78 + 0.22 * Math.sin(frameN * 0.028); // ~3.7 s cycle at 60 fps
-  gl.useProgram(pFood);
-  u1f(pFood,'uStr', P.nodeStrength * pulse); u1f(pFood,'uR',P.nodeRadius);
-  gl.bindVertexArray(nodeVAO); gl.drawArrays(gl.POINTS,0,PROJECTS.length);
-
-  // No mouse food injection — mouse effect is purely angular (vortex in agent shader)
-
-  gl.disable(gl.BLEND);
-  tr=1-tr;
-
-  // ── 4. Display ────────────────────────────────────────────────────────
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-  gl.viewport(0,0,canvas.width,canvas.height);
+  // ── Display ───────────────────────────────────────────────────────────
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, canvas.width, canvas.height);
   gl.useProgram(pDisplay);
-  bindTex(0,trTex[tr]); u1i(pDisplay,'uTrail',0);
-  bindTex(1,wallTex);   u1i(pDisplay,'uWall', 1);
-  // Node marker uniforms — analytical, computed in shader, never blended
-  u1i(pDisplay,'uNC', PROJECTS.length);
-  u1f(pDisplay,'uAR', canvas.width/canvas.height);
-  gl.uniform2fv(gl.getUniformLocation(pDisplay,'uNP'),
-    new Float32Array(PROJECTS.flatMap(p=>[p.x,p.y])));
-  u1f(pDisplay,'uTime', now);
-  gl.bindVertexArray(quadVAO); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  bindTex(0, rdTex[rd]); u1i(pDisplay, 'uState', 0);
+  u1i(pDisplay, 'uNC', PROJECTS.length);
+  u1f(pDisplay, 'uAR', canvas.width / canvas.height);
+  gl.uniform2fv(gl.getUniformLocation(pDisplay, 'uNP'),
+    new Float32Array(PROJECTS.flatMap(p => [p.x, p.y])));
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
-// ─── Input ────────────────────────────────────────────────────────────────
-function onMove(cx,cy){
-  mouseX=cx/canvas.width;
-  mouseY=1-cy/canvas.height;
-  mouseActive=true;
-}
-canvas.addEventListener('mousemove', e=>onMove(e.clientX,e.clientY));
-canvas.addEventListener('mouseleave',()=>{ mouseActive=false; });
-canvas.addEventListener('touchmove', e=>{ e.preventDefault(); onMove(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
-canvas.addEventListener('touchend',  ()=>{ mouseActive=false; });
+// ─── Parameter UI ─────────────────────────────────────────────────────────
+const PRESETS = {
+  spirals:   { eps: 0.025, a: 0.750, b: 0.010 }, // dense spiral field
+  target:    { eps: 0.050, a: 0.840, b: 0.065 }, // wider, slower rings
+  turbulent: { eps: 0.018, a: 0.600, b: 0.040 }, // fast chaotic fronts
+};
+const PRESET_BTN = { spirals: 'bSpiral', target: 'bTarget', turbulent: 'bTurb' };
 
-window.addEventListener('resize',()=>{ setSize(); buildWallTex(); initTextures(); buildLabels(); });
+function applyPreset(name) {
+  const pr = PRESETS[name];
+  P.eps = pr.eps; P.a = pr.a; P.b = pr.b;
+  document.getElementById('sEps').value = P.eps;
+  document.getElementById('sA').value   = P.a;
+  document.getElementById('sB').value   = P.b;
+  document.getElementById('vEps').textContent = P.eps.toFixed(3);
+  document.getElementById('vA').textContent   = P.a.toFixed(3);
+  document.getElementById('vB').textContent   = P.b.toFixed(3);
+  document.querySelectorAll('.presets button').forEach(b => b.classList.remove('active'));
+  document.getElementById(PRESET_BTN[name])?.classList.add('active');
+}
+
+// Slider → param live binding
+[['sEps','eps','vEps'], ['sA','a','vA'], ['sB','b','vB']].forEach(([sid, key, vid]) => {
+  document.getElementById(sid).addEventListener('input', function() {
+    P[key] = parseFloat(this.value);
+    document.getElementById(vid).textContent = P[key].toFixed(3);
+    document.querySelectorAll('.presets button').forEach(b => b.classList.remove('active'));
+  });
+});
+
+document.getElementById('bSpiral').addEventListener('click', () => applyPreset('spirals'));
+document.getElementById('bTarget').addEventListener('click',  () => applyPreset('target'));
+document.getElementById('bTurb').addEventListener('click',    () => applyPreset('turbulent'));
+document.getElementById('bReset').addEventListener('click',   () => initTextures());
 
 // ─── Boot ─────────────────────────────────────────────────────────────────
 buildPrograms();
@@ -572,6 +509,8 @@ buildWallTex();
 initTextures();
 buildLabels();
 requestAnimationFrame(frame);
+
+window.addEventListener('resize', () => { setSize(); buildWallTex(); initTextures(); buildLabels(); });
 </script>
 </body>
 </html>
