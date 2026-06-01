@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BZ Reaction-Diffusion — Portfolio Prototype</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: #08090c; overflow: hidden; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+#nodes { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+
+@keyframes labelGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(182,148,44,0.30), 0 0 18px rgba(182,148,44,0.10); border-color: rgba(182,148,44,0.45); }
+  50%       { box-shadow: 0 0 12px rgba(182,148,44,0.60), 0 0 32px rgba(182,148,44,0.22); border-color: rgba(182,148,44,0.80); }
+}
+
+.nlabel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 13px;
+  border: 1px solid rgba(182,148,44,0.45);
+  border-radius: 3px;
+  background: rgba(8,9,12,0.52);
+  animation: labelGlow 3.2s ease-in-out infinite;
+  pointer-events: auto; cursor: pointer;
+  transition: background 0.15s;
+}
+.nlabel:hover { background: rgba(8,9,12,0.70); }
+.nlabel .nm {
+  font: 500 10px/1 "JetBrains Mono", monospace;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: #d4c89a; white-space: nowrap;
+}
+.nlabel .meta {
+  font: 400 8px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.10em; color: #6a6040; white-space: nowrap;
+}
+.nlabel:hover .nm { color: #e8ddb0; }
+
+#hud {
+  position: fixed; bottom: 18px; left: 20px; z-index: 10;
+  color: #2a2f3a; font: 10px/2 "JetBrains Mono", monospace;
+  pointer-events: none; user-select: none;
+}
+#hud b { color: #20242d; font-weight: 400; }
+
+#params {
+  position: fixed; bottom: 18px; right: 20px; z-index: 10;
+  color: #3a404d; font: 10px/1.9 "JetBrains Mono", monospace;
+  display: flex; flex-direction: column; gap: 5px; align-items: flex-end;
+}
+.presets { display: flex; gap: 5px; }
+#params button {
+  background: none; border: 1px solid #1a1e28; color: #3a404d;
+  font: 9px "JetBrains Mono", monospace; padding: 2px 8px; cursor: pointer;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: color 0.1s, border-color 0.1s;
+}
+#params button:hover  { color: #7a8090; border-color: #2e333e; }
+#params button.active { color: #e8c44a; border-color: #e8c44a; }
+#params label { display: flex; align-items: center; gap: 8px; }
+#params input[type=range] {
+  width: 80px; height: 2px; -webkit-appearance: none;
+  background: #1a1e28; outline: none; border-radius: 2px;
+  accent-color: #e8c44a;
+}
+#params input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 8px; height: 8px;
+  border-radius: 50%; background: #e8c44a; cursor: pointer;
+}
+.pval { color: #50576a; min-width: 40px; text-align: right; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="nodes"></div>
+<div id="hud">barkley-rd · <b id="fps">—</b> fps</div>
+<div id="params">
+  <div class="presets">
+    <button id="bMold"   class="active">mold</button>
+    <button id="bMycel">mycelium</button>
+    <button id="bPulse">pulse</button>
+    <button id="bReset">reset</button>
+  </div>
+  <label>ε  <input type="range" id="sEps"   min="0.020" max="0.150" step="0.002" value="0.038"><span class="pval" id="vEps">0.038</span></label>
+  <label>a  <input type="range" id="sA"     min="0.40"  max="1.20"  step="0.010" value="0.72"> <span class="pval" id="vA">0.720</span></label>
+  <label>b  <input type="range" id="sB"     min="0.000" max="0.200" step="0.002" value="0.015"><span class="pval" id="vB">0.015</span></label>
+  <label>Du <input type="range" id="sDu"    min="0.02"  max="0.50"  step="0.01"  value="0.32"> <span class="pval" id="vDu">0.320</span></label>
+  <label>chaos <input type="range" id="sChaos" min="0.0" max="1.0" step="0.01" value="0.72"><span class="pval" id="vChaos">0.72</span></label>
+  <label>scale <input type="range" id="sNoise" min="0.3" max="4.0" step="0.1"  value="1.0"> <span class="pval" id="vNoise">1.0</span></label>
+</div>
+
+<script>
+'use strict';
+
+// ─── Config ───────────────────────────────────────────────────────────────
+const SIM_SCALE   = 1.0;    // full-res → finer structure
+const SUBSTEPS    = 2;       // steps per animation frame
+const SEED_R      = 8;       // initial seed disk radius at project nodes
+const PACE_PERIOD = 1800;    // ms between pacemaker cycles — short = continuously alive
+const PACE_WIN    = 160;     // ms window of each pulse
+const PACE_R      = 10;      // pacemaker radius in trail-space pixels
+const MOUSE_LIFE  = 14;      // frames the mouse disturbance lasts after cursor moves
+
+const P = {
+  eps: 0.038, a: 0.72, b: 0.015,  // slow thick fronts, low threshold = easy propagation
+  Du : 0.32,  dt: 0.10,
+  chaos: 0.55,   // anisotropy + ε variation strength (0=uniform, 1=full noise)
+  noise: 1.6,    // FBM spatial scale — lower = larger blobs
+};
+
+// Per-node noise offset (randomised on reset for variety)
+let noiseOffsets = new Float32Array(8*2);
+
+// Project nodes — GL convention (y=0 bottom)
+// Positions spread around the LÖFFLER obstacle (centre 0.50,0.50 CSS ≈ 0.50,0.50 GL)
+const PROJECTS = [
+  { slug: 'e30',     nm: 'E30 Pressure Sim',    idx: '001', year: "'25", x: 0.50, y: 0.76 },
+  { slug: 'glasses', nm: 'Glass Lookdev',        idx: '002', year: "'25", x: 0.20, y: 0.58 },
+  { slug: 'reel',    nm: 'Simulation Reel',      idx: 'REEL',year: "'24–26", x: 0.80, y: 0.58 },
+  { slug: 'vfx',    nm: 'The Secret Anthem',    idx: '003', year: "'24", x: 0.28, y: 0.26 },
+  { slug: 'web',     nm: 'Web & Interactive',    idx: '004', year: "'24–25", x: 0.72, y: 0.26 },
+];
+
+// Obstacles — CSS convention (y=0 top); buildWallTex() handles Y-flip
+const OBSTACLES = [
+  { type: 'text', text: 'connilefleur', cx: 0.50, cy: 0.500, size: 78 },
+];
+
+// ─── Canvas / WebGL2 ──────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+if (!gl) { die('WebGL2 not supported.'); throw 0; }
+if (!gl.getExtension('EXT_color_buffer_float')) { die('EXT_color_buffer_float missing.'); throw 0; }
+function die(m) { document.body.innerHTML = `<p style="color:#e4e8f2;padding:2rem;font-family:monospace">${m}</p>`; }
+gl.disable(gl.DEPTH_TEST);
+gl.disable(gl.STENCIL_TEST);
+
+let TW, TH;
+function setSize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  TW = Math.max(1, Math.floor(canvas.width  * SIM_SCALE));
+  TH = Math.max(1, Math.floor(canvas.height * SIM_SCALE));
+}
+setSize();
+
+// ─── GLSL ─────────────────────────────────────────────────────────────────
+
+const QUAD_VS = `#version 300 es
+layout(location=0) in vec2 aPos;
+out vec2 vUv;
+void main() { vUv = aPos*0.5+0.5; gl_Position = vec4(aPos,0,1); }`;
+
+// ── Barkley RD — organic variant ────────────────────────────────────────────
+// • FBM noise drives per-pixel ε and a variation (large-scale geographic patches)
+// • Anisotropic diffusion: independent FBM for Du_x vs Du_y → branching not circles
+// • Staggered pacemakers: each node fires at a different phase offset
+// • Small Dv diffusion smooths the inhibitor → softer recovery, more diffuse edges
+// • uChaos (0–1) blends flat ↔ full noise; uNoiseScale controls blob size
+const REACT_FS = `#version 300 es
+precision highp float;
+uniform sampler2D uState;
+uniform sampler2D uWall;
+uniform float uEps, uA, uB, uDu, uDt;
+uniform float uChaos;        // 0=uniform, 1=full organic noise
+uniform float uNoiseScale;   // spatial FBM scale — lower = larger blobs
+uniform float uTime;
+uniform vec2  uNodes[8];
+uniform vec2  uNodeRect[8];  // label half-extents in sim pixels: (hw, hh)
+uniform int   uNC;
+uniform float uPaceR;
+uniform int   uHoverIdx;     // -1 = none; 0–N = hovered node fires faster
+uniform vec2  uNoiseOff[8];  // per-node random offsets (randomised on reset)
+in vec2 vUv;
+out vec4 fragColor;
+
+// ── Value noise + FBM ──────────────────────────────────────────────────────
+float hash2(vec2 p) {
+  p = fract(p * vec2(127.34, 311.71));
+  p += dot(p, p + 34.23);
+  return fract(p.x * p.y);
+}
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f*f*(3.0 - 2.0*f);
+  return mix(
+    mix(hash2(i),           hash2(i+vec2(1,0)), u.x),
+    mix(hash2(i+vec2(0,1)), hash2(i+vec2(1,1)), u.x), u.y);
+}
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i < 4; i++) { v += a * vnoise(p); p = p * 2.13 + vec2(1.7, 9.2); a *= 0.5; }
+  return v;
+}
+
+void main() {
+  if (texture(uWall, vUv).r > 0.5) { fragColor = vec4(0.0, 0.0, 0.0, 1.0); return; }
+
+  vec2 sz     = vec2(textureSize(uState, 0));
+  vec2 fragPx = vUv * sz;
+
+  // ── Staggered pacemakers — each node fires at its own phase offset ───────
+  float pperiod = float(${PACE_PERIOD});
+  float pwin    = float(${PACE_WIN});
+  for (int i = 0; i < 8; i++) {
+    if (i >= uNC) break;
+    float phaseOffset = float(i) * pperiod / float(${PROJECTS.length});
+    float phase = mod(uTime + phaseOffset, pperiod);
+    if (phase < pwin) {
+      vec2  center = uNodes[i] * sz;
+      vec2  ext    = uNodeRect[i];
+      vec2  dp     = abs(fragPx - center);
+      float T      = 3.0;
+      if ((abs(dp.x - ext.x) < T && dp.y <= ext.y + T) ||
+          (abs(dp.y - ext.y) < T && dp.x <= ext.x + T)) {
+        fragColor = vec4(1.0, 0.0, 0.0, 1.0); return;
+      }
+    }
+  }
+
+  vec2  px = 1.0 / sz;
+  float u  = texture(uState, vUv).r;
+  float v  = texture(uState, vUv).g;
+
+  // ── Anisotropic diffusion via independent FBMs for x and y ───────────────
+  // Scale controls blob size; chaos blends flat ↔ noisy
+  vec2 nUV = vUv * uNoiseScale;
+  float nx = fbm(nUV);
+  float ny = fbm(nUV + vec2(5.37, 11.83));
+  // Du range: at chaos=0 → uniform uDu; at chaos=1 → 0.15×–1.85× per axis
+  float duX = uDu * mix(1.0, 0.15 + 1.70 * nx, uChaos);
+  float duY = uDu * mix(1.0, 0.15 + 1.70 * ny, uChaos);
+
+  // Zero-flux Laplacian — wall neighbours reflected, axes independent
+  vec2 p1 = vec2(px.x, 0.0), p2 = vec2(0.0, px.y);
+  float uR = mix(texture(uState, vUv+p1).r, u, step(0.5, texture(uWall, vUv+p1).r));
+  float uL = mix(texture(uState, vUv-p1).r, u, step(0.5, texture(uWall, vUv-p1).r));
+  float uU = mix(texture(uState, vUv+p2).r, u, step(0.5, texture(uWall, vUv+p2).r));
+  float uD = mix(texture(uState, vUv-p2).r, u, step(0.5, texture(uWall, vUv-p2).r));
+  float lap_u = duX*(uR + uL - 2.0*u) + duY*(uU + uD - 2.0*u);
+
+  // Tiny Dv: just enough to keep inhibitor smooth, short recovery = cells re-excite sooner
+  float vR = mix(texture(uState, vUv+p1).g, v, step(0.5, texture(uWall, vUv+p1).r));
+  float vL = mix(texture(uState, vUv-p1).g, v, step(0.5, texture(uWall, vUv-p1).r));
+  float vU = mix(texture(uState, vUv+p2).g, v, step(0.5, texture(uWall, vUv+p2).r));
+  float vD = mix(texture(uState, vUv-p2).g, v, step(0.5, texture(uWall, vUv-p2).r));
+  float lap_v = uDu * 0.08 * (vR + vL + vU + vD - 4.0*v);
+
+  // ── Spatial ε and a variation via FBM (large-scale geographic patches) ───
+  float nEps   = fbm(vUv * uNoiseScale * 0.85 + vec2(3.1, 7.4));
+  float epsLocal = uEps * mix(1.0, 0.50 + 1.00 * nEps, uChaos);
+
+  float nA     = fbm(vUv * uNoiseScale * 1.1 + vec2(21.0, 4.5));
+  float aLocal = uA * mix(1.0, 0.75 + 0.50 * nA, uChaos);  // ±25% excitability
+
+  // ── Barkley reaction ──────────────────────────────────────────────────────
+  float thresh = (v + uB) / aLocal;
+  float du = (1.0/epsLocal) * u*(1.0-u)*(u - thresh) + lap_u;
+  float dv = u - v + lap_v;
+
+  // Local dt boost near hovered node — only that region accelerates
+  float localDt = uDt;
+  if (uHoverIdx >= 0) {
+    float hd = length(fragPx - uNodes[uHoverIdx] * sz);
+    localDt = uDt * mix(3.0, 1.0, smoothstep(40.0, 280.0, hd));
+  }
+
+  fragColor = vec4(
+    clamp(u + localDt*du, 0.0, 1.0),
+    clamp(v + localDt*dv, 0.0, 1.0),
+    0.0, 1.0
+  );
+}`;
+
+// ── Display — organic mold palette ───────────────────────────────────────
+// No BZ lab colours. Muted warm bg, dim ochre veins, dark olive refractory shadow.
+const DISPLAY_FS = `#version 300 es
+precision highp float;
+uniform sampler2D uState;
+uniform sampler2D uWall;
+uniform float uBlurPx;
+in vec2 vUv;
+out vec4 fragColor;
+
+vec2 bilinear(vec2 uv) {
+  vec2 sz = vec2(textureSize(uState, 0));
+  vec2 px = uv*sz - 0.5; vec2 f = fract(px);
+  vec2 b  = (floor(px)+0.5)/sz; vec2 s = 1.0/sz;
+  vec2 tl = texture(uState, b).rg;
+  vec2 tr = texture(uState, b+vec2(s.x,0)).rg;
+  vec2 bl = texture(uState, b+vec2(0,s.y)).rg;
+  vec2 br = texture(uState, b+s).rg;
+  return mix(mix(tl,tr,f.x), mix(bl,br,f.x), f.y);
+}
+
+// 3×3 Gaussian — blurs before colorization for soft organic edges
+vec2 gaussianBlur(vec2 uv) {
+  vec2 step = uBlurPx / vec2(textureSize(uState, 0));
+  vec2 acc = vec2(0.0);
+  acc += bilinear(uv + vec2(-step.x, -step.y)) * 0.0625;
+  acc += bilinear(uv + vec2(    0.0, -step.y)) * 0.1250;
+  acc += bilinear(uv + vec2( step.x, -step.y)) * 0.0625;
+  acc += bilinear(uv + vec2(-step.x,     0.0)) * 0.1250;
+  acc += bilinear(uv                         ) * 0.2500;
+  acc += bilinear(uv + vec2( step.x,     0.0)) * 0.1250;
+  acc += bilinear(uv + vec2(-step.x,  step.y)) * 0.0625;
+  acc += bilinear(uv + vec2(    0.0,  step.y)) * 0.1250;
+  acc += bilinear(uv + vec2( step.x,  step.y)) * 0.0625;
+  return acc;
+}
+
+void main() {
+  vec2  st = gaussianBlur(vUv);
+  float u  = st.r, v = st.g;
+
+  // ── Organic mold palette ──────────────────────────────────────────────────
+  vec3 bg     = vec3(0.040, 0.033, 0.021);  // dark warm black (≈ #0A0806)
+  vec3 vein   = vec3(0.620, 0.500, 0.210);  // muted ochre — NOT blazing gold
+  vec3 refrac = vec3(0.058, 0.080, 0.050);  // dark olive-green shadow
+
+  // Soft activation: cap at 0.76 so it never fully blooms → always slightly organic
+  float eu = smoothstep(0.10, 0.58, u) * 0.76;
+  // Refractory shadow: subtle — don't make resting cells look dead
+  float rv = smoothstep(0.20, 0.80, v) * clamp(1.0 - u * 3.5, 0.0, 1.0) * 0.28;
+
+  vec3 col = mix(bg, vein, eu);
+  col = mix(col, refrac, rv);
+
+  // Vignette — darkens edges, draws eye to centre mass
+  vec2 uv2 = vUv - 0.5;
+  col *= clamp(1.0 - dot(uv2, uv2) * 1.05, 0.0, 1.0);
+
+  // Hard-clip wall after blur — keeps text edges sharp while sim stays soft
+  if (texture(uWall, vUv).r > 0.5) col = bg;
+
+  fragColor = vec4(col, 1.0);
+}`;
+
+// ─── GL helpers ───────────────────────────────────────────────────────────
+function mkShader(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function mkProg(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, mkShader(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, mkShader(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+function mkTex(w, h, ifmt, fmt, type, data) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, ifmt, w, h, 0, fmt, type, data ?? null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+function mkFBO(tex) {
+  const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('FBO');
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); return f;
+}
+const u1f = (p,n,v)   => gl.uniform1f(gl.getUniformLocation(p,n), v);
+const u1i = (p,n,v)   => gl.uniform1i(gl.getUniformLocation(p,n), v);
+const u2f = (p,n,x,y) => gl.uniform2f(gl.getUniformLocation(p,n), x, y);
+function bindTex(unit, tex) { gl.activeTexture(gl.TEXTURE0+unit); gl.bindTexture(gl.TEXTURE_2D, tex); }
+
+// ─── Programs & geometry ──────────────────────────────────────────────────
+let pReact, pDisplay, quadVAO;
+
+function buildPrograms() {
+  pReact   = mkProg(QUAD_VS, REACT_FS);
+  pDisplay = mkProg(QUAD_VS, DISPLAY_FS);
+}
+
+function buildGeometry() {
+  quadVAO = gl.createVertexArray();
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  gl.bindVertexArray(quadVAO);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
+}
+
+// ─── Simulation textures ──────────────────────────────────────────────────
+let rdTex = [null, null], rdFBO = [null, null], wallTex = null;
+let rd = 0;
+
+function seedInitial() {
+  const d = new Float32Array(TW * TH * 2);
+
+  for (let i = 0; i < TW * TH; i++) {
+    d[i*2]   = Math.random() * 0.008;
+    d[i*2+1] = 0;
+  }
+
+  // Seed along each label's rectangle outline — waves grow from the border outward
+  const T = 3; // outline thickness in pixels
+  PROJECTS.forEach((p, i) => {
+    const cx = Math.round(p.x * TW);
+    const cy = Math.round(p.y * TH);
+    const hw = Math.round(nodeRects[i * 2]);
+    const hh = Math.round(nodeRects[i * 2 + 1]);
+    if (hw === 0 || hh === 0) return; // not measured yet
+    for (let py = cy - hh - T; py <= cy + hh + T; py++) {
+      for (let px = cx - hw - T; px <= cx + hw + T; px++) {
+        if (px < 0 || px >= TW || py < 0 || py >= TH) continue;
+        const dx = Math.abs(px - cx), dy = Math.abs(py - cy);
+        const onEdge = (Math.abs(dx - hw) < T && dy <= hh + T) ||
+                       (Math.abs(dy - hh) < T && dx <= hw + T);
+        if (onEdge) { d[(py * TW + px) * 2] = 1.0; d[(py * TW + px) * 2 + 1] = 0.0; }
+      }
+    }
+  });
+
+  return d;
+}
+
+function initTextures() {
+  for (let i = 0; i < 2; i++) {
+    if (rdTex[i]) { gl.deleteTexture(rdTex[i]); gl.deleteFramebuffer(rdFBO[i]); }
+  }
+  const seed = seedInitial();
+  rdTex[0] = mkTex(TW, TH, gl.RG32F, gl.RG, gl.FLOAT, seed);
+  rdFBO[0] = mkFBO(rdTex[0]);
+  rdTex[1] = mkTex(TW, TH, gl.RG32F, gl.RG, gl.FLOAT, null);
+  rdFBO[1] = mkFBO(rdTex[1]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, rdFBO[1]);
+  gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  rd = 0;
+}
+
+// ─── Wall texture ─────────────────────────────────────────────────────────
+function buildWallTex() {
+  const oc = document.createElement('canvas'); oc.width = TW; oc.height = TH;
+  const ctx = oc.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, TW, TH);
+  ctx.fillStyle = '#fff';
+
+  // Static text obstacles
+  OBSTACLES.forEach(o => {
+    if (o.type === 'rect') { ctx.fillRect(o.x*TW, o.y*TH, o.w*TW, o.h*TH); }
+    else if (o.type === 'text') {
+      ctx.font = `900 ${o.size}px "JetBrains Mono","Arial Black",monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(o.text, o.cx*TW, o.cy*TH);
+    }
+  });
+
+  // Label rectangles — simulation cannot enter button areas
+  // Canvas2D has y=0 at top; labels are at CSS coords (p.x*TW, (1-p.y)*TH)
+  PROJECTS.forEach((p, i) => {
+    const hw = nodeRects[i * 2];
+    const hh = nodeRects[i * 2 + 1];
+    if (hw === 0 || hh === 0) return;
+    const cx = p.x * TW;
+    const cy = (1 - p.y) * TH;
+    ctx.fillRect(cx - hw, cy - hh, hw * 2, hh * 2);
+  });
+
+  const id = ctx.getImageData(0, 0, TW, TH);
+  const data = new Uint8Array(TW * TH);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++)
+    data[y*TW+x] = id.data[((TH-1-y)*TW+x)*4] > 64 ? 255 : 0;
+  if (wallTex) gl.deleteTexture(wallTex);
+  wallTex = mkTex(TW, TH, gl.R8, gl.RED, gl.UNSIGNED_BYTE, data);
+}
+
+// ─── Labels ───────────────────────────────────────────────────────────────
+function buildLabels() {
+  const c = document.getElementById('nodes'); c.innerHTML = '';
+  PROJECTS.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'nlabel';
+    el.style.left = (p.x * 100) + 'vw';
+    el.style.top  = ((1 - p.y) * 100) + 'vh';
+
+    el.style.animationDelay = (i * 0.64) + 's';
+
+    const nm = document.createElement('div');
+    nm.className = 'nm';
+    nm.textContent = p.nm;
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = p.idx + ' · ' + p.year;
+
+    el.appendChild(nm);
+    el.appendChild(meta);
+    el.addEventListener('mouseenter', () => { hoverIdx = i; });
+    el.addEventListener('mouseleave', () => { hoverIdx = -1; });
+    el.addEventListener('click', () => console.log('open:', p.slug));
+    c.appendChild(el);
+  });
+}
+
+// ─── a — slow drift noise (always on) ────────────────────────────────────
+// Incommensurate sines → smooth aperiodic wander through the interesting range
+const A_LO = 0.62, A_HI = 1.14;
+// Incommensurate periods: ~1700ms, ~2800ms, ~4400ms, ~6800ms → slower irregular pulses
+const DRIFT_FREQS = [0.000582, 0.000358, 0.000228, 0.000147];
+const DRIFT_AMPS  = [0.50,     0.28,     0.14,     0.08];
+
+function setParam(sliderId, valId, key, val, dec) {
+  P[key] = val;
+  document.getElementById(sliderId).value = val;
+  document.getElementById(valId).textContent = val.toFixed(dec);
+}
+
+function driftA(now) {
+  const norm = DRIFT_AMPS.reduce((s, a) => s + a, 0);
+  let v = 0;
+  for (let i = 0; i < DRIFT_FREQS.length; i++)
+    v += DRIFT_AMPS[i] * Math.sin(2 * Math.PI * DRIFT_FREQS[i] * now);
+  const biased = Math.pow(v / norm * 0.5 + 0.5, 0.32);
+  setParam('sA', 'vA', 'a', A_LO + biased * (A_HI - A_LO), 3);
+}
+
+// ─── chaos — slow random drift ────────────────────────────────────────────
+const C_LO = 0.20, C_HI = 0.95;
+// Slow periods: ~5600ms, ~9300ms, ~3600ms, ~15000ms — chaos lingers, doesn't flicker
+const CHAOS_FREQS = [0.000178, 0.000108, 0.000274, 0.0000668];
+const CHAOS_AMPS  = [0.50,     0.28,     0.14,     0.08];
+
+function driftChaos(now) {
+  const norm = CHAOS_AMPS.reduce((s, a) => s + a, 0);
+  let v = 0;
+  for (let i = 0; i < CHAOS_FREQS.length; i++)
+    v += CHAOS_AMPS[i] * Math.sin(2 * Math.PI * CHAOS_FREQS[i] * now);
+  setParam('sChaos', 'vChaos', 'chaos', C_LO + Math.pow(v / norm * 0.5 + 0.5, 0.6) * (C_HI - C_LO), 2);
+}
+
+// ─── Du — slow noise, mid-range only ─────────────────────────────────────
+const DU_LO = 0.19, DU_HI = 0.40;
+const DU_FREQS = [0.000243, 0.000157, 0.000391, 0.0000923];
+const DU_AMPS  = [0.50,     0.28,     0.14,      0.08];
+
+function driftDu(now) {
+  const norm = DU_AMPS.reduce((s, a) => s + a, 0);
+  let v = 0;
+  for (let i = 0; i < DU_FREQS.length; i++)
+    v += DU_AMPS[i] * Math.sin(2 * Math.PI * DU_FREQS[i] * now);
+  setParam('sDu', 'vDu', 'Du', DU_LO + (v / norm * 0.5 + 0.5) * (DU_HI - DU_LO), 3);
+}
+
+// ─── b — slow noise, biased high (chaotic zone) ───────────────────────────
+const B_LO = 0.042, B_HI = 0.085;
+const B_FREQS = [0.000517, 0.000821, 0.001303, 0.000334];
+const B_AMPS  = [0.50,     0.28,     0.14,     0.08];
+
+function driftB(now) {
+  const norm = B_AMPS.reduce((s, a) => s + a, 0);
+  let v = 0;
+  for (let i = 0; i < B_FREQS.length; i++)
+    v += B_AMPS[i] * Math.sin(2 * Math.PI * B_FREQS[i] * now);
+  setParam('sB', 'vB', 'b', B_LO + (v / norm * 0.5 + 0.5) * (B_HI - B_LO), 3);
+}
+
+// ─── Render loop ──────────────────────────────────────────────────────────
+let frameN = 0, lastT = performance.now();
+
+let hoverIdx = -1;
+
+// Pre-compute node UV array (flat Float32Array for uniform upload)
+const nodeUVs   = new Float32Array(PROJECTS.flatMap(p => [p.x, p.y]));
+// Label half-extents in sim pixels — filled by measureLabels() after DOM layout
+const nodeRects = new Float32Array(8 * 2);
+
+function measureLabels() {
+  const els = document.querySelectorAll('.nlabel');
+  PROJECTS.forEach((p, i) => {
+    const el = els[i];
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    nodeRects[i * 2]     = (r.width  / 2) * (TW / canvas.width);
+    nodeRects[i * 2 + 1] = (r.height / 2) * (TH / canvas.height);
+  });
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = now - lastT; lastT = now;
+  if (++frameN % 60 === 0) document.getElementById('fps').textContent = (1000/dt | 0);
+
+
+  driftA(now);
+  driftChaos(now);
+  driftB(now);
+  driftDu(now);
+  gl.bindVertexArray(quadVAO);
+
+  // ── RD substeps ──────────────────────────────────────────────────────
+  gl.useProgram(pReact);
+  u1f(pReact, 'uEps',        P.eps);
+  u1f(pReact, 'uA',          P.a);
+  u1f(pReact, 'uB',          P.b);
+  u1f(pReact, 'uDu',         P.Du);
+  u1f(pReact, 'uChaos',      P.chaos);
+  u1f(pReact, 'uNoiseScale', P.noise);
+  u1f(pReact, 'uTime',       now);
+  u1i(pReact, 'uNC',         PROJECTS.length);
+  u1i(pReact, 'uHoverIdx',   hoverIdx);
+  u1f(pReact, 'uPaceR',      PACE_R);
+  gl.uniform2fv(gl.getUniformLocation(pReact, 'uNodes'),    nodeUVs);
+  gl.uniform2fv(gl.getUniformLocation(pReact, 'uNodeRect'), nodeRects);
+  gl.uniform2fv(gl.getUniformLocation(pReact, 'uNoiseOff'), noiseOffsets);
+  u1i(pReact, 'uState', 0);
+  u1i(pReact, 'uWall',  1);
+  bindTex(1, wallTex);
+
+  u1f(pReact, 'uDt', P.dt);
+
+  for (let s = 0; s < SUBSTEPS; s++) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, rdFBO[1-rd]);
+    gl.viewport(0, 0, TW, TH);
+    bindTex(0, rdTex[rd]);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    rd = 1 - rd;
+  }
+
+  // ── Display ───────────────────────────────────────────────────────────
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.useProgram(pDisplay);
+  bindTex(0, rdTex[rd]); u1i(pDisplay, 'uState', 0);
+  bindTex(1, wallTex);   u1i(pDisplay, 'uWall',  1);
+  u1f(pDisplay, 'uBlurPx', 5.0);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+// ─── Parameter UI ─────────────────────────────────────────────────────────
+const PRESETS = {
+  // Organic mold: slow thick fronts, high chaos, large blobs — continuously alive
+  mold:     { eps: 0.038, a: 0.720, b: 0.015, Du: 0.32, chaos: 0.72, noise: 1.0 },
+  // Mycelium: thinner branching, more anisotropic, finer texture
+  mycelium: { eps: 0.038, a: 0.720, b: 0.022, Du: 0.14, chaos: 0.80, noise: 2.4 },
+  // Slow pulse: big expanding blobs, almost cellular, max blob scale
+  pulse:    { eps: 0.110, a: 0.900, b: 0.068, Du: 0.30, chaos: 0.40, noise: 0.9 },
+};
+const PRESET_BTN = { mold: 'bMold', mycelium: 'bMycel', pulse: 'bPulse' };
+
+function applyPreset(name) {
+  const pr = PRESETS[name];
+  Object.assign(P, pr);
+  document.getElementById('sEps').value   = P.eps;
+  document.getElementById('sA').value     = P.a;
+  document.getElementById('sB').value     = P.b;
+  document.getElementById('sDu').value    = P.Du;
+  document.getElementById('sChaos').value = P.chaos;
+  document.getElementById('sNoise').value = P.noise;
+  document.getElementById('vEps').textContent   = P.eps.toFixed(3);
+  document.getElementById('vA').textContent     = P.a.toFixed(3);
+  document.getElementById('vB').textContent     = P.b.toFixed(3);
+  document.getElementById('vDu').textContent    = P.Du.toFixed(3);
+  document.getElementById('vChaos').textContent = P.chaos.toFixed(2);
+  document.getElementById('vNoise').textContent = P.noise.toFixed(1);
+  document.querySelectorAll('.presets button').forEach(b => b.classList.remove('active'));
+  document.getElementById(PRESET_BTN[name])?.classList.add('active');
+}
+
+[
+  ['sEps',   'eps',   'vEps',   3],
+  ['sA',     'a',     'vA',     3],
+  ['sB',     'b',     'vB',     3],
+  ['sDu',    'Du',    'vDu',    3],
+  ['sChaos', 'chaos', 'vChaos', 2],
+  ['sNoise', 'noise', 'vNoise', 1],
+].forEach(([sid, key, vid, dec]) => {
+  document.getElementById(sid).addEventListener('input', function() {
+    P[key] = parseFloat(this.value);
+    document.getElementById(vid).textContent = P[key].toFixed(dec);
+    document.querySelectorAll('.presets button').forEach(b => b.classList.remove('active'));
+  });
+});
+
+document.getElementById('bMold').addEventListener('click',   () => applyPreset('mold'));
+document.getElementById('bMycel').addEventListener('click',  () => applyPreset('mycelium'));
+document.getElementById('bPulse').addEventListener('click',  () => applyPreset('pulse'));
+// Reset also randomises the FBM noise offsets so it looks different each time
+document.getElementById('bReset').addEventListener('click',  () => {
+  for (let i = 0; i < noiseOffsets.length; i++) noiseOffsets[i] = Math.random() * 100;
+  initTextures();
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────
+for (let i = 0; i < noiseOffsets.length; i++) noiseOffsets[i] = Math.random() * 100;
+buildPrograms();
+buildGeometry();
+buildLabels();
+// Wait for layout → measure labels → build wall (uses rects) → seed outlines → run
+requestAnimationFrame(() => {
+  measureLabels();
+  buildWallTex();
+  initTextures();
+  requestAnimationFrame(frame);
+});
+
+window.addEventListener('resize', () => {
+  setSize(); buildLabels();
+  requestAnimationFrame(() => { measureLabels(); buildWallTex(); initTextures(); });
+});
+</script>
+</body>
+</html>

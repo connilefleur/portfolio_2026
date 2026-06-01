@@ -9,7 +9,6 @@
   --hair:  #1e2028;
   --hi:    #4a9eff;
   --node:  #0e1016;
-  --scope: color-mix(in srgb, var(--ink) 18%, transparent);
   --mono:  "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 
@@ -21,7 +20,6 @@
     --hair:  #c6c8d2;
     --hi:    #2878e8;
     --node:  #dfe0e8;
-    --scope: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 }
 
@@ -49,7 +47,7 @@ html, body {
   min-height: 100vh;
 }
 
-/* Scope page locks body scroll so the vectorscope fills the viewport */
+/* Landing page locks body scroll so the mycelium fills the viewport */
 .shell--locked {
   height: 100vh;
   overflow: hidden;
@@ -142,128 +140,77 @@ html, body {
 .bar-bot .center { text-align: center; }
 .bar-bot .right  { text-align: right; }
 
-/* ─── SCOPE PAGE ─────────────────────────────────────────────────────────── */
+/* ─── LANDING — MYCELIUM NODES ───────────────────────────────────────────── */
 .map {
   position: relative;
   overflow: hidden;
   height: 100%;
 }
 
-#scope-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
+@keyframes labelGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(74,158,255,0.25), 0 0 20px rgba(74,158,255,0.08); border-color: rgba(74,158,255,0.40); }
+  50%       { box-shadow: 0 0 12px rgba(74,158,255,0.55), 0 0 36px rgba(74,158,255,0.18); border-color: rgba(74,158,255,0.75); }
 }
 
-#scope-svg line.is-dim    { opacity: 0.22; }
-#scope-svg line.is-active {
-  stroke: var(--hi) !important;
-  opacity: 0.6 !important;
-}
-
-.node {
+.nlabel {
   position: absolute;
   transform: translate(-50%, -50%);
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  border: none;
-  border-left: 1px solid var(--hair);
-  padding: 5px 10px 5px 10px;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  z-index: 2;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-
-.node:hover, .node.is-active {
-  border-left-color: var(--hi);
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  z-index: 20;
-}
-
-.node:hover .nid, .node.is-active .nid {
-  color: color-mix(in srgb, var(--hi) 60%, transparent);
-}
-
-.node:hover .nm, .node.is-active .nm {
-  color: var(--hi);
-}
-
-.node.is-dim { opacity: 0.1; }
-
-.node .nid {
-  font-size: 0.62rem;
-  color: var(--mute);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 400;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.node .nm {
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink);
-  white-space: nowrap;
-  line-height: 1;
-  transition: color 0.15s ease;
-}
-
-/* ── Boot + SVG element animations ── */
-@keyframes scope-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.scope-ring   { animation: scope-fade-in 0.45s ease-out both; animation-delay:  80ms; }
-.scope-origin { animation: scope-fade-in 0.35s ease-out both; animation-delay:  80ms; }
-.scope-axis   { animation: scope-fade-in 0.40s ease-out both; animation-delay: 180ms; }
-.scope-hull   { animation: scope-fade-in 0.50s ease-out both; animation-delay: 600ms; }
-
-/* ── Anchor dot pulse on hover ── */
-@keyframes dot-ring-pulse {
-  from { transform: scale(1); opacity: 0.65; }
-  to   { transform: scale(9); opacity: 0;    }
-}
-
-.node-dot {
-  transition: transform 0.2s ease;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.node-dot--active { transform: scale(1.7); }
-
-.dot-pulse-ring {
-  fill: none;
-  stroke: var(--hi);
-  stroke-width: 0.8;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: dot-ring-pulse 0.55s ease-out forwards;
-}
-
-.sig {
-  position: absolute;
-  right: -28px;
-  bottom: -6px;
-  font-size: clamp(52px, 6.4vw, 92px);
-  font-weight: 700;
-  font-family: ui-sans-serif, system-ui, "Helvetica Neue", sans-serif;
-  line-height: 0.85;
-  letter-spacing: -0.045em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--ink) 7%, transparent);
-  text-align: right;
-  pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 9px 16px;
+  border: 1px solid rgba(74,158,255,0.40);
+  border-radius: 3px;
+  background: rgba(8,9,12,0.60);
+  animation: labelGlow 3.2s ease-in-out infinite;
+  pointer-events: auto; cursor: pointer;
+  transition: background 0.15s;
   user-select: none;
-  z-index: 0;
+}
+.nlabel:hover { background: rgba(8,9,12,0.80); }
+
+.nlabel .nm {
+  font: 500 11px/1 var(--mono);
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--ink); white-space: nowrap;
+}
+.nlabel .meta {
+  font: 400 9px/1 var(--mono);
+  letter-spacing: 0.10em; color: var(--mute); white-space: nowrap;
+}
+.nlabel:hover .nm { color: #fff; }
+.nlabel:hover .meta { color: var(--hi); }
+
+.nlabel::before,
+.nlabel::after {
+  content: '';
+  position: absolute;
+  width: 7px; height: 7px;
+  border-color: rgba(74,158,255,0.55);
+  border-style: solid;
+  pointer-events: none;
+  transition: width 0.2s, height 0.2s, border-color 0.2s;
+}
+.nlabel::before { top: -2px; left: -2px; border-width: 1px 0 0 1px; }
+.nlabel::after  { bottom: -2px; right: -2px; border-width: 0 1px 1px 0; }
+.nlabel:hover::before,
+.nlabel:hover::after {
+  width: 11px; height: 11px;
+  border-color: rgba(74,158,255,0.90);
+}
+
+.nlabel-row {
+  display: flex; align-items: center; gap: 7px;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%       { opacity: 1.00; transform: scale(1.15); }
+}
+.nlabel-pulse {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--hi);
+  flex-shrink: 0;
+  animation: pulseDot 2.4s ease-in-out infinite;
 }
 
 /* ─── LIST PAGE ──────────────────────────────────────────────────────────── */
@@ -679,9 +626,6 @@ html, body {
   /* Top bar: brand + nav only, hide meta */
   .bar-top { grid-template-columns: 1fr auto; }
   .bar-meta { display: none; }
-
-  /* ── Scope nodes mobile ── */
-  .node { padding: 4px 7px 3px; }
 
   .brand { font-size: 0.77rem; padding: 0 12px; }
 

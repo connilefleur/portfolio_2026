@@ -30,7 +30,7 @@ function Clock() {
 
 export function Layout({ page, meta, children, shellClass = '', contentClass = '' }: Props) {
   const navLinks: { to: string; label: string; id: typeof page }[] = [
-    { to: '/',        label: 'Scope',   id: 'scope'   },
+    { to: '/',        label: 'Work',    id: 'scope'   },
     { to: '/list',    label: 'List',    id: 'list'    },
     { to: '/contact', label: 'Contact', id: 'contact' },
   ];
