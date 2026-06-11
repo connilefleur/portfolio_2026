@@ -4,14 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
-    "dev:v2": "vite --config vite.v2.config.ts",
+    "dev": "vite",
     "typecheck": "tsc -b --pretty false",
-    "build": "npm run generate:projects && tsc -b && vite build",
-    "build:v2": "vite build --config vite.v2.config.ts",
-    "check": "npm run generate:projects && npm run typecheck && vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 5173 --strictPort",
-    "preview:v2": "vite preview --config vite.v2.config.ts",
+    "build": "vite build",
+    "preview": "vite preview",
     "generate:projects": "node scripts/generate-projects-index.mjs",
     "scan:secrets": "node scripts/scan-secrets.mjs"
   },

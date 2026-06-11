@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exit 0
+node scripts/scan-secrets.mjs

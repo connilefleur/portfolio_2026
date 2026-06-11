@@ -1,14 +1,12 @@
 # Portfolio — Claude orientation
 
-## Servers
-| App | Command | Port | Config |
-|-----|---------|------|--------|
-| V2 (active) | `npm run dev:v2` | **5174** | `vite.v2.config.ts` |
-| V1 | `npm run dev` | 5173 | `vite.config.ts` |
+## Dev server
+```
+npm run dev   →   http://127.0.0.1:5174
+```
+Run from `/home/deployer/projects/portfolio/`. Config: `vite.config.ts`.
 
-Run from `/home/deployer/projects/portfolio/`.
-
-## V2 source (`v2/src/`)
+## Source (`v2/src/`)
 - `pages/Scope.tsx` — landing page ("Work" in nav): thin wrapper around PhysarumCanvas + Viewer wiring
 - `components/PhysarumCanvas.tsx` — WebGL2 Barkley reaction-diffusion sim; project nodes as floating labels; pauses when Viewer is open
 - `pages/List.tsx` — project matrix table
@@ -18,10 +16,38 @@ Run from `/home/deployer/projects/portfolio/`.
 - `data/types.ts` — Project / MediaItem types
 - `styles/globals.css` — all styles (tokens, shell, nodes/nlabel, list, viewer)
 
-## Content pipeline (shared V1/V2)
+## Content pipeline
 - Edit project metadata in `content/projects.csv` (semicolon-delimited)
 - Then manually update `v2/src/data/projects.ts` to match
-- Media lives in `public/projects/<slug>/images/` and `/videos/`
+- Served media lives in `public/projects/<slug>/images/` and `/videos/`
+
+## Drop-in media workflow
+`drop_in/<slug>/` is the **source inbox** (gitignored, never modified by Claude).
+Raw PNGs/source files go in there — **never copy them directly to public/**.
+
+### Adding images
+```bash
+# From source PNG in drop_in/<slug>/file.png → responsive WebP set
+python3 scripts/render-responsive-image.py \
+  --input "drop_in/<slug>/file.png" \
+  --output-dir "public/projects/<slug>/images/_responsive" \
+  --output-prefix "file" \
+  --widths "480,960,1600,2400"
+```
+Outputs: `file-480w.webp`, `file-960w.webp`, `file-1600w.webp`, `file-2400w.webp`  
+Wire up in `projects.ts` with `srcSet: "...-480w.webp 480w, ...-960w.webp 960w, ..."` and `url` pointing to the largest variant.  
+**Never convert from an intermediate JPEG/WebP — always from the original source file.**
+
+### Adding videos
+```bash
+python3 scripts/render-web-video.py \
+  --input "drop_in/<slug>/file.mp4" \
+  --output-dir "public/projects/<slug>/videos"
+```
+Outputs VP9/WebM + poster image at ≤1920px.
+
+### Quality reference (photos)
+`w480=q90  w960=q92  w1600=q93  w2400=q93` — screenshots get lossless WebP.
 
 ## Design tokens (dark default)
 ```

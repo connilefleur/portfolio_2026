@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Viewer } from './Viewer';
 
 interface Props {
-  page: 'scope' | 'list' | 'contact' | 'imprint';
+  page: 'work' | 'contact' | 'tools' | 'imprint';
   meta?: ReactNode;
   children: ReactNode;
   shellClass?: string;
@@ -30,8 +30,8 @@ function Clock() {
 
 export function Layout({ page, meta, children, shellClass = '', contentClass = '' }: Props) {
   const navLinks: { to: string; label: string; id: typeof page }[] = [
-    { to: '/',        label: 'Work',    id: 'scope'   },
-    { to: '/list',    label: 'List',    id: 'list'    },
+    { to: '/',        label: 'Work',    id: 'work'    },
+    { to: '/tools',   label: 'Tools',   id: 'tools'   },
     { to: '/contact', label: 'Contact', id: 'contact' },
   ];
 
@@ -41,7 +41,7 @@ export function Layout({ page, meta, children, shellClass = '', contentClass = '
         <div className="brand">
           C. Löffler <span className="cursor" aria-hidden="true" />
         </div>
-        {meta && <div className="bar-meta">{meta}</div>}
+        <div className="bar-meta">{meta}</div>
         <nav className="bar-nav">
           {navLinks.map(link => (
             <NavLink

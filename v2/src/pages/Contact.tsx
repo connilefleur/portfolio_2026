@@ -22,14 +22,14 @@ export function Contact() {
         <span className="label-kicker">Get in touch</span>
         <h1 className="label-heading">Let's<br />work<br />together.</h1>
         <p className="label-sub">
-          Procedural Houdini / Technical 3D Artist.<br />
-          Simulation, procedural animation,<br />
-          product/industrial visuals and render-ready<br />
-          3D systems for agencies and B2B clients.<br />
+          Technical Director &amp; Simulation Developer.<br />
+          Houdini-primary with a deep USD pipeline<br />
+          foundation — enabling procedural simulation<br />
+          at scale, digital twin integration and<br />
+          agent-driven workflow automation.<br />
           <br />
-          AI-assisted concepting and image workflows<br />
-          used where they improve iteration,<br />
-          variation or look development.
+          VFX, product, industrial and agency work.<br />
+          Hamburg or remote.
         </p>
       </div>
 
@@ -82,8 +82,9 @@ export function Contact() {
           <div>
             <div className="field-label">Focus</div>
             <div className="field-value is-mute">
-              Procedural Houdini · Simulation · Lookdev/Rendering<br />
-              Product &amp; Abstract 3D · Pipeline Support
+              Procedural Houdini · VFX Supervision<br />
+              USD Pipeline · Digital Twin · Simulation<br />
+              Technical Direction · Lookdev
             </div>
           </div>
         </div>
@@ -93,12 +94,11 @@ export function Contact() {
           <div>
             <div className="field-label">Services</div>
             <div className="field-value is-mute">
-              Procedural Houdini setups<br />
-              Simulation / Vellum / particles<br />
-              Product and abstract 3D animation<br />
-              Technical 3D / lookdev / rendering<br />
-              AOV / ACES / render delivery<br />
-              AI-assisted concepting (ComfyUI / OTOY Canvas)
+              Procedural Houdini · simulation · VFX<br />
+              USD pipeline · digital twin workflows<br />
+              Agent-driven simulation automation<br />
+              Product &amp; abstract 3D · technical direction<br />
+              Lookdev · rendering · AOV/ACES delivery
             </div>
           </div>
         </div>
@@ -108,18 +108,10 @@ export function Contact() {
           <div>
             <div className="field-label">Tools</div>
             <div className="field-value is-mute">
-              Houdini · Nuke · Blender · Octane<br />
-              ComfyUI · OTOY Canvas<br />
+              Houdini · Nuke · Octane · Blender<br />
+              USD / OpenUSD · Python<br />
               Resolve · Adobe Suite
             </div>
-          </div>
-        </div>
-
-        <div className="field">
-          <span className="field-idx">008</span>
-          <div>
-            <div className="field-label">Environment</div>
-            <div className="field-value is-mute">Linux Native</div>
           </div>
         </div>
       </div>

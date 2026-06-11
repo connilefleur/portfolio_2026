@@ -37,23 +37,9 @@ public/projects-index.json
 *.csr
 *.p7b
 *.asc
-# Local review and import scratch space
+# Local scratch space
 tmp/
-public/review/
 drop_in/
-
-# V1 — superseded by v2/
-src/
-index.html
-vite.config.ts
-prototypes/
-
-# Inactive project archives and unused public assets
-public/projects/_archive/
-public/projects/example-project/
-public/projects/heads/
-public/projects/render/
-public/projects/flythroughs/
 
 # Video files — served from external storage, not git
 *.mp4
