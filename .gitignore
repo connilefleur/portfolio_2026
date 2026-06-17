@@ -50,9 +50,13 @@ v2/src/components/canvas/engines/_archived/
 # Intermediate PNGs from render-responsive-image.py (WebP is the actual output)
 public/projects/**/_responsive/*.png
 
-# Video files — served from external storage, not git
-*.mp4
+# Raw/source video formats — never commit
 *.mov
-*.webm
 *.avi
 *.mkv
+
+# Oversized processed videos — exceed Cloudflare Pages 25 MB file limit
+public/projects/dataviz/videos/data-viz-cop-main.webm
+
+# Unreferenced H264 source copy
+public/projects/vfx/videos/skrtcobain-sohigh-online-v07-h264-1d10d472.mp4
