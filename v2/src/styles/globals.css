@@ -29,6 +29,7 @@
 
 html, body {
   height: 100%;
+  overflow: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--mono);
@@ -45,7 +46,8 @@ html, body {
   z-index: 1;
   display: grid;
   grid-template-rows: 36px 1fr 30px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Landing page locks body scroll so the mycelium fills the viewport */
@@ -54,7 +56,34 @@ html, body {
   overflow: hidden;
 }
 
-.shell > main { position: relative; }
+/* Canvas bleeds through bars — bars float above the fixed canvas layer */
+.shell--canvas-full {
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+.shell--canvas-full .bar-top {
+  background: var(--bg);
+  position: relative;
+  z-index: 10;
+}
+.shell--canvas-full .bar-bot {
+  background: var(--bg);
+  position: relative;
+  z-index: 10;
+}
+.shell--canvas-full > main {
+  background: transparent;
+  position: relative;
+  z-index: 0;
+}
+
+.shell > main {
+  position: relative;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.shell > main::-webkit-scrollbar { display: none; }
 
 /* ─── TOP BAR ────────────────────────────────────────────────────────────── */
 .bar-top {
@@ -152,8 +181,7 @@ html, body {
   position: absolute;
   transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 6px 10px;
-  background: var(--bg);
+  padding: 14px 22px;
   pointer-events: auto; cursor: pointer;
   user-select: none;
 }
@@ -162,6 +190,7 @@ html, body {
   font: 700 11px/1 var(--mono);
   text-transform: uppercase; letter-spacing: 0.16em;
   color: var(--ink); white-space: nowrap;
+  text-shadow: 0 0 10px var(--bg), 0 0 6px var(--bg);
 }
 .nlabel .meta {
   font: 400 9px/1 var(--mono);
@@ -184,6 +213,21 @@ html, body {
   background: var(--hi);
   flex-shrink: 0;
   animation: pulseDot 2.4s ease-in-out infinite;
+}
+
+.canvas-wordmark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font: 900 clamp(13px, 3.8vh, 22px)/1 var(--mono);
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+  white-space: nowrap;
+  mix-blend-mode: normal;
 }
 
 /* ─── LIST PAGE ──────────────────────────────────────────────────────────── */
@@ -414,8 +458,8 @@ html, body {
 .col-fields {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 40px 40px 48px;
+  justify-content: flex-start;
+  padding: 48px 40px 48px;
 }
 
 .field {
@@ -425,8 +469,6 @@ html, body {
   border-bottom: 1px solid var(--hair);
   padding: 18px 0;
 }
-
-.field:first-child { border-top: 1px solid var(--hair); }
 
 .field-idx {
   font-size: 0.69rem;
@@ -483,16 +525,21 @@ html, body {
 
 /* ─── VIEWER ─────────────────────────────────────────────────────────────── */
 #vw-overlay {
-  display: none;
+  display: flex;
   position: absolute;
   inset: 0;
   z-index: 100;
   flex-direction: row;
   font-family: var(--mono);
   -webkit-font-smoothing: antialiased;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
 }
-#vw-overlay.is-open { display: flex; animation: vw-in 0.12s ease; }
-@keyframes vw-in { from { opacity: 0; } to { opacity: 1; } }
+#vw-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 /* ── Panel ── */
 .vw-panel {
@@ -796,8 +843,9 @@ html, body {
 /* ─── VIEW TOGGLE ────────────────────────────────────────────────────────── */
 .view-toggle {
   position: fixed;
-  bottom: 38px; /* sits just above the 30px footer bar */
-  right: 16px;
+  bottom: 38px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 50;
   display: flex;
   border: 1px solid var(--ink);
@@ -816,8 +864,17 @@ html, body {
   transition: background 120ms, color 120ms;
 }
 
-.view-toggle button + button {
+.view-toggle button + button,
+.view-toggle .view-toggle-sep + button {
   border-left: 1px solid var(--ink);
+}
+
+.view-toggle-sep {
+  display: block;
+  width: 1px;
+  background: var(--mute);
+  opacity: 0.4;
+  margin: 4px 0;
 }
 
 .view-toggle button.is-active,
@@ -939,6 +996,104 @@ html, body {
   margin-top: 14px;
 }
 
+/* ── App section ── */
+.tools-header--section {
+  margin-top: 64px;
+}
+
+.app-card {
+  border: 1px solid var(--hair);
+  padding: 32px;
+}
+
+.app-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.app-card-name {
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.app-card-platforms {
+  font-size: 0.69rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.app-card-status {
+  font-size: 0.69rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hi);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-card-desc {
+  font-size: 0.77rem;
+  color: var(--mute);
+  line-height: 1.65;
+  margin-bottom: 28px;
+  max-width: 580px;
+}
+
+.app-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--hair);
+}
+
+.app-feature {
+  padding: 16px 20px 16px 0;
+  border-bottom: 1px solid var(--hair);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.app-feature:nth-child(odd) {
+  padding-right: 32px;
+  border-right: 1px solid var(--hair);
+}
+
+.app-feature:nth-child(even) {
+  padding-left: 32px;
+  padding-right: 0;
+}
+
+.app-feature-label {
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.app-feature-desc {
+  font-size: 0.72rem;
+  color: var(--mute);
+  line-height: 1.55;
+}
+
+.app-card-contact {
+  display: inline-block;
+  margin-top: 28px;
+  font-size: 0.69rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hi);
+  text-decoration: none;
+}
+
+.app-card-contact:hover { text-decoration: underline; }
+
 /* ─── MEDIUM — compact laptop / tablet landscape ─────────────────────────── */
 @media (max-width: 1100px) {
   .mth {
@@ -981,10 +1136,8 @@ html, body {
 
 /* ─── MOBILE ─────────────────────────────────────────────────────────────── */
 @media (max-width: 760px) {
-  html, body { overflow: auto; }
-
-  .shell { grid-template-rows: 44px auto 44px; height: auto; min-height: 100dvh; }
-  .shell--locked { height: 100dvh; overflow: hidden; }
+  .shell { grid-template-rows: 44px 1fr 44px; height: 100dvh; }
+  .shell--locked { grid-template-rows: 44px 1fr 44px; }
 
   /* Top bar: brand + nav only, hide meta */
   .bar-top { grid-template-columns: 1fr auto; }
@@ -1002,30 +1155,45 @@ html, body {
   }
   .bar-bot .right { display: none; }
 
-  /* ── List mobile — scrolling stack instead of full-height flex ── */
-  .content--list {
-    height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .mbody { flex: none; }
-  .mrow--body {
-    flex: none;
-    height: 56px;
-    transition: height 280ms ease;
-    overflow: hidden;
-  }
-  .mrow--body.is-active { height: 160px; flex: none; overflow: hidden; }
+  /* ── List mobile — full-height flex, same as desktop ── */
   .mrow, .mhead { grid-template-columns: 44px 1fr 1fr 1fr; }
-  /* fixed columns don't apply on mobile */
-  .mrow { grid-template-columns: 44px 1fr 1fr 1fr; }
   .mth, .midx { padding-left: 10px; padding-right: 10px; font-size: 0.62rem; }
   .cell-nm { font-size: 0.85rem; }
 
-  /* ── Tools mobile ── */
-  .content--tools { padding: 28px 16px 48px; }
-  .tools-grid { grid-template-columns: 1fr; }
-  .tool-card { height: 200px; }
+  /* ── Tools mobile — flat rows, no flip card ── */
+  .content--tools { padding: 0; max-width: 100%; margin: 0; }
+  .tools-header {
+    padding: 20px 16px 16px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--ink);
+  }
+  .tools-title { font-size: clamp(24px, 8vw, 36px); }
+  .tools-grid { display: flex; flex-direction: column; gap: 0; }
+
+  .tool-card {
+    height: auto;
+    perspective: none;
+    border-bottom: 1px solid var(--hair);
+    display: block;
+  }
+  .tool-card:last-child { border-bottom: 0; }
+  .tool-card-inner {
+    transform: none !important;
+    transition: none;
+    transform-style: flat;
+    display: block;
+  }
+  .tool-card-face {
+    position: relative;
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+    border: none;
+    padding: 20px 16px;
+  }
+  .tool-card-back { display: none; }
+  .tool-name { font-size: 0.95rem; margin-bottom: 8px; }
+  .tool-desc { font-size: 0.82rem; }
+  .tool-badge { font-size: 0.72rem; margin-top: 14px; }
 
   /* ── Contact mobile ── */
   .content--contact { grid-template-columns: 1fr; }

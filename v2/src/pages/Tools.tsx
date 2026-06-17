@@ -1,4 +1,4 @@
-import { Layout } from '../components/Layout';
+import { Layout, Clock } from '../components/Layout';
 
 const TOOLS = [
   {
@@ -15,12 +15,21 @@ const TOOLS = [
   },
 ];
 
+const APP_FEATURES = [
+  { label: 'Local video calls',      desc: 'Peer-to-peer over WiFi — no internet, no accounts, no data leaving set.' },
+  { label: 'Remote phone control',   desc: 'Drive the prop from a second device or a Bluetooth keyboard. Tap, swipe, scroll — all invisible to camera.' },
+  { label: 'Production-safe UI',     desc: 'iOS-style and Android-style presets that read as real on camera. No platform logos, no trademark geometry — cleared for broadcast and theatrical use.' },
+  { label: 'iOS & Android',          desc: 'Single React Native codebase. Runs natively on both platforms from one build pipeline.' },
+];
+
 export function Tools() {
   return (
-    <Layout page="tools" contentClass="content--tools">
+    <Layout page="tools" contentClass="content--tools" meta={<Clock />}>
+
+      {/* ── HDAs ── */}
       <div className="tools-header">
         <p className="tools-kicker">Pipeline Tools</p>
-        <h1 className="tools-title">Free HDAs</h1>
+        <h1 className="tools-title">HDAs</h1>
       </div>
       <div className="tools-grid">
         {TOOLS.map(t => (
@@ -48,6 +57,34 @@ export function Tools() {
           </a>
         ))}
       </div>
+
+      {/* ── Apps ── */}
+      <div className="tools-header tools-header--section">
+        <p className="tools-kicker">Mobile</p>
+        <h2 className="tools-title">Apps</h2>
+      </div>
+      <div className="app-card">
+        <div className="app-card-head">
+          <div>
+            <p className="app-card-name">Prop Phone</p>
+            <p className="app-card-platforms">iOS · Android · React Native</p>
+          </div>
+          <span className="app-card-status">In Development</span>
+        </div>
+        <p className="app-card-desc">
+          A film prop phone app built for production. Looks like a real smartphone on camera — controlled silently from off-set. Local-network video calls, remote input handling and platform-safe UI presets for use in film, broadcast and commercial production.
+        </p>
+        <div className="app-features">
+          {APP_FEATURES.map(f => (
+            <div key={f.label} className="app-feature">
+              <span className="app-feature-label">{f.label}</span>
+              <span className="app-feature-desc">{f.desc}</span>
+            </div>
+          ))}
+        </div>
+        <a className="app-card-contact" href="/contact">Request beta access →</a>
+      </div>
+
     </Layout>
   );
 }

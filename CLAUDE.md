@@ -34,17 +34,18 @@ python3 scripts/render-responsive-image.py \
   --output-prefix "file" \
   --widths "480,960,1600,2400"
 ```
-Outputs: `file-480w.webp`, `file-960w.webp`, `file-1600w.webp`, `file-2400w.webp`  
+Outputs: `file-w480.webp`, `file-w960.webp`, `file-w1600.webp`, `file-w2400.webp` — always WebP regardless of source format.  
 Wire up in `projects.ts` with `srcSet: "...-480w.webp 480w, ...-960w.webp 960w, ..."` and `url` pointing to the largest variant.  
 **Never convert from an intermediate JPEG/WebP — always from the original source file.**
 
 ### Adding videos
 ```bash
 python3 scripts/render-web-video.py \
-  --input "drop_in/<slug>/file.mp4" \
-  --output-dir "public/projects/<slug>/videos"
+  --input "drop_in/<slug>/file.mov" \
+  --video-output "public/projects/<slug>/videos/file.webm" \
+  --poster-output "public/projects/<slug>/videos/file-poster.jpg"
 ```
-Outputs VP9/WebM + poster image at ≤1920px.
+Outputs VP9/WebM + JPEG poster at ≤1920px. Always WebM/VP9 regardless of source (ProRes, MP4, MOV all work).
 
 ### Quality reference (photos)
 `w480=q90  w960=q92  w1600=q93  w2400=q93` — screenshots get lossless WebP.

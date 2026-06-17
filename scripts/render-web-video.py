@@ -43,8 +43,8 @@ def main():
     parser.add_argument("--poster-output", required=True)
     parser.add_argument("--video-max-edge", type=int, default=1920)
     parser.add_argument("--poster-max-edge", type=int, default=1600)
-    parser.add_argument("--crf", type=int, default=23)
-    parser.add_argument("--preset", default="slow")
+    parser.add_argument("--crf", type=int, default=33)
+    parser.add_argument("--cpu-used", type=int, default=2)
     parser.add_argument("--audio-bitrate", default="128k")
     args = parser.parse_args()
 
@@ -69,24 +69,26 @@ def main():
         "-vf",
         scale_filter(args.video_max_edge),
         "-c:v",
-        "libx264",
-        "-preset",
-        args.preset,
+        "libvpx-vp9",
+        "-b:v",
+        "0",
         "-crf",
         str(args.crf),
         "-pix_fmt",
         "yuv420p",
-        "-profile:v",
-        "high",
-        "-movflags",
-        "+faststart",
+        "-deadline",
+        "good",
+        "-cpu-used",
+        str(args.cpu_used),
+        "-row-mt",
+        "1",
     ]
     if has_audio:
         encode_cmd += [
             "-map",
             "0:a?",
             "-c:a",
-            "aac",
+            "libopus",
             "-b:a",
             args.audio_bitrate,
             "-ac",

@@ -9,9 +9,6 @@ export function Contact() {
 
   const meta = (
     <>
-      <span className="dot" />
-      <span>HAM · 53.55 N</span>
-      <span>·</span>
       <Clock />
     </>
   );
@@ -19,18 +16,8 @@ export function Contact() {
   return (
     <Layout page="contact" meta={meta} contentClass="content--contact">
       <div className="col-label">
-        <span className="label-kicker">Get in touch</span>
-        <h1 className="label-heading">Let's<br />work<br />together.</h1>
-        <p className="label-sub">
-          Technical Director &amp; Simulation Developer.<br />
-          Houdini-primary with a deep USD pipeline<br />
-          foundation — enabling procedural simulation<br />
-          at scale, digital twin integration and<br />
-          agent-driven workflow automation.<br />
-          <br />
-          VFX, product, industrial and agency work.<br />
-          Hamburg or remote.
-        </p>
+        <span className="label-kicker">Conrad Löffler</span>
+        <h1 className="label-heading">Work<br />around<br />or find<br />out.</h1>
       </div>
 
       <div className="col-fields">
@@ -67,50 +54,14 @@ export function Contact() {
         <div className="field">
           <span className="field-idx">004</span>
           <div>
-            <div className="field-label">Availability</div>
-            <div className="field-value">
-              <span className="avail">
-                <span className="avail-dot" aria-hidden="true" />
-                Open to new projects
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="field">
-          <span className="field-idx">005</span>
-          <div>
-            <div className="field-label">Focus</div>
-            <div className="field-value is-mute">
-              Procedural Houdini · VFX Supervision<br />
-              USD Pipeline · Digital Twin · Simulation<br />
-              Technical Direction · Lookdev
-            </div>
-          </div>
-        </div>
-
-        <div className="field">
-          <span className="field-idx">006</span>
-          <div>
             <div className="field-label">Services</div>
             <div className="field-value is-mute">
-              Procedural Houdini · simulation · VFX<br />
-              USD pipeline · digital twin workflows<br />
-              Agent-driven simulation automation<br />
-              Product &amp; abstract 3D · technical direction<br />
-              Lookdev · rendering · AOV/ACES delivery
-            </div>
-          </div>
-        </div>
-
-        <div className="field">
-          <span className="field-idx">007</span>
-          <div>
-            <div className="field-label">Tools</div>
-            <div className="field-value is-mute">
-              Houdini · Nuke · Octane · Blender<br />
-              USD / OpenUSD · Python<br />
-              Resolve · Adobe Suite
+              Houdini simulation and procedural FX<br />
+              Lookdev, rendering and USD pipeline<br />
+              Product and industrial 3D<br />
+              VFX supervision and technical direction<br />
+              Web development and agentic tooling<br />
+              Color grading and delivery
             </div>
           </div>
         </div>

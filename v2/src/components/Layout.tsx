@@ -1,6 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Viewer } from './Viewer';
 
 interface Props {
   page: 'work' | 'contact' | 'tools' | 'imprint';
@@ -39,7 +38,7 @@ export function Layout({ page, meta, children, shellClass = '', contentClass = '
     <div className={`shell ${shellClass}`}>
       <header className="bar-top">
         <div className="brand">
-          C. Löffler <span className="cursor" aria-hidden="true" />
+          connilefleur
         </div>
         <div className="bar-meta">{meta}</div>
         <nav className="bar-nav">
@@ -58,7 +57,6 @@ export function Layout({ page, meta, children, shellClass = '', contentClass = '
 
       <main className={contentClass}>
         {children}
-        <Viewer />
       </main>
 
       <footer className="bar-bot">

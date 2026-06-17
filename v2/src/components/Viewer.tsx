@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PROJECTS_BY_ID } from '../data/projects';
 
@@ -89,7 +89,16 @@ function CompareSlider({ url, compareUrl }: { url: string; compareUrl: string })
   );
 }
 
-export function Viewer() {
+interface ViewerProps {
+  onClose?: () => void;
+  className?: string;
+  isOpen?: boolean;
+}
+
+export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
+  { onClose, className, isOpen },
+  ref,
+) {
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get('project');
   const project = projectId ? PROJECTS_BY_ID[projectId] : null;
@@ -143,12 +152,21 @@ export function Viewer() {
     }
   }, [project]);
 
-  function close() {
-    setSearchParams(prev => { prev.delete('project'); return prev; });
-  }
+  const close = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setSearchParams(prev => { prev.delete('project'); return prev; });
+    }
+  };
 
   return (
-    <div id="vw-overlay" className={project ? 'is-open' : ''} aria-hidden={!project}>
+    <div
+      ref={ref}
+      id="vw-overlay"
+      className={[(isOpen ?? !!project) ? 'is-open' : '', className ?? ''].join(' ').trim()}
+      aria-hidden={!project}
+    >
       {/* Left panel */}
       <div className="vw-panel">
         <div className="vw-panel-head">
@@ -226,4 +244,4 @@ export function Viewer() {
       </div>
     </div>
   );
-}
+});

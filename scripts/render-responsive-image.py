@@ -69,7 +69,7 @@ def main():
                 continue
             height = max(1, round(original_height * (width / original_width)))
             resized = image.resize((width, height), Image.Resampling.LANCZOS)
-            output_name = f"{args.output_prefix}-w{width}{source_path.suffix.lower()}"
+            output_name = f"{args.output_prefix}-w{width}.webp"
             output_path = output_dir / output_name
             save_variant(resized, original, output_path)
             relative_dir = args.relative_dir.strip("/")

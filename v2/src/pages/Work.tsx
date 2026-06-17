@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Layout, Clock } from '../components/Layout';
-import PhysarumCanvas from '../components/PhysarumCanvas';
+import CanvasView from '../components/CanvasView';
+import { Viewer } from '../components/Viewer';
 import { PROJECTS } from '../data/projects';
 import type { Project } from '../data/types';
+import type { EngineType } from '../components/canvas/types';
 
 /* ── Thumb helpers ────────────────────────────────────────────────────────── */
 const VIDEO_THUMBS: Record<string, string> = {
@@ -28,28 +30,53 @@ const CATEGORIES = [
 ] as const;
 
 type CatKey = typeof CATEGORIES[number]['key'];
-type View    = 'mycelium' | 'list';
+
+/* ── Transition constants ─────────────────────────────────────────────────── */
+type Phase = 'idle' | 'open';
+const TRANSITION_MS = 480;
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 export function Work() {
   const isTouch = useRef(
     typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
   );
-  const [view, setView] = useState<View>(isTouch.current ? 'list' : 'mycelium');
+
   const [searchParams, setSearchParams] = useSearchParams();
-  const viewerOpen = !!searchParams.get('project');
+
+  const hasInitialProject = !!searchParams.get('project');
+  const [phaseState, setPhaseState] = useState<Phase>(hasInitialProject ? 'open' : 'idle');
+  const setPhase = useCallback((p: Phase) => setPhaseState(p), []);
+
+  const [engine, setEngine]           = useState<EngineType>('physarum');
+  const [fxOn,   setFxOn]             = useState(true);
+  const [showControls, setShowControls] = useState(false);
 
   const [hoveredId,       setHoveredId]       = useState<string | null>(null);
   const [touchExpandedId, setTouchExpandedId] = useState<string | null>(null);
-
-  /* The one project that is currently expanded (hover or touch) */
   const activeId = hoveredId ?? touchExpandedId;
 
-  /* Measure column width and set --active-flex so active row height = column width (square) */
+  const [viewerOpen, setViewerOpen] = useState(hasInitialProject);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
   const mbodyRef = useRef<HTMLDivElement>(null);
 
+  /* 'c' key toggles engine controls on desktop canvas view */
   useEffect(() => {
-    if (view !== 'list') return;
+    if (isTouch.current) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'c' || e.key === 'C') {
+        if ((e.target as HTMLElement).closest('input,textarea,select')) return;
+        setShowControls(v => !v);
+      }
+      if (e.key === 'Escape') setShowControls(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  /* Measure column width for list view square expansion */
+  useEffect(() => {
+    if (!isTouch.current) return;
     const compute = () => {
       const mbody = mbodyRef.current;
       if (!mbody) return;
@@ -58,129 +85,137 @@ export function Work() {
       const N    = PROJECTS.length;
       const colW = cell.offsetWidth;
       const H    = mbody.offsetHeight;
-      // solve: f / (f + N - 1) * H = colW  →  f = colW * (N-1) / (H - colW)
       const f = colW * (N - 1) / Math.max(1, H - colW);
       mbody.style.setProperty('--active-flex', Math.max(1, f).toFixed(3));
     };
     compute();
     window.addEventListener('resize', compute);
     return () => window.removeEventListener('resize', compute);
-  }, [view]);
+  }, []);
+
+  /* Snap to idle if URL clears externally (browser back button) */
+  useEffect(() => {
+    if (!searchParams.get('project')) {
+      clearTimeout(closeTimerRef.current);
+      setViewerOpen(false);
+      setPhase('idle');
+    }
+  }, [searchParams, setPhase]);
+
+  /* ── Open / close handlers ───────────────────────────────────────────── */
+  const openMyceliumViewer = useCallback((id: string) => {
+    clearTimeout(closeTimerRef.current);
+    setSearchParams({ project: id });
+    setViewerOpen(true);
+    closeTimerRef.current = setTimeout(() => setPhase('open'), TRANSITION_MS);
+  }, [setPhase, setSearchParams]);
+
+  const closeMyceliumViewer = useCallback(() => {
+    clearTimeout(closeTimerRef.current);
+    setPhase('idle');
+    setViewerOpen(false);
+    closeTimerRef.current = setTimeout(() => {
+      setSearchParams(prev => { const n = new URLSearchParams(prev); n.delete('project'); return n; });
+    }, TRANSITION_MS);
+  }, [setPhase, setSearchParams]);
 
   function handleRowClick(id: string) {
-    if (isTouch.current) {
-      touchExpandedId === id
-        ? setSearchParams({ project: id })
-        : setTouchExpandedId(id);
-    } else {
+    if (touchExpandedId === id) {
       setSearchParams({ project: id });
+    } else {
+      setTouchExpandedId(id);
     }
   }
 
   const sorted = [...PROJECTS].sort((a, b) => a.order - b.order);
 
-  const meta = (
-    <>
-      <span className="dot" />
-      <span>{PROJECTS.length} projects</span>
-      <span>·</span>
-      <span>HAM · 53.55 N</span>
-      {!isTouch.current && <><span>·</span><Clock /></>}
-    </>
-  );
+  const meta = <Clock />;
 
-  const toggle = !isTouch.current && !viewerOpen && (
+  /* ── Engine controls — shown only when 'c' is pressed ───────────────────── */
+  const controls = !isTouch.current && showControls && phaseState === 'idle' && (
     <div className="view-toggle">
-      <button className={view === 'mycelium' ? 'is-active' : ''} onClick={() => setView('mycelium')}>
-        Mycelium
-      </button>
-      <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')}>
-        List
-      </button>
+      <button className={engine === 'physarum' ? 'is-active' : ''} onClick={() => setEngine('physarum')}>PHY</button>
+      <button className={engine === 'flow'     ? 'is-active' : ''} onClick={() => setEngine('flow')}>FLOW</button>
+      <button className={engine === 'tm'       ? 'is-active' : ''} onClick={() => setEngine('tm')}>TM</button>
+      <span className="view-toggle-sep" />
+      <button className={fxOn ? 'is-active' : ''} onClick={() => setFxOn(v => !v)}>FX</button>
     </div>
   );
 
-  /* ── Mycelium view ─────────────────────────────────────────────────────── */
-  if (view === 'mycelium') {
+  /* ── Touch: always list view ──────────────────────────────────────────── */
+  if (isTouch.current) {
     return (
-      <Layout page="work" meta={meta} shellClass="shell--locked">
-        <section className="map">
-          <PhysarumCanvas
-            projects={PROJECTS.filter(p => p.axis !== 'code')}
-            onNodeClick={id => setSearchParams({ project: id })}
-            paused={viewerOpen}
-          />
-        </section>
-        {toggle}
+      <Layout page="work" meta={meta} contentClass="content--list" shellClass="shell--locked">
+        <div className="list-inner">
+          <div className="mrow mhead">
+            <div className="mth">#</div>
+            {CATEGORIES.map(c => <div key={c.key} className="mth">{c.label}</div>)}
+          </div>
+          <div className="mbody" ref={mbodyRef}>
+            {sorted.map(p => {
+              const thumb    = listThumb(p);
+              const isActive = activeId === p.id;
+              const rowCls   = `mrow mrow--body${isActive ? ' is-active' : ''}`;
+              return (
+                <div
+                  key={p.id}
+                  className={rowCls}
+                  onMouseEnter={() => setHoveredId(p.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onClick={() => handleRowClick(p.id)}
+                >
+                  <div className="midx">{p.idx}</div>
+                  {CATEGORIES.map(c => {
+                    const filled = p.axis === (c.key as CatKey);
+                    if (!filled) return <div key={c.key} className="mcell mcell--empty" />;
+                    return (
+                      <div key={c.key} className="mcell mcell--filled">
+                        <div className={`cell-text${isActive ? ' cell-text--active' : ''}`}>
+                          <span className="cell-nm">{p.nm}</span>
+                          <span className="cell-yr">{p.yearShort}</span>
+                        </div>
+                        {thumb && (
+                          <img
+                            className={`cell-img${isActive ? ' is-visible' : ''}`}
+                            src={thumb.src}
+                            srcSet={thumb.srcSet}
+                            sizes="34vw"
+                            alt=""
+                            loading="eager"
+                            decoding="async"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <Viewer className="vw--list-mode" />
       </Layout>
     );
   }
 
-  /* ── List view — full-height flex rows ─────────────────────────────────── */
+  /* ── Desktop: always canvas view, fullscreen ─────────────────────────── */
   return (
-    <Layout
-      page="work"
-      meta={meta}
-      contentClass="content--list"
-      shellClass={isTouch.current ? '' : 'shell--locked'}
-    >
-      <div className="list-inner">
-        {/* Header */}
-        <div className="mrow mhead">
-          <div className="mth">#</div>
-          {CATEGORIES.map(c => <div key={c.key} className="mth">{c.label}</div>)}
-        </div>
-
-        {/* Body rows */}
-        <div className="mbody" ref={mbodyRef}>
-          {sorted.map(p => {
-            const thumb    = listThumb(p);
-            const isActive = activeId === p.id;
-            const rowCls   = `mrow mrow--body${isActive ? ' is-active' : ''}`;
-
-            return (
-              <div
-                key={p.id}
-                className={rowCls}
-                onMouseEnter={() => setHoveredId(p.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => handleRowClick(p.id)}
-              >
-                <div className="midx">{p.idx}</div>
-
-                {CATEGORIES.map(c => {
-                  const filled = p.axis === (c.key as CatKey);
-                  if (!filled) return <div key={c.key} className="mcell mcell--empty" />;
-                  return (
-                    <div
-                      key={c.key}
-                      className="mcell mcell--filled"
-                    >
-                      <div className={`cell-text${isActive ? ' cell-text--active' : ''}`}>
-                        <span className="cell-nm">{p.nm}</span>
-                        <span className="cell-yr">{p.yearShort}</span>
-                      </div>
-                      {thumb && (
-                        <img
-                          className={`cell-img${isActive ? ' is-visible' : ''}`}
-                          src={thumb.src}
-                          srcSet={thumb.srcSet}
-                          sizes="34vw"
-                          alt=""
-                          loading="eager"
-                          decoding="async"
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {toggle}
+    <Layout page="work" meta={meta} shellClass="shell--locked shell--canvas-full">
+      <section className="map">
+        <CanvasView
+          projects={PROJECTS.filter(p => p.axis !== 'code')}
+          onNodeClick={openMyceliumViewer}
+          engine={engine}
+          fxOn={fxOn}
+          paused={phaseState === 'open'}
+          fullscreen
+        />
+      </section>
+      {controls}
+      <Viewer
+        isOpen={viewerOpen}
+        onClose={closeMyceliumViewer}
+      />
     </Layout>
   );
 }

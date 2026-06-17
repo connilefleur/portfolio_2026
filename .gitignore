@@ -40,6 +40,15 @@ public/projects-index.json
 # Local scratch space
 tmp/
 drop_in/
+reference/
+
+# Archived component backups
+v2/src/components/_archived/
+v2/src/components/canvas/engines/_archived/
+*.bak
+
+# Intermediate PNGs from render-responsive-image.py (WebP is the actual output)
+public/projects/**/_responsive/*.png
 
 # Video files — served from external storage, not git
 *.mp4

@@ -3,9 +3,6 @@ import { Layout, Clock } from '../components/Layout';
 export function Imprint() {
   const meta = (
     <>
-      <span className="dot" />
-      <span>HAM · 53.55 N</span>
-      <span>·</span>
       <Clock />
     </>
   );
