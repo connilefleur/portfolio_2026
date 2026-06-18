@@ -184,7 +184,7 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
         if (!hw || !hh) return;
         const pos = nodePosRef.current![p.id];
         if (!pos) return;
-        const px = hw * 0.55, py = hh * 0.55;  // 55% extra breathing room, aspect-preserving
+        const px = hw * 0.85, py = hh * 0.85;  // 85% extra breathing room, aspect-preserving
         ctx.fillRect(pos.x*TW-hw-px, (1-pos.y)*TH-hh-py, (hw+px)*2, (hh+py)*2);
       });
       const id   = ctx.getImageData(0,0,TW,TH);
@@ -213,6 +213,7 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
       effects.resize(TW, TH);
       const cw = canvas.clientWidth  || canvas.width  / dpr;
       const ch = canvas.clientHeight || canvas.height / dpr;
+      const N = projects.length;
       const nodePos = projects.map((p, i) => {
         const pos = nodePosRef.current![p.id];
         let hw = nodeRects[i*2];
@@ -221,11 +222,14 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
         // Estimate: 9 CSS px per uppercase char + 24px padding, 32px height
         if (!hw || hw < 3) hw = ((p.nm.length * 9 + 24) / 2) * (TW / cw);
         if (!hh || hh < 2) hh = (32 / 2) * (TH / ch);
+        // Weight: first project (i=0) → 1.0, last → 0.3, linear
+        const weight = N > 1 ? 1 - (i / (N - 1)) * 0.7 : 1;
         return {
           x:  pos?.x ?? 0.5,
           y:  pos?.y ?? 0.5,
           hw: hw / TW,
           hh: hh / TH,
+          weight,
         };
       });
       switch (type) {

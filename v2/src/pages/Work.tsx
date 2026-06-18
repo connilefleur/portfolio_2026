@@ -26,6 +26,7 @@ function listThumb(p: Project): Thumb | null {
 const CATEGORIES = [
   { key: 'video', label: 'Edit' },
   { key: 'cgi',   label: 'CGI'  },
+  { key: 'photo', label: 'Photo' },
   { key: 'code',  label: 'Code' },
 ] as const;
 

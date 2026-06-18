@@ -90,11 +90,14 @@ uniform sampler2D uAgents;
 uniform vec2 uTSz, uHoverPos;
 uniform float uHoverAct;
 out float vBoost;
+out vec2 vWallUv;
 void main(){
   int i = int(aIdx);
   vec4 ag = texelFetch(uAgents, ivec2(i % ${atw}, i / ${atw}), 0);
-  gl_Position = vec4((ag.xy / uTSz) * 2.0 - 1.0, 0.0, 1.0);
+  vec2 uv = ag.xy / uTSz;
+  gl_Position = vec4(uv * 2.0 - 1.0, 0.0, 1.0);
   gl_PointSize = 1.0;
+  vWallUv = uv;
   float hd = length(ag.xy - uHoverPos) / (uTSz.x * 0.18);
   vBoost = exp(-hd * hd * 2.5) * uHoverAct * 8.0;
 }`;
@@ -103,9 +106,14 @@ void main(){
 const DEPOSIT_FS = `#version 300 es
 precision mediump float;
 uniform float uAmt;
+uniform sampler2D uWall;
 in float vBoost;
+in vec2 vWallUv;
 out vec4 fragColor;
-void main(){ fragColor = vec4(uAmt * (1.0 + vBoost), 0.0, 0.0, 1.0); }`;
+void main(){
+  if (texture(uWall, vWallUv).r > 0.5) discard;
+  fragColor = vec4(uAmt * (1.0 + vBoost), 0.0, 0.0, 1.0);
+}`;
 
 // ── Food VS — GL_POINTS at node positions ─────────────────────────────────────
 const FOOD_VS = `#version 300 es
@@ -129,13 +137,20 @@ in vec2 vUv; out vec4 fragColor;
 void main(){
   vec2  t = 1.0 / vec2(textureSize(uTrail, 0));
   float s = 0.0;
-  for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++)
-    s += texture(uTrail, vUv + vec2(x, y) * t).r;
+  float nearWall = 0.0;
+  for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) {
+    vec2 uvS = vUv + vec2(x, y) * t;
+    s        += texture(uTrail, uvS).r;
+    nearWall  = max(nearWall, texture(uWall, uvS).r);
+  }
   float v    = mix(texture(uTrail, vUv).r, s / 9.0, uDiffuse) * uDecay;
   // Extra decay for saturated pixels — full areas dim out over time
   float fill = clamp(v / uCap, 0.0, 1.0);
   v *= (1.0 - fill * fill * 0.012);
+  // Hard zero inside wall; extra 20% decay for pixels adjacent to wall — suppresses
+  // the density ring that builds up at the wall boundary and makes labels unreadable.
   v *= (1.0 - step(0.5, texture(uWall, vUv).r));
+  v *= (1.0 - step(0.5, nearWall) * 0.20);
   fragColor = vec4(min(v, uCap), 0.0, 0.0, 1.0);
 }`;
 
@@ -162,7 +177,7 @@ export function createPhysarumEngine(
   gl: WebGL2RenderingContext,
   _vao: WebGLVertexArrayObject,
   TW: number, TH: number,
-  nodePositions: Array<{ x: number; y: number; hw?: number; hh?: number }>,
+  nodePositions: Array<{ x: number; y: number; hw?: number; hh?: number; weight?: number }>,
 ): Engine {
   let tw = TW, th = TH;
 
@@ -223,6 +238,7 @@ export function createPhysarumEngine(
     Amt:      gl.getUniformLocation(pDeposit, 'uAmt'),
     HoverPos: gl.getUniformLocation(pDeposit, 'uHoverPos'),
     HoverAct: gl.getUniformLocation(pDeposit, 'uHoverAct'),
+    Wall:     gl.getUniformLocation(pDeposit, 'uWall'),
   };
   const uV = {
     Trail:  gl.getUniformLocation(pVis, 'uTrail'),
@@ -246,7 +262,8 @@ export function createPhysarumEngine(
   gl.uniform1f(uDiff.Diffuse, P.diffuse); gl.uniform1f(uDiff.Cap, P.trailCap);
 
   gl.useProgram(pDeposit);
-  gl.uniform1i(uDep.Agents, 0); gl.uniform1f(uDep.Amt, P.deposit);
+  gl.uniform1i(uDep.Agents, 0); gl.uniform1i(uDep.Wall, 1);
+  gl.uniform1f(uDep.Amt, P.deposit);
   gl.uniform2f(uDep.TSz, TW, TH);
 
   gl.useProgram(pVis);
@@ -323,32 +340,39 @@ export function createPhysarumEngine(
   const agentSeedBuf = new Float32Array(NUM_AGENTS * 4);
 
   // ── Seed agents radially outward from label-box perimeters ────────────────
+  // Agents per node are weighted by node.weight (1.0 = most important, lower = less).
+  // Seed perimeter matches the wall texture padding (1.55×) so agents start outside the wall.
   const seedAgents = (): Float32Array => {
-    const data = agentSeedBuf;
-    for (let i = 0; i < NUM_AGENTS; i++) {
-      const node = nodePositions[i % nodePositions.length];
-      const cx   = node.x * tw;
-      const cy   = node.y * th;
-      // Expand slightly beyond the label wall so agents start outside it
-      const hw   = (node.hw ?? 0.04) * tw + 5;
-      const hh   = (node.hh ?? 0.04) * th + 5;
-
-      // Arc-length uniform sample on rectangle perimeter
+    const data   = agentSeedBuf;
+    const N      = nodePositions.length;
+    const weights = nodePositions.map(n => n.weight ?? 1);
+    const totalW  = weights.reduce((a, b) => a + b, 0);
+    let agIdx = 0;
+    for (let ni = 0; ni < N; ni++) {
+      const node  = nodePositions[ni];
+      const count = ni === N - 1
+        ? NUM_AGENTS - agIdx
+        : Math.round((weights[ni] / totalW) * NUM_AGENTS);
+      const cx = node.x * tw;
+      const cy = node.y * th;
+      // Match the 1.85× wall padding used in buildWallTex, plus a small outward margin
+      const hw = (node.hw ?? 0.04) * tw * 1.85 + 6;
+      const hh = (node.hh ?? 0.04) * th * 1.85 + 6;
       const perim = 2 * (hw + hh);
-      const t     = Math.random() * perim;
-      let px: number, py: number;
-      if      (t < hw)            { px = cx - hw + t;              py = cy + hh; }
-      else if (t < 2 * hw)        { px = cx - hw + (t - hw);       py = cy - hh; }
-      else if (t < 2 * hw + hh)   { px = cx + hw;                  py = cy - hh + (t - 2 * hw); }
-      else                        { px = cx - hw;                  py = cy - hh + (t - 2 * hw - hh); }
-
-      // Wide fan (±π/1.4) so agents from each perimeter point spread broadly, fewer blobs
-      const angle = Math.atan2(py - cy, px - cx) + (Math.random() - 0.5) * 2.4;
-
-      data[i*4]   = px;
-      data[i*4+1] = py;
-      data[i*4+2] = angle;
-      data[i*4+3] = 0;
+      for (let k = 0; k < count; k++, agIdx++) {
+        const t = Math.random() * perim;
+        let px: number, py: number;
+        if      (t < hw)            { px = cx - hw + t;              py = cy + hh; }
+        else if (t < 2 * hw)        { px = cx - hw + (t - hw);       py = cy - hh; }
+        else if (t < 2 * hw + hh)   { px = cx + hw;                  py = cy - hh + (t - 2 * hw); }
+        else                        { px = cx - hw;                  py = cy - hh + (t - 2 * hw - hh); }
+        // Wide fan (±π/1.4) so agents from each perimeter point spread broadly
+        const angle = Math.atan2(py - cy, px - cx) + (Math.random() - 0.5) * 2.4;
+        data[agIdx*4]   = px;
+        data[agIdx*4+1] = py;
+        data[agIdx*4+2] = angle;
+        data[agIdx*4+3] = 0;
+      }
     }
     return agentSeedBuf;
   };
@@ -455,6 +479,7 @@ export function createPhysarumEngine(
           gl.useProgram(pDeposit);
           gl.bindVertexArray(agentIdxVao);
           bindTex(gl, 0, agTex[ag]);
+          bindTex(gl, 1, activeWall);
           gl.uniform2f(uDep.HoverPos, hoverX, hoverY);
           gl.uniform1f(uDep.HoverAct, hoverAct);
           gl.drawArrays(gl.POINTS, 0, NUM_AGENTS);
