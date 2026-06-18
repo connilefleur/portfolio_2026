@@ -119,13 +119,13 @@ export const PROJECTS: Project[] = [
   {
     id: 'boss',
     order: 7, idx: '007', yearShort: '22',
-    nm: 'BOSS SR23', year: '2022', title: 'BOSS\nSpring/Resort 2023',
+    nm: 'BOSS SS23', year: '2022', title: 'BOSS\nSpring/Summer 2023',
     category: 'Photo', axis: 'photo', count: 5,
     client: 'Hugo Boss',
     info1h: 'Campaign',
-    info1: 'Lookbook production for Hugo Boss Spring/Resort 2023 — Black & White edition. Studio and location shoot across multiple setups, documenting the menswear collection in a high-contrast monochrome treatment unified across all looks.',
+    info1: 'Lookbook for Hugo Boss Spring/Summer 2023 — Black & White edition. Full production responsibility: lighting design, photography and retouching across multiple setups documenting the menswear collection.',
     info2h: 'Production',
-    info2: 'Five-look editorial series. B&W grade and retouching applied in post to establish a consistent visual identity across the collection. Shot on location in San Francisco.',
+    info2: 'Five-look editorial series shot on location in San Francisco. High-contrast B&W treatment developed and applied in retouching to establish a unified visual identity across the collection.',
     media: [
       { url: '/projects/boss/images/_responsive/boss-sr23-0001-w1600.webp', srcSet: '/projects/boss/images/_responsive/boss-sr23-0001-w480.webp 480w, /projects/boss/images/_responsive/boss-sr23-0001-w960.webp 960w, /projects/boss/images/_responsive/boss-sr23-0001-w1600.webp 1600w', type: 'image', label: 'Look 001' },
       { url: '/projects/boss/images/_responsive/boss-sr23-0002-w1600.webp', srcSet: '/projects/boss/images/_responsive/boss-sr23-0002-w480.webp 480w, /projects/boss/images/_responsive/boss-sr23-0002-w960.webp 960w, /projects/boss/images/_responsive/boss-sr23-0002-w1600.webp 1600w', type: 'image', label: 'Look 002' },

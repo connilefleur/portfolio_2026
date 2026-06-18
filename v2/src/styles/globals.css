@@ -568,6 +568,9 @@ html, body {
   scrollbar-width: thin;
   scrollbar-color: var(--hair) transparent;
 }
+@media (hover: hover) and (pointer: fine) {
+  .vw-panel-body { overflow-y: hidden; }
+}
 
 /* ── Media list ── */
 .vw-media-list {
