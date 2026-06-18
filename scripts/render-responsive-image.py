@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 
-def save_variant(img, original, output_path: Path):
+def save_variant(img, original, output_path: Path, quality: int = 92, lossless: bool = False):
     ext = output_path.suffix.lower()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if ext in {".jpg", ".jpeg"}:
@@ -25,22 +25,11 @@ def save_variant(img, original, output_path: Path):
         return
 
     if ext == ".png":
-        save_kwargs = {
-            "format": "PNG",
-            "optimize": True,
-            "compress_level": 9,
-        }
-        img.save(output_path, **save_kwargs)
+        img.save(output_path, format="PNG", optimize=True, compress_level=9)
         return
 
     if ext == ".webp":
-        save_kwargs = {
-            "format": "WEBP",
-            "lossless": True,
-            "quality": 100,
-            "method": 6,
-        }
-        img.save(output_path, **save_kwargs)
+        img.save(output_path, format="WEBP", lossless=lossless, quality=quality, method=6)
         return
 
     raise ValueError(f"Unsupported responsive image format: {ext}")
@@ -53,6 +42,8 @@ def main():
     parser.add_argument("--output-prefix", required=True)
     parser.add_argument("--widths", required=True)
     parser.add_argument("--relative-dir", default="")
+    parser.add_argument("--quality", type=int, default=92, help="Lossy WebP quality (1-100)")
+    parser.add_argument("--lossless", action="store_true", help="Use lossless WebP (for screenshots)")
     args = parser.parse_args()
 
     source_path = Path(args.input)
@@ -71,7 +62,7 @@ def main():
             resized = image.resize((width, height), Image.Resampling.LANCZOS)
             output_name = f"{args.output_prefix}-w{width}.webp"
             output_path = output_dir / output_name
-            save_variant(resized, original, output_path)
+            save_variant(resized, original, output_path, quality=args.quality, lossless=args.lossless)
             relative_dir = args.relative_dir.strip("/")
             relative_src = f"{relative_dir}/{output_name}" if relative_dir else output_name
             results.append({

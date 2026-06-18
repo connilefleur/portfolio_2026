@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Layout, Clock } from '../components/Layout';
-import CanvasView from '../components/CanvasView';
+import { Layout } from '../components/Layout';
+import CanvasView, { type CanvasControl } from '../components/CanvasView';
 import { Viewer } from '../components/Viewer';
 import { PROJECTS } from '../data/projects';
 import type { Project } from '../data/types';
@@ -33,7 +33,8 @@ type CatKey = typeof CATEGORIES[number]['key'];
 
 /* ── Transition constants ─────────────────────────────────────────────────── */
 type Phase = 'idle' | 'open';
-const TRANSITION_MS = 480;
+const OPEN_MS  = 180;  // viewer fade-in — pause canvas after this
+const CLOSE_MS = 80;   // viewer fade-out — clear URL after this
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 export function Work() {
@@ -47,8 +48,9 @@ export function Work() {
   const [phaseState, setPhaseState] = useState<Phase>(hasInitialProject ? 'open' : 'idle');
   const setPhase = useCallback((p: Phase) => setPhaseState(p), []);
 
-  const [engine, setEngine]           = useState<EngineType>('physarum');
-  const [fxOn,   setFxOn]             = useState(true);
+  const [engine, setEngine]             = useState<EngineType>('physarum');
+  const [fxOn,   setFxOn]               = useState(false);
+  const [dispOn, setDispOn]             = useState(true);
   const [showControls, setShowControls] = useState(false);
 
   const [hoveredId,       setHoveredId]       = useState<string | null>(null);
@@ -56,7 +58,9 @@ export function Work() {
   const activeId = hoveredId ?? touchExpandedId;
 
   const [viewerOpen, setViewerOpen] = useState(hasInitialProject);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const pauseTimerRef  = useRef<ReturnType<typeof setTimeout>>();  // fires: canvas.pause()
+  const closeTimerRef  = useRef<ReturnType<typeof setTimeout>>();  // fires: clear URL params
+  const canvasCtrlRef  = useRef<CanvasControl | null>(null);
 
   const mbodyRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +100,9 @@ export function Work() {
   /* Snap to idle if URL clears externally (browser back button) */
   useEffect(() => {
     if (!searchParams.get('project')) {
+      clearTimeout(pauseTimerRef.current);
       clearTimeout(closeTimerRef.current);
+      canvasCtrlRef.current?.resume();
       setViewerOpen(false);
       setPhase('idle');
     }
@@ -104,19 +110,25 @@ export function Work() {
 
   /* ── Open / close handlers ───────────────────────────────────────────── */
   const openMyceliumViewer = useCallback((id: string) => {
+    clearTimeout(pauseTimerRef.current);
     clearTimeout(closeTimerRef.current);
     setSearchParams({ project: id });
     setViewerOpen(true);
-    closeTimerRef.current = setTimeout(() => setPhase('open'), TRANSITION_MS);
+    pauseTimerRef.current = setTimeout(() => {
+      canvasCtrlRef.current?.pause();
+      setPhase('open');
+    }, OPEN_MS);
   }, [setPhase, setSearchParams]);
 
   const closeMyceliumViewer = useCallback(() => {
+    clearTimeout(pauseTimerRef.current);   // cancel any pending pause (closed before fade-in finished)
     clearTimeout(closeTimerRef.current);
+    canvasCtrlRef.current?.resume();       // hard resume: clearAccum + restart RAF
     setPhase('idle');
     setViewerOpen(false);
     closeTimerRef.current = setTimeout(() => {
       setSearchParams(prev => { const n = new URLSearchParams(prev); n.delete('project'); return n; });
-    }, TRANSITION_MS);
+    }, CLOSE_MS);
   }, [setPhase, setSearchParams]);
 
   function handleRowClick(id: string) {
@@ -129,8 +141,6 @@ export function Work() {
 
   const sorted = [...PROJECTS].sort((a, b) => a.order - b.order);
 
-  const meta = <Clock />;
-
   /* ── Engine controls — shown only when 'c' is pressed ───────────────────── */
   const controls = !isTouch.current && showControls && phaseState === 'idle' && (
     <div className="view-toggle">
@@ -138,14 +148,15 @@ export function Work() {
       <button className={engine === 'flow'     ? 'is-active' : ''} onClick={() => setEngine('flow')}>FLOW</button>
       <button className={engine === 'tm'       ? 'is-active' : ''} onClick={() => setEngine('tm')}>TM</button>
       <span className="view-toggle-sep" />
-      <button className={fxOn ? 'is-active' : ''} onClick={() => setFxOn(v => !v)}>FX</button>
+      <button className={dispOn ? 'is-active' : ''} onClick={() => { setDispOn(v => !v); setFxOn(false); }}>DISP</button>
+      <button className={fxOn   ? 'is-active' : ''} onClick={() => { setFxOn(v => !v);   setDispOn(false); }}>FX</button>
     </div>
   );
 
   /* ── Touch: always list view ──────────────────────────────────────────── */
   if (isTouch.current) {
     return (
-      <Layout page="work" meta={meta} contentClass="content--list" shellClass="shell--locked">
+      <Layout page="work" contentClass="content--list" shellClass="shell--locked">
         <div className="list-inner">
           <div className="mrow mhead">
             <div className="mth">#</div>
@@ -200,14 +211,15 @@ export function Work() {
 
   /* ── Desktop: always canvas view, fullscreen ─────────────────────────── */
   return (
-    <Layout page="work" meta={meta} shellClass="shell--locked shell--canvas-full">
+    <Layout page="work" shellClass="shell--locked shell--canvas-full">
       <section className="map">
         <CanvasView
           projects={PROJECTS.filter(p => p.axis !== 'code')}
           onNodeClick={openMyceliumViewer}
           engine={engine}
           fxOn={fxOn}
-          paused={phaseState === 'open'}
+          dispOn={dispOn}
+          controlRef={canvasCtrlRef}
           fullscreen
         />
       </section>

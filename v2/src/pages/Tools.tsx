@@ -1,4 +1,4 @@
-import { Layout, Clock } from '../components/Layout';
+import { Layout } from '../components/Layout';
 
 const TOOLS = [
   {
@@ -24,7 +24,7 @@ const APP_FEATURES = [
 
 export function Tools() {
   return (
-    <Layout page="tools" contentClass="content--tools" meta={<Clock />}>
+    <Layout page="tools" contentClass="content--tools">
 
       {/* ── HDAs ── */}
       <div className="tools-header">
@@ -66,7 +66,7 @@ export function Tools() {
       <div className="app-card">
         <div className="app-card-head">
           <div>
-            <p className="app-card-name">Prop Phone</p>
+            <p className="app-card-name">ReqPhone</p>
             <p className="app-card-platforms">iOS · Android · React Native</p>
           </div>
           <span className="app-card-status">In Development</span>

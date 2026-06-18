@@ -45,12 +45,20 @@ interface Props {
   onNodeClick: (id: string) => void;
   engine: EngineType;
   paused?: boolean;
+  /** Filled by CanvasView on mount — call .pause() / .resume() to control the RAF loop */
+  controlRef?: React.MutableRefObject<CanvasControl | null>;
   fxOn?: boolean;
+  dispOn?: boolean;
   fullscreen?: boolean;
   onFrame?: (canvas: HTMLCanvasElement) => void;
 }
 
-export default function CanvasView({ projects, onNodeClick, engine, paused, fxOn, fullscreen, onFrame }: Props) {
+export interface CanvasControl {
+  pause(): void;
+  resume(): void;
+}
+
+export default function CanvasView({ projects, onNodeClick, engine, paused, controlRef, fxOn, dispOn, fullscreen, onFrame }: Props) {
   const canvasRef    = useRef<HTMLCanvasElement>(null);
   const labelRefs    = useRef<(HTMLDivElement | null)[]>([]);
   const pausedRef    = useRef(!!paused);
@@ -64,14 +72,21 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, fxOn
   // Updated synchronously on every render — no useEffect delay, no Strict-Mode race
   const desiredEngineRef = useRef<EngineType>(engine);
   desiredEngineRef.current = engine;
-  const fxOnRef = useRef(!!fxOn);
+  const fxOnRef   = useRef(!!fxOn);
   fxOnRef.current = !!fxOn;
+  const dispOnRef   = useRef(!!dispOn);
+  dispOnRef.current = !!dispOn;
 
   // Randomised once per component mount (not per render) — stays stable for the page session
-  const nodePosRef = useRef<Record<string, { x: number; y: number }> | null>(null);
+  const nodePosRef  = useRef<Record<string, { x: number; y: number }> | null>(null);
+  const restartRef  = useRef<(() => void) | null>(null);
   if (!nodePosRef.current) nodePosRef.current = generateNodePos(projects.map(p => p.id));
 
-  useEffect(() => { pausedRef.current = !!paused; },     [paused]);
+  useEffect(() => {
+    if (controlRef) return; // controlRef caller manages pause/resume directly
+    pausedRef.current = !!paused;
+    if (!paused) restartRef.current?.();
+  }, [paused, controlRef]);
   useEffect(() => { onClickRef.current = onNodeClick; }, [onNodeClick]);
   useEffect(() => { onFrameRef.current = onFrame; },     [onFrame]);
 
@@ -225,8 +240,8 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, fxOn
     let rafId = 0;
 
     const frame = (now: number) => {
+      if (pausedRef.current || !currentEngine) { rafId = 0; return; }
       rafId = requestAnimationFrame(frame);
-      if (pausedRef.current || !currentEngine) return;
 
       // Handle engine switch (desiredEngineRef updated synchronously on every render)
       if (desiredEngineRef.current !== engineRef.current) {
@@ -245,26 +260,46 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, fxOn
       currentEngine.setHover?.(hn?.x ?? 0, hn?.y ?? 0, hn !== null);
       // Light mode: veins must reach close to ink (dark) to read as black on light bg.
       // Dark mode: keep dim so veins don't wash out the black background.
-      currentEngine.setBrightness?.(isLightRef.current ? 0.88 : 0.22);
+      // Dark mode: inverted — bg is a faint grey (what growth *was*), ink = pure black (what bg *was*)
+      currentEngine.setBrightness?.(isLightRef.current ? 0.88 : 1.00);
 
       const fieldTex = currentEngine.step(now);
       if (currentEngine.pollReset?.()) effects.clearAccum();
       if (!fieldTex || !textTex) return;
 
       const isLight = isLightRef.current;
-      const bg  = (isLight ? [0.925, 0.929, 0.945] : [0.000, 0.000, 0.000]) as [number,number,number];
-      const ink = (isLight ? [0.051, 0.055, 0.071] : [1.000, 1.000, 1.000]) as [number,number,number];
+      const bg  = (isLight ? [0.925, 0.929, 0.945] : [0.07, 0.07, 0.07]) as [number,number,number];
+      const ink = (isLight ? [0.051, 0.055, 0.071] : [0.00, 0.00, 0.00]) as [number,number,number];
 
-      const fx = fxOnRef.current;
+      const fx   = fxOnRef.current;
+      const disp = dispOnRef.current;
       effects.render({
-        fieldTex, textTex, bg, ink,
-        displace:  fx,
+        fieldTex, textTex, wallTex, bg, ink,
+        displace:  fx || disp,
         trailStr:  fx ? 0.35 : 0,
         vW: canvas.width, vH: canvas.height,
       });
 
       onFrameRef.current?.(canvas);
     };
+
+    const restart = () => {
+      if (rafId === 0 && !pausedRef.current) rafId = requestAnimationFrame(frame);
+    };
+    restartRef.current = restart;
+
+    if (controlRef) {
+      controlRef.current = {
+        pause() {
+          cancelAnimationFrame(rafId);
+          rafId = 0;
+        },
+        resume() {
+          effects.clearAccum();
+          if (rafId === 0) rafId = requestAnimationFrame(frame);
+        },
+      };
+    }
 
     // ── Resize ─────────────────────────────────────────────────────────────────
     const resize = () => {
@@ -307,6 +342,8 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, fxOn
 
     return () => {
       cancelled = true;
+      restartRef.current = null;
+      if (controlRef) controlRef.current = null;
       window.removeEventListener('mousemove', onMouseMove);
       mq.removeEventListener('change', onMqChange);
       cancelAnimationFrame(rafId);

@@ -106,6 +106,8 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
   const vidRef = useRef<HTMLVideoElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
 
   useEffect(() => { setActiveIdx(0); }, [projectId]);
 
@@ -134,10 +136,17 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
     if (item.type === 'video') {
       img.style.display = 'none';
       vid.style.display = 'block';
-      if (vid.src !== new URL(item.url, location.href).href) vid.src = item.url;
-      vid.play().catch(() => {});
+      if (vid.src !== new URL(item.url, location.href).href) {
+        vid.src = item.url;
+        vid.poster = item.poster ?? '';
+        vid.load();
+      }
+      vid.pause();
+      setIsPlaying(false);
+      setIsBuffering(false);
     } else {
       vid.pause(); vid.style.display = 'none';
+      setIsPlaying(false);
       img.style.display = 'block';
       img.src = item.url;
       img.srcset = item.srcSet ?? '';
@@ -149,8 +158,19 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
     if (!project) {
       const vid = vidRef.current;
       if (vid) { vid.pause(); vid.removeAttribute('src'); }
+      setIsPlaying(false);
     }
   }, [project]);
+
+  function togglePlay() {
+    const vid = vidRef.current;
+    if (!vid) return;
+    if (vid.paused) {
+      vid.play().catch(() => {});
+    } else {
+      vid.pause();
+    }
+  }
 
   const close = () => {
     if (onClose) {
@@ -237,7 +257,26 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
           <span className="vw-no-media">Media coming soon</span>
         )}
         <img ref={imgRef} className="vw-img" alt="" decoding="async" style={{ display: 'none' }} />
-        <video ref={vidRef} className="vw-vid" autoPlay muted loop playsInline style={{ display: 'none' }} />
+        <video
+          ref={vidRef}
+          className="vw-vid"
+          muted loop playsInline preload="auto"
+          onClick={togglePlay}
+          onPlay={() => { setIsPlaying(true); setIsBuffering(false); }}
+          onPause={() => setIsPlaying(false)}
+          onWaiting={() => setIsBuffering(true)}
+          onPlaying={() => setIsBuffering(false)}
+          onCanPlayThrough={() => setIsBuffering(false)}
+          style={{ display: 'none', cursor: 'pointer' }}
+        />
+        {activeItem?.type === 'video' && !isPlaying && (
+          <button className="vw-play-btn" onClick={togglePlay} aria-label="Play">
+            {isBuffering
+              ? <svg className="vw-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" strokeOpacity="0.25"/><path d="M12 3a9 9 0 0 1 9 9" strokeLinecap="round"/></svg>
+              : <svg viewBox="0 0 24 24"><polygon points="5,2 22,12 5,22" fill="currentColor"/></svg>
+            }
+          </button>
+        )}
         {activeItem?.type === 'compare' && activeItem.compareUrl && (
           <CompareSlider key={activeIdx} url={activeItem.url} compareUrl={activeItem.compareUrl} />
         )}

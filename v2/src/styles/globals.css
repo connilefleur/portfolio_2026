@@ -97,7 +97,6 @@ html, body {
   align-items: center;
   gap: 10px;
   padding: 0 16px;
-  border-right: 1px solid var(--ink);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -156,10 +155,10 @@ html, body {
 /* ─── BOTTOM BAR ─────────────────────────────────────────────────────────── */
 .bar-bot {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto;
   align-items: center;
   padding: 0 16px;
-  border-top: 1px dashed var(--ink);
+  border-top: 1px solid var(--ink);
   font-size: 0.77rem;
   text-transform: uppercase;
   letter-spacing: 0.09em;
@@ -167,8 +166,7 @@ html, body {
 }
 
 .bar-bot a { color: var(--ink); text-decoration: none; }
-.bar-bot .center { text-align: center; }
-.bar-bot .right  { text-align: right; }
+.bar-bot-imprint a:hover { background: var(--hi); color: #fff; padding: 0 4px; }
 
 /* ─── LANDING — MYCELIUM NODES ───────────────────────────────────────────── */
 .map {
@@ -444,16 +442,6 @@ html, body {
   line-height: 1.8;
 }
 
-.col-label::before {
-  content: "53.55°N\A9.99°E";
-  white-space: pre;
-  position: absolute;
-  top: 40px; left: 40px;
-  font-size: 0.69rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--hair);
-}
 
 .col-fields {
   display: flex;
@@ -498,7 +486,7 @@ html, body {
 
 .field-value a { color: inherit; text-decoration: none; cursor: pointer; }
 .field-value a:hover { background: var(--hi); color: #fff; }
-.bar-bot a:hover     { background: var(--hi); color: #fff; }
+
 
 .field-value.is-mute {
   font-weight: 400;
@@ -534,11 +522,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 180ms ease;
+  transition: opacity 80ms ease;
 }
 #vw-overlay.is-open {
   opacity: 1;
   pointer-events: auto;
+  transition: opacity 180ms ease;
 }
 
 /* ── Panel ── */
@@ -548,7 +537,7 @@ html, body {
   border-right: 1px solid var(--hair);
   display: flex;
   flex-direction: column;
-  background: var(--node);
+  background: var(--bg);
   overflow: hidden;
 }
 
@@ -624,7 +613,7 @@ html, body {
 .vw-stage {
   flex: 1;
   display: flex; align-items: center; justify-content: center;
-  background: #060708;
+  background: var(--bg);
   overflow: hidden;
   position: relative;
 }
@@ -636,6 +625,27 @@ html, body {
 
 .vw-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .vw-vid { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.vw-play-btn {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 48px;
+  height: 48px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #fff;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
+  opacity: 0.9;
+  transition: opacity 0.12s, transform 0.12s;
+  pointer-events: auto;
+  z-index: 2;
+}
+.vw-play-btn:hover { opacity: 1; transform: scale(1.12); }
+.vw-spin { animation: vw-spin 0.9s linear infinite; }
+@keyframes vw-spin { to { transform: rotate(360deg); } }
 
 /* ── Info content ── */
 .vw-is-idx    { font-size: 0.77rem; color: var(--hi); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
@@ -1153,7 +1163,6 @@ html, body {
     height: 44px;
     padding: 0 12px;
   }
-  .bar-bot .right { display: none; }
 
   /* ── List mobile — full-height flex, same as desktop ── */
   .mrow, .mhead { grid-template-columns: 44px 1fr 1fr 1fr; }

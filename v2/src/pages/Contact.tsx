@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Layout, Clock } from '../components/Layout';
+import { Layout } from '../components/Layout';
 
 const ENC = '7981269 2151 94+';
 
@@ -7,17 +7,11 @@ export function Contact() {
   const [phone, setPhone] = useState('');
   useEffect(() => { setPhone(ENC.split('').reverse().join('')); }, []);
 
-  const meta = (
-    <>
-      <Clock />
-    </>
-  );
-
   return (
-    <Layout page="contact" meta={meta} contentClass="content--contact">
+    <Layout page="contact" contentClass="content--contact">
       <div className="col-label">
         <span className="label-kicker">Conrad Löffler</span>
-        <h1 className="label-heading">Work<br />around<br />or find<br />out.</h1>
+        <h1 className="label-heading">Pull up<br />or reach<br />out.<br />Already.</h1>
       </div>
 
       <div className="col-fields">

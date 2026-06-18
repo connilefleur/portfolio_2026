@@ -1,14 +1,8 @@
-import { Layout, Clock } from '../components/Layout';
+import { Layout } from '../components/Layout';
 
 export function Imprint() {
-  const meta = (
-    <>
-      <Clock />
-    </>
-  );
-
   return (
-    <Layout page="imprint" meta={meta} contentClass="content--contact">
+    <Layout page="imprint" contentClass="content--contact">
       <div className="col-label">
         <span className="label-kicker">Legal</span>
         <h1 className="label-heading">Im<br />print.</h1>

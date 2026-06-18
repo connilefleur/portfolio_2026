@@ -42,6 +42,9 @@ tmp/
 drop_in/
 reference/
 
+# Source media inbox (large raw files — only projects.csv is tracked)
+content/projects/
+
 # Archived component backups
 v2/src/components/_archived/
 v2/src/components/canvas/engines/_archived/

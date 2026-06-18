@@ -3,6 +3,7 @@ export type AxisKey = 'video' | 'cgi' | 'code';
 export interface MediaItem {
   url: string;
   srcSet?: string;
+  poster?: string;
   type: 'image' | 'video' | 'compare';
   compareUrl?: string;
   link?: { label: string; url: string };  // overrides project link when this item is active

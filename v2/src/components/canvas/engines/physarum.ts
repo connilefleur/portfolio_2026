@@ -145,10 +145,11 @@ void main(){
 // screen brightness, so decay looks slow even when trail values are falling fast.
 const VIS_FS = `#version 300 es
 precision highp float;
-uniform sampler2D uTrail; uniform float uTime, uCap, uBright;
+uniform sampler2D uTrail, uWall; uniform float uTime, uCap, uBright;
 in vec2 vUv; out vec4 fragColor;
 void main(){
-  float raw    = texture(uTrail, vUv).r;
+  float wall   = step(0.5, texture(uWall, vUv).r);
+  float raw    = texture(uTrail, vUv).r * (1.0 - wall);
   float fill   = clamp(raw / uCap, 0.0, 1.0);
   float t      = sqrt(fill);
   // Pulse fades out as trail saturates — growing frontier pulses, full areas go still
@@ -225,6 +226,7 @@ export function createPhysarumEngine(
   };
   const uV = {
     Trail:  gl.getUniformLocation(pVis, 'uTrail'),
+    Wall:   gl.getUniformLocation(pVis, 'uWall'),
     Time:   gl.getUniformLocation(pVis, 'uTime'),
     Cap:    gl.getUniformLocation(pVis, 'uCap'),
     Bright: gl.getUniformLocation(pVis, 'uBright'),
@@ -248,7 +250,7 @@ export function createPhysarumEngine(
   gl.uniform2f(uDep.TSz, TW, TH);
 
   gl.useProgram(pVis);
-  gl.uniform1i(uV.Trail, 0); gl.uniform1f(uV.Cap, P.trailCap);
+  gl.uniform1i(uV.Trail, 0); gl.uniform1i(uV.Wall, 1); gl.uniform1f(uV.Cap, P.trailCap);
 
   // uTSz (agent + deposit shaders) changes only on resize — set now and in resize()
   gl.useProgram(pAgent);
@@ -466,6 +468,7 @@ export function createPhysarumEngine(
       gl.bindFramebuffer(gl.FRAMEBUFFER, visFBO);
       gl.viewport(0, 0, tw, th);
       bindTex(gl, 0, trTex[tr]);
+      bindTex(gl, 1, activeWall);
       gl.uniform1f(uV.Time,   now);
       gl.uniform1f(uV.Bright, bright);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

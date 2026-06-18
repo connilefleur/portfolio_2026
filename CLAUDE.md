@@ -7,11 +7,12 @@ npm run dev   →   http://127.0.0.1:5174
 Run from `/home/deployer/projects/portfolio/`. Config: `vite.config.ts`.
 
 ## Source (`v2/src/`)
-- `pages/Scope.tsx` — landing page ("Work" in nav): thin wrapper around PhysarumCanvas + Viewer wiring
-- `components/PhysarumCanvas.tsx` — WebGL2 Barkley reaction-diffusion sim; project nodes as floating labels; pauses when Viewer is open
-- `pages/List.tsx` — project matrix table
+- `pages/Work.tsx` — landing page ("Work" in nav): canvas view + list view + Viewer wiring
+- `components/CanvasView.tsx` — WebGL2 Physarum reaction-diffusion sim; project nodes as floating labels; RAF fully stops when Viewer is open
 - `pages/Contact.tsx` — contact page
-- `components/Layout.tsx` — shell, top/bottom bar, Clock, Viewer overlay
+- `pages/Tools.tsx` — tools/apps page
+- `components/Layout.tsx` — shell, top/bottom bar (no Clock), Viewer overlay
+- `components/Viewer.tsx` — project media viewer (images, videos with play button, compare slider)
 - `data/projects.ts` — hardcoded project data (sync from content/projects.csv manually)
 - `data/types.ts` — Project / MediaItem types
 - `styles/globals.css` — all styles (tokens, shell, nodes/nlabel, list, viewer)
@@ -23,32 +24,48 @@ Run from `/home/deployer/projects/portfolio/`. Config: `vite.config.ts`.
 
 ## Drop-in media workflow
 `drop_in/<slug>/` is the **source inbox** (gitignored, never modified by Claude).
-Raw PNGs/source files go in there — **never copy them directly to public/**.
+Raw source files (PNG, ProRes MOV, MP4) go in there — **never copy raw files directly to public/**.
+
+### Media policy
+| Media type | Format | Quality | Notes |
+|---|---|---|---|
+| Primary renders / photos | Lossy WebP | q92 | `--quality 92` (default) |
+| Secondary / screenshots | Lossless WebP | lossless | `--lossless` flag |
+| Videos | AV1/WebM | CRF 35, preset 6 | `--codec av1` (default) |
+| Video posters | JPEG first frame | q3 | auto-extracted at t=0 |
+
+**Never convert from an intermediate JPEG/WebP — always from the original source file.**
 
 ### Adding images
 ```bash
-# From source PNG in drop_in/<slug>/file.png → responsive WebP set
+# Primary renders — lossy WebP (default)
 python3 scripts/render-responsive-image.py \
   --input "drop_in/<slug>/file.png" \
   --output-dir "public/projects/<slug>/images/_responsive" \
   --output-prefix "file" \
   --widths "480,960,1600,2400"
+
+# Secondary screenshots — lossless WebP
+python3 scripts/render-responsive-image.py \
+  --input "drop_in/<slug>/screenshot.png" \
+  --output-dir "public/projects/<slug>/images/_responsive" \
+  --output-prefix "screenshot" \
+  --widths "480,960" \
+  --lossless
 ```
-Outputs: `file-w480.webp`, `file-w960.webp`, `file-w1600.webp`, `file-w2400.webp` — always WebP regardless of source format.  
-Wire up in `projects.ts` with `srcSet: "...-480w.webp 480w, ...-960w.webp 960w, ..."` and `url` pointing to the largest variant.  
-**Never convert from an intermediate JPEG/WebP — always from the original source file.**
+Outputs: `file-w480.webp`, `file-w960.webp`, etc.  
+Wire up in `projects.ts` with `url` pointing to the largest variant and `srcSet` listing all widths.
 
 ### Adding videos
 ```bash
 python3 scripts/render-web-video.py \
   --input "drop_in/<slug>/file.mov" \
   --video-output "public/projects/<slug>/videos/file.webm" \
-  --poster-output "public/projects/<slug>/videos/file-poster.jpg"
+  --poster-output "public/projects/<slug>/videos/file-poster.jpg" \
+  --codec av1 --crf 35 --cpu-used 6
 ```
-Outputs VP9/WebM + JPEG poster at ≤1920px. Always WebM/VP9 regardless of source (ProRes, MP4, MOV all work).
-
-### Quality reference (photos)
-`w480=q90  w960=q92  w1600=q93  w2400=q93` — screenshots get lossless WebP.
+Outputs AV1/WebM + JPEG poster (first frame, ≤1920px).  
+Wire up in `projects.ts` with both `url` and `poster` fields set.
 
 ## Design tokens (dark default)
 ```
@@ -59,15 +76,18 @@ Outputs VP9/WebM + JPEG poster at ≤1920px. Always WebM/VP9 regardless of sourc
 Light override via `@media (prefers-color-scheme: light)` in globals.css.
 
 ## PhysarumCanvas (WebGL RD sim)
-- Barkley reaction-diffusion, `SIM_SCALE=1.5`, `SUBSTEPS=3`
-- Project nodes: `NODE_POS` map in PhysarumCanvas.tsx (GL coords, y=0 bottom)
-- Wall texture: Canvas 2D "connilefleur" text + label rects as obstacles; Y-flipped for GL
-- Pacemakers fire along label perimeters, staggered phase per node
-- Display: ring-based (bright border, dim interior) + neighbour-sample collision boost
-- Drift: 4 aperiodic sine sums per param (a, chaos, Du, b) — no DOM updates
-- Sim pauses (RAF skips GL) when `?project=` param is present
+- Jones (2010) Physarum polycephalum agent sim, `SIM_SCALE=1.0`
+- Dark mode: inverted — bg = dim grey [0.07,0.07,0.07], ink = pure black, bright=1.0
+- Project nodes: randomised per session into a 3×3 zone grid with jitter
+- Wall texture: label rects as obstacles (white=blocked); Y-flipped for GL; VIS shader also masks walls
+- Agents seeded radially outward from label perimeters → growth expands away from labels
+- RAF fully stops when viewer is open (phaseState === 'open', 180ms after open transition)
+- Controls: press `C` — engine selector (PHY/FLOW/TM), DISP (displacement only), FX (displacement + trail)
 
 ## Gotchas
 - Never create `v2/list.html` or `v2/contact.html` — Vite would serve them directly, bypassing React Router
 - New public assets may return `text/html` after Vite start — `servePublicAlways` plugin in config fixes this; restart server if it still happens
 - WebGL2 `EXT_color_buffer_float` is required; headless SwiftShader doesn't support it → canvas stays black in CI/headless screenshots
+- Reel videos and VFX campaign video were encoded from h264/MP4 sources (no ProRes on-server); user provides ProRes for future updates
+- E30 main video (`e30-cars-pressurized-main.mp4`) still MP4 — user will provide ProRes for AV1 re-encode
+- VFX campaign (`skrtcobain-sohigh-online-v07-1080p-vp9.webm`) still VP9 — user to re-encode from ProRes locally

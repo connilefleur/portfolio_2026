@@ -40,7 +40,7 @@ export function Layout({ page, meta, children, shellClass = '', contentClass = '
         <div className="brand">
           connilefleur
         </div>
-        <div className="bar-meta">{meta}</div>
+        <div className="bar-meta" />
         <nav className="bar-nav">
           {navLinks.map(link => (
             <NavLink
@@ -60,11 +60,8 @@ export function Layout({ page, meta, children, shellClass = '', contentClass = '
       </main>
 
       <footer className="bar-bot">
-        <span><NavLink to="/imprint">Imprint</NavLink></span>
-        <span className="center">© 2026</span>
-        <span className="right">
-          <a href="mailto:connilefleur@protonmail.com">connilefleur@protonmail.com</a>
-        </span>
+        <span className="bar-bot-year">© 2026</span>
+        <span className="bar-bot-imprint"><NavLink to="/imprint">Imprint</NavLink></span>
       </footer>
     </div>
   );

@@ -20,6 +20,7 @@ precision highp float;
 uniform sampler2D uField;   // R32F [0,1] visual intensity from engine
 uniform sampler2D uAccum;   // R32F trail accumulation
 uniform sampler2D uText;    // RGBA text mask at display resolution
+uniform sampler2D uWall;    // R8  wall mask at sim resolution
 uniform vec3  uBg;
 uniform vec3  uInk;
 uniform int   uDisplace;    // 0=off 1=on
@@ -36,12 +37,15 @@ void main() {
     float dL = texture(uField, uv - vec2(off.x, 0.0)).r;
     float dU = texture(uField, uv + vec2(0.0, off.y)).r;
     float dD = texture(uField, uv - vec2(0.0, off.y)).r;
-    uv += vec2(dR - dL, dU - dD) * 0.013;
+    uv += vec2(dR - dL, dU - dD) * 0.028;
     uv  = clamp(uv, 0.001, 0.999);
   }
 
-  float eu    = texture(uField, uv).r;
-  float trail = uTrailStr > 0.0 ? texture(uAccum, vUv).r * uTrailStr : 0.0;
+  // Re-apply wall mask at true screen position after displacement —
+  // displacement can pull non-zero trail from outside the wall into wall-covered pixels.
+  float wall  = step(0.5, texture(uWall, vUv).r);
+  float eu    = texture(uField, uv).r * (1.0 - wall);
+  float trail = uTrailStr > 0.0 ? texture(uAccum, vUv).r * uTrailStr * (1.0 - wall) : 0.0;
 
   vec2  uv2 = vUv - 0.5;
   float vig = clamp(1.0 - dot(uv2, uv2) * 1.7, 0.0, 1.0);
@@ -70,6 +74,7 @@ export interface EffectStack {
   render(params: {
     fieldTex: WebGLTexture;
     textTex:  WebGLTexture;
+    wallTex:  WebGLTexture | null;
     bg:   readonly [number, number, number];
     ink:  readonly [number, number, number];
     displace:  boolean;
@@ -98,6 +103,7 @@ export function createEffectStack(
     Field:    gl.getUniformLocation(pDisplay, 'uField'),
     Accum:    gl.getUniformLocation(pDisplay, 'uAccum'),
     Text:     gl.getUniformLocation(pDisplay, 'uText'),
+    Wall:     gl.getUniformLocation(pDisplay, 'uWall'),
     Bg:       gl.getUniformLocation(pDisplay, 'uBg'),
     Ink:      gl.getUniformLocation(pDisplay, 'uInk'),
     Displace: gl.getUniformLocation(pDisplay, 'uDisplace'),
@@ -108,7 +114,7 @@ export function createEffectStack(
   gl.uniform1i(uAcc.Field, 0); gl.uniform1i(uAcc.Accum, 1);
   gl.uniform1f(uAcc.Decay, 0.94);
   gl.useProgram(pDisplay);
-  gl.uniform1i(uDisp.Field, 0); gl.uniform1i(uDisp.Accum, 1); gl.uniform1i(uDisp.Text, 2);
+  gl.uniform1i(uDisp.Field, 0); gl.uniform1i(uDisp.Accum, 1); gl.uniform1i(uDisp.Text, 2); gl.uniform1i(uDisp.Wall, 3);
 
   let accumTex: [WebGLTexture, WebGLTexture] = [null!, null!];
   let accumFBO: [WebGLFramebuffer, WebGLFramebuffer] = [null!, null!];
@@ -132,7 +138,7 @@ export function createEffectStack(
   buildAccum(TW, TH);
 
   return {
-    render({ fieldTex, textTex, bg, ink, displace, trailStr, vW, vH }) {
+    render({ fieldTex, textTex, wallTex, bg, ink, displace, trailStr, vW, vH }) {
       gl.bindVertexArray(vao);
 
       // Accumulation pass (optional — skipped if trailStr is 0)
@@ -153,6 +159,7 @@ export function createEffectStack(
       bindTex(gl, 0, fieldTex);
       bindTex(gl, 1, accumTex[accumRd]);
       bindTex(gl, 2, textTex);
+      if (wallTex) bindTex(gl, 3, wallTex);
       gl.uniform3f(uDisp.Bg,  bg[0],  bg[1],  bg[2]);
       gl.uniform3f(uDisp.Ink, ink[0], ink[1], ink[2]);
       gl.uniform1i(uDisp.Displace, displace ? 1 : 0);
