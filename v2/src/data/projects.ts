@@ -125,7 +125,7 @@ export const PROJECTS: Project[] = [
     info1h: 'Campaign',
     info1: 'Lookbook for Hugo Boss Spring/Summer 2023 — Black & White edition. Full production responsibility: lighting design, photography and retouching across multiple setups documenting the menswear collection.',
     info2h: 'Production',
-    info2: 'Five-look editorial series shot on location in San Francisco. High-contrast B&W treatment developed and applied in retouching to establish a unified visual identity across the collection.',
+    info2: 'Five-look editorial series shot on location in San Francisco. Styling by Vanessa Reid. High-contrast B&W treatment developed and applied in retouching to establish a unified visual identity across the collection.',
     media: [
       { url: '/projects/boss/images/_responsive/boss-sr23-0001-w1600.webp', srcSet: '/projects/boss/images/_responsive/boss-sr23-0001-w480.webp 480w, /projects/boss/images/_responsive/boss-sr23-0001-w960.webp 960w, /projects/boss/images/_responsive/boss-sr23-0001-w1600.webp 1600w', type: 'image', label: 'Look 001' },
       { url: '/projects/boss/images/_responsive/boss-sr23-0002-w1600.webp', srcSet: '/projects/boss/images/_responsive/boss-sr23-0002-w480.webp 480w, /projects/boss/images/_responsive/boss-sr23-0002-w960.webp 960w, /projects/boss/images/_responsive/boss-sr23-0002-w1600.webp 1600w', type: 'image', label: 'Look 002' },
