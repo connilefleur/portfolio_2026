@@ -539,6 +539,7 @@ html, body {
   flex-direction: column;
   background: var(--bg);
   overflow: hidden;
+  container-type: inline-size;
 }
 
 .vw-panel-head {
@@ -651,7 +652,7 @@ html, body {
 .vw-is-client { font-size: 0.77rem; color: var(--hi); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
 
 .vw-is-title {
-  font-size: clamp(22px, 3vw, 36px);
+  font-size: clamp(18px, 8cqi, 30px);
   font-weight: 700;
   letter-spacing: -0.03em;
   text-transform: uppercase;
@@ -659,6 +660,7 @@ html, body {
   line-height: 0.93;
   margin-bottom: 24px;
   white-space: pre-line;
+  overflow-wrap: break-word;
 }
 
 .vw-is-rule { height: 1px; background: var(--hair); margin-bottom: 24px; }
