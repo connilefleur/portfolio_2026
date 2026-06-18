@@ -532,7 +532,7 @@ html, body {
 
 /* ── Panel ── */
 .vw-panel {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
   border-right: 1px solid var(--hair);
   display: flex;
@@ -563,13 +563,8 @@ html, body {
 .vw-panel-body {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 28px 24px 20px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--hair) transparent;
-}
-@media (hover: hover) and (pointer: fine) {
-  .vw-panel-body { overflow-y: hidden; }
 }
 
 /* ── Media list ── */
@@ -670,7 +665,7 @@ html, body {
 
 .vw-is-blocks { display: flex; flex-direction: column; gap: 24px; }
 .vw-is-block-h { font-size: 0.77rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); margin-bottom: 8px; }
-.vw-is-block-p { font-size: 0.92rem; line-height: 1.8; color: var(--mute); }
+.vw-is-block-p { font-size: 0.92rem; line-height: 1.8; color: var(--mute); overflow-wrap: break-word; }
 
 .vw-is-link {
   display: inline-block;
