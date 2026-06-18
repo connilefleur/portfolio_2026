@@ -19,7 +19,7 @@
     --ink:   #0d0e12;
     --mute:  #4a5060;
     --hair:  #c6c8d2;
-    --hi:    #2878e8;
+    --hi:    #1562d6;
     --node:  #dfe0e8;
   }
 }
@@ -257,7 +257,8 @@ html, body {
  */
 .mrow {
   display: grid;
-  grid-template-columns: 56px 1fr 1fr 1fr;
+  grid-template-columns: var(--mrow-cols, 56px 1fr 1fr 1fr);
+  transition: grid-template-columns 320ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ─ header row ─ */
@@ -376,7 +377,7 @@ html, body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--bg);
-  opacity: 0.45;
+  opacity: 0.6;
   margin-top: 4px;
 }
 
@@ -617,13 +618,23 @@ html, body {
   position: relative;
 }
 
+.vw-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .vw-no-media {
   font-size: 0.69rem; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--mute);
 }
 
-.vw-img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.vw-vid { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* Natural aspect-ratio fit: always fills one axis, never crops, no excess element box */
+.vw-img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; }
+/* Video: use object-fit contain — intrinsic dimensions unknown before metadata */
+.vw-vid { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 .vw-play-btn {
   position: absolute;
@@ -1123,8 +1134,7 @@ html, body {
 
 /* ─── SMALL LAPTOP / TABLET ──────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .mrow { grid-template-columns: 44px 1fr 1fr 1fr; }
-  .mhead { grid-template-columns: 44px 1fr 1fr 1fr; }
+  .mrow { grid-template-columns: var(--mrow-cols, 44px 1fr 1fr 1fr); }
   .midx {
     padding: 0 8px 0 10px;
     font-size: 0.62rem;
@@ -1153,19 +1163,19 @@ html, body {
   .bar-top { grid-template-columns: 1fr auto; }
   .bar-meta { display: none; }
 
-  .brand { font-size: 0.77rem; padding: 0 12px; }
+  .brand { font-size: 0.85rem; padding: 0 12px; }
 
-  .bar-nav a { padding: 0 12px; font-size: 0.69rem; }
+  .bar-nav a { padding: 0 12px; font-size: 0.77rem; }
 
   .bar-bot {
     border-top: 1px solid var(--ink);
-    font-size: 0.62rem;
+    font-size: 0.72rem;
     height: 44px;
     padding: 0 12px;
   }
 
-  /* ── List mobile — full-height flex, same as desktop ── */
-  .mrow, .mhead { grid-template-columns: 44px 1fr 1fr 1fr; }
+  /* ── List mobile ── */
+  .mrow { grid-template-columns: var(--mrow-cols, 44px 1fr 1fr 1fr); }
   .mth, .midx { padding-left: 10px; padding-right: 10px; font-size: 0.62rem; }
   .cell-nm { font-size: 0.85rem; }
 
@@ -1233,11 +1243,51 @@ html, body {
     max-height: 55%;
   }
 
-  .vw-panel-body { padding: 20px 16px 16px; }
-  .vw-media-list { max-height: 170px; overflow-y: auto; }
+  .vw-panel-body {
+    padding: 20px 16px 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
   .vw-stage { flex: 1; min-height: 0; }
 
-  .vw-is-title { font-size: clamp(18px, 6vw, 28px); margin-bottom: 16px; }
+  .vw-is-title { font-size: clamp(16px, 6cqi, 26px); margin-bottom: 16px; }
   .vw-close { height: 44px; }
+}
+
+/* ── Touch-device viewer overrides ── */
+@media (hover: none) and (pointer: coarse) {
+  .vw-media-list { display: none; }
+}
+
+/* ── Swipe indicator dots (touch only) ── */
+.vw-dots {
+  display: none;
+  position: absolute;
+  bottom: 14px;
+  left: 0; right: 0;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .vw-dots { display: flex; }
+}
+
+.vw-dot {
+  height: 4px;
+  width: 4px;
+  border-radius: 2px;
+  background: rgba(228, 232, 242, 0.28);
+  transition: width 240ms cubic-bezier(0.4, 0, 0.2, 1),
+              background 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.vw-dot--active {
+  width: 18px;
+  background: rgba(228, 232, 242, 0.88);
 }

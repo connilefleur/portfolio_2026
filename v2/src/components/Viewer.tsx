@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PROJECTS_BY_ID } from '../data/projects';
+import type { Project } from '../data/types';
 
 function mediaLabel(type: 'image' | 'video' | 'compare', typeIdx: number, label?: string): string {
   if (label) return label;
@@ -20,7 +21,6 @@ function CompareSlider({ url, compareUrl }: { url: string; compareUrl: string })
   const stageRef = useRef<HTMLDivElement>(null);
   const imgRef   = useRef<HTMLImageElement>(null);
 
-  // Compute rendered image bounds inside objectFit:contain, constrain wiper to those bounds
   function updateSplit(clientX: number) {
     const stage = stageRef.current?.getBoundingClientRect();
     const img   = imgRef.current;
@@ -31,18 +31,11 @@ function CompareSlider({ url, compareUrl }: { url: string; compareUrl: string })
       const imgAspect   = img.naturalWidth / img.naturalHeight;
       const stageAspect = stage.width / stage.height;
       if (stageAspect > imgAspect) {
-        // landscape stage + portrait image → letterbox left & right
         const renderedW = stage.height * imgAspect;
         minX = (stage.width - renderedW) / 2;
         maxX = minX + renderedW;
       } else {
-        // portrait stage + landscape image → letterbox top & bottom, full width
-        const renderedH = stage.width / imgAspect;
-        const minY = (stage.height - renderedH) / 2;
-        const maxY = minY + renderedH;
-        // clamp vertical: if cursor is outside image vertically, still allow horizontal move
         minX = 0; maxX = stage.width;
-        void minY; void maxY;
       }
     }
 
@@ -103,11 +96,23 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
   const projectId = searchParams.get('project');
   const project = projectId ? PROJECTS_BY_ID[projectId] : null;
 
-  const vidRef = useRef<HTMLVideoElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const vidRef  = useRef<HTMLVideoElement>(null);
+  const imgRef  = useRef<HTMLImageElement>(null);
+  const stageEl = useRef<HTMLDivElement>(null);
+
   const [activeIdx, setActiveIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
+
+  // Swipe animation state
+  const [swipeOffset,    setSwipeOffset]    = useState(0);
+  const [swipeAnimating, setSwipeAnimating] = useState(false);
+
+  // Refs give touch handlers (set up once) stable access to current values
+  const activeIdxRef = useRef(0);
+  const projectRef   = useRef<Project | null>(null);
+  useEffect(() => { activeIdxRef.current = activeIdx; }, [activeIdx]);
+  useEffect(() => { projectRef.current   = project;   }, [project]);
 
   useEffect(() => { setActiveIdx(0); }, [projectId]);
 
@@ -119,6 +124,95 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
     return () => document.removeEventListener('keydown', onKey);
   }, [project]);
 
+  // ── Touch swipe navigation ───────────────────────────────────────────────
+  useEffect(() => {
+    const el = stageEl.current;
+    if (!el) return;
+
+    let startX = 0, startY = 0, locked = false, dragging = false;
+
+    function onTouchStart(e: TouchEvent) {
+      startX   = e.touches[0].clientX;
+      startY   = e.touches[0].clientY;
+      locked   = false;
+      dragging = false;
+      setSwipeAnimating(false);
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+
+      if (!locked) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        locked   = true;
+        dragging = Math.abs(dx) > Math.abs(dy);
+      }
+      if (!dragging) return;
+
+      // Compare items have their own horizontal wiper — let them handle touch
+      const proj = projectRef.current;
+      const idx  = activeIdxRef.current;
+      if (proj?.media[idx]?.type === 'compare') return;
+
+      e.preventDefault();
+
+      const n      = proj?.media.length ?? 1;
+      const atEdge = (idx === 0 && dx > 0) || (idx === n - 1 && dx < 0);
+      setSwipeOffset(dx * (atEdge ? 0.25 : 1));
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (!dragging) { locked = false; return; }
+      dragging = false;
+      locked   = false;
+
+      const dx   = e.changedTouches[0].clientX - startX;
+      const w    = el!.clientWidth;
+      const proj = projectRef.current;
+      const idx  = activeIdxRef.current;
+      const n    = proj?.media.length ?? 1;
+
+      if (Math.abs(dx) > w * 0.22 && n > 1) {
+        const delta = dx < 0 ? 1 : -1;
+        const nextI = idx + delta;
+
+        if (nextI >= 0 && nextI < n) {
+          const exitX  = dx < 0 ? -w : w;
+          const enterX = dx < 0 ?  w : -w;
+
+          setSwipeAnimating(true);
+          setSwipeOffset(exitX);
+
+          setTimeout(() => {
+            setActiveIdx(nextI);
+            setSwipeAnimating(false);
+            setSwipeOffset(enterX);
+            // Two rAFs: paint the off-screen enter position before enabling transition
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              setSwipeAnimating(true);
+              setSwipeOffset(0);
+            }));
+          }, 200);
+          return;
+        }
+      }
+
+      setSwipeAnimating(true);
+      setSwipeOffset(0);
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true  });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd,   { passive: true  });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove',  onTouchMove);
+      el.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, []); // set up once; live values come from refs
+
+  // ── Media switching ──────────────────────────────────────────────────────
   const activeItem = project?.media[activeIdx];
   const activeLink = activeItem?.link ?? project?.link;
 
@@ -148,9 +242,9 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
       vid.pause(); vid.style.display = 'none';
       setIsPlaying(false);
       img.style.display = 'block';
-      img.src = item.url;
+      img.src    = item.url;
       img.srcset = item.srcSet ?? '';
-      img.sizes = item.srcSet ? '(max-width: 768px) 100vw, calc(100vw - 360px)' : '';
+      img.sizes  = item.srcSet ? '(max-width: 768px) 100vw, calc(100vw - 360px)' : '';
     }
   }, [activeIdx, project]);
 
@@ -165,11 +259,7 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
   function togglePlay() {
     const vid = vidRef.current;
     if (!vid) return;
-    if (vid.paused) {
-      vid.play().catch(() => {});
-    } else {
-      vid.pause();
-    }
+    if (vid.paused) { vid.play().catch(() => {}); } else { vid.pause(); }
   }
 
   const close = () => {
@@ -180,12 +270,18 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
     }
   };
 
+  const slideStyle: React.CSSProperties = {
+    transform:  swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
+    transition: swipeAnimating     ? 'transform 220ms cubic-bezier(0.33,1,0.68,1)' : 'none',
+  };
+
   return (
     <div
       ref={ref}
       id="vw-overlay"
       className={[(isOpen ?? !!project) ? 'is-open' : '', className ?? ''].join(' ').trim()}
       aria-hidden={!project}
+      {...(!project ? { inert: '' } : {}) as React.HTMLAttributes<HTMLDivElement>}
     >
       {/* Left panel */}
       <div className="vw-panel">
@@ -252,34 +348,45 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
       </div>
 
       {/* Media stage */}
-      <div className="vw-stage">
+      <div className="vw-stage" ref={stageEl}>
         {project && project.media.length === 0 && (
           <span className="vw-no-media">Media coming soon</span>
         )}
-        <img ref={imgRef} className="vw-img" alt="" decoding="async" style={{ display: 'none' }} />
-        <video
-          ref={vidRef}
-          className="vw-vid"
-          muted loop playsInline preload="auto"
-          onClick={togglePlay}
-          onPlay={() => { setIsPlaying(true); setIsBuffering(false); }}
-          onPause={() => setIsPlaying(false)}
-          onWaiting={() => setIsBuffering(true)}
-          onPlaying={() => setIsBuffering(false)}
-          onCanPlayThrough={() => setIsBuffering(false)}
-          style={{ display: 'none', cursor: 'pointer' }}
-        />
-        {activeItem?.type === 'video' && !isPlaying && (
-          <button className="vw-play-btn" onClick={togglePlay} aria-label="Play">
-            {isBuffering
-              ? <svg className="vw-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" strokeOpacity="0.25"/><path d="M12 3a9 9 0 0 1 9 9" strokeLinecap="round"/></svg>
-              : <svg viewBox="0 0 24 24"><polygon points="5,2 22,12 5,22" fill="currentColor"/></svg>
-            }
-          </button>
+
+        {project && project.media.length > 1 && (
+          <div className="vw-dots">
+            {project.media.map((_, i) => (
+              <div key={i} className={`vw-dot${i === activeIdx ? ' vw-dot--active' : ''}`} />
+            ))}
+          </div>
         )}
-        {activeItem?.type === 'compare' && activeItem.compareUrl && (
-          <CompareSlider key={activeIdx} url={activeItem.url} compareUrl={activeItem.compareUrl} />
-        )}
+
+        <div className="vw-slide" style={slideStyle}>
+          <img ref={imgRef} className="vw-img" alt="" decoding="async" style={{ display: 'none' }} />
+          <video
+            ref={vidRef}
+            className="vw-vid"
+            muted loop playsInline preload="auto"
+            onClick={togglePlay}
+            onPlay={() => { setIsPlaying(true); setIsBuffering(false); }}
+            onPause={() => setIsPlaying(false)}
+            onWaiting={() => setIsBuffering(true)}
+            onPlaying={() => setIsBuffering(false)}
+            onCanPlayThrough={() => setIsBuffering(false)}
+            style={{ display: 'none', cursor: 'pointer' }}
+          />
+          {activeItem?.type === 'video' && !isPlaying && (
+            <button className="vw-play-btn" onClick={togglePlay} aria-label="Play">
+              {isBuffering
+                ? <svg className="vw-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" strokeOpacity="0.25"/><path d="M12 3a9 9 0 0 1 9 9" strokeLinecap="round"/></svg>
+                : <svg viewBox="0 0 24 24"><polygon points="5,2 22,12 5,22" fill="currentColor"/></svg>
+              }
+            </button>
+          )}
+          {activeItem?.type === 'compare' && activeItem.compareUrl && (
+            <CompareSlider key={activeIdx} url={activeItem.url} compareUrl={activeItem.compareUrl} />
+          )}
+        </div>
       </div>
     </div>
   );

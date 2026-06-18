@@ -1,4 +1,4 @@
-export type AxisKey = 'video' | 'cgi' | 'code' | 'photo';
+export type AxisKey = 'lens' | 'cgi' | 'code';
 
 export interface MediaItem {
   url: string;

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import CanvasView, { type CanvasControl } from '../components/CanvasView';
 import { Viewer } from '../components/Viewer';
-import { PROJECTS } from '../data/projects';
+import { PROJECTS, PROJECTS_BY_ID } from '../data/projects';
 import type { Project } from '../data/types';
 import type { EngineType } from '../components/canvas/types';
 
@@ -24,10 +24,9 @@ function listThumb(p: Project): Thumb | null {
 }
 
 const CATEGORIES = [
-  { key: 'video', label: 'Edit' },
-  { key: 'cgi',   label: 'CGI'  },
-  { key: 'photo', label: 'Photo' },
-  { key: 'code',  label: 'Code' },
+  { key: 'lens', label: 'Lens' },
+  { key: 'cgi',  label: 'CGI'  },
+  { key: 'code', label: 'Code' },
 ] as const;
 
 type CatKey = typeof CATEGORIES[number]['key'];
@@ -58,6 +57,11 @@ export function Work() {
   const [touchExpandedId, setTouchExpandedId] = useState<string | null>(null);
   const activeId = hoveredId ?? touchExpandedId;
 
+  // Column expansion CSS var — driven by which project is tapped on touch
+  const expandedAxis = touchExpandedId ? PROJECTS_BY_ID[touchExpandedId]?.axis : null;
+  const activeCatIdx = expandedAxis ? CATEGORIES.findIndex(c => c.key === expandedAxis) : -1;
+  const mrowCols = '44px ' + CATEGORIES.map((_, i) => i === activeCatIdx ? '2fr' : '1fr').join(' ');
+
   const [viewerOpen, setViewerOpen] = useState(hasInitialProject);
   const pauseTimerRef  = useRef<ReturnType<typeof setTimeout>>();  // fires: canvas.pause()
   const closeTimerRef  = useRef<ReturnType<typeof setTimeout>>();  // fires: clear URL params
@@ -79,18 +83,17 @@ export function Work() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  /* Measure column width for list view square expansion */
+  /* Compute --active-flex so the tapped row height = expanded column width (square cell) */
   useEffect(() => {
     if (!isTouch.current) return;
     const compute = () => {
       const mbody = mbodyRef.current;
       if (!mbody) return;
-      const cell = mbody.querySelector<HTMLElement>('.mcell');
-      if (!cell) return;
-      const N    = PROJECTS.length;
-      const colW = cell.offsetWidth;
-      const H    = mbody.offsetHeight;
-      const f = colW * (N - 1) / Math.max(1, H - colW);
+      const N = PROJECTS.length;
+      // Active col is 2fr out of 4fr (2+1+1) → width = available × 2/4
+      const activeColW = (mbody.offsetWidth - 44) / 2;
+      const H = mbody.offsetHeight;
+      const f = activeColW * (N - 1) / Math.max(1, H - activeColW);
       mbody.style.setProperty('--active-flex', Math.max(1, f).toFixed(3));
     };
     compute();
@@ -106,6 +109,7 @@ export function Work() {
       canvasCtrlRef.current?.resume();
       setViewerOpen(false);
       setPhase('idle');
+      setTouchExpandedId(null);
     }
   }, [searchParams, setPhase]);
 
@@ -158,7 +162,7 @@ export function Work() {
   if (isTouch.current) {
     return (
       <Layout page="work" contentClass="content--list" shellClass="shell--locked">
-        <div className="list-inner">
+        <div className="list-inner" style={{ '--mrow-cols': mrowCols } as React.CSSProperties}>
           <div className="mrow mhead">
             <div className="mth">#</div>
             {CATEGORIES.map(c => <div key={c.key} className="mth">{c.label}</div>)}
@@ -166,14 +170,12 @@ export function Work() {
           <div className="mbody" ref={mbodyRef}>
             {sorted.map(p => {
               const thumb    = listThumb(p);
-              const isActive = activeId === p.id;
+              const isActive = touchExpandedId === p.id;
               const rowCls   = `mrow mrow--body${isActive ? ' is-active' : ''}`;
               return (
                 <div
                   key={p.id}
                   className={rowCls}
-                  onMouseEnter={() => setHoveredId(p.id)}
-                  onMouseLeave={() => setHoveredId(null)}
                   onClick={() => handleRowClick(p.id)}
                 >
                   <div className="midx">{p.idx}</div>
@@ -191,7 +193,7 @@ export function Work() {
                             className={`cell-img${isActive ? ' is-visible' : ''}`}
                             src={thumb.src}
                             srcSet={thumb.srcSet}
-                            sizes="34vw"
+                            sizes="50vw"
                             alt=""
                             loading="eager"
                             decoding="async"
