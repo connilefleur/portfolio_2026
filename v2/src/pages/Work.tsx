@@ -60,7 +60,7 @@ export function Work() {
   // Column expansion CSS var — driven by which project is tapped on touch
   const expandedAxis = touchExpandedId ? PROJECTS_BY_ID[touchExpandedId]?.axis : null;
   const activeCatIdx = expandedAxis ? CATEGORIES.findIndex(c => c.key === expandedAxis) : -1;
-  const mrowCols = '44px ' + CATEGORIES.map((_, i) => i === activeCatIdx ? '2fr' : '1fr').join(' ');
+  const activeColClass = activeCatIdx >= 0 ? ` active-col-${activeCatIdx}` : '';
 
   const [viewerOpen, setViewerOpen] = useState(hasInitialProject);
   const pauseTimerRef  = useRef<ReturnType<typeof setTimeout>>();  // fires: canvas.pause()
@@ -162,7 +162,7 @@ export function Work() {
   if (isTouch.current) {
     return (
       <Layout page="work" contentClass="content--list" shellClass="shell--locked">
-        <div className="list-inner" style={{ '--mrow-cols': mrowCols } as React.CSSProperties}>
+        <div className={`list-inner${activeColClass}`}>
           <div className="mrow mhead">
             <div className="mth">#</div>
             {CATEGORIES.map(c => <div key={c.key} className="mth">{c.label}</div>)}

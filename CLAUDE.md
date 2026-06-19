@@ -74,20 +74,33 @@ Wire up in `projects.ts` with both `url` and `poster` fields set.
 --mono "JetBrains Mono"
 ```
 Light override via `@media (prefers-color-scheme: light)` in globals.css.
+Light `--hi` is `#1562d6` (not #2878e8) — darker for WCAG AA contrast on light bg.
 
 ## PhysarumCanvas (WebGL RD sim)
 - Jones (2010) Physarum polycephalum agent sim, `SIM_SCALE=1.0`
-- Dark mode: inverted — bg = dim grey [0.07,0.07,0.07], ink = pure black, bright=1.0
+- Dark mode: bg matches page --bg [0.031,0.035,0.047] (#08090c), ink = --ink [0.894,0.910,0.949] (#e4e8f2) — bright veins on black, bright=1.0
 - Project nodes: randomised per session into a 3×3 zone grid with jitter
 - Wall texture: label rects as obstacles (white=blocked); Y-flipped for GL; VIS shader also masks walls
 - Agents seeded radially outward from label perimeters → growth expands away from labels
 - RAF fully stops when viewer is open (phaseState === 'open', 180ms after open transition)
 - Controls: press `C` — engine selector (PHY/FLOW/TM), DISP (displacement only), FX (displacement + trail)
 
+## Mobile touch UX
+- Desktop: Physarum canvas view. Touch devices: always list/table view (detected via `window.matchMedia('(hover: none)')`)
+- Table has 3 category columns: `Lens` (photo+video merged), `CGI`, `Code`
+- Single tap expands row + column (2fr) to a square cell; second tap on same cell opens Viewer
+- Viewer swipe: left/right with two-phase animation; dot pagination shown on touch only
+- Media list hidden on touch (`@media (hover: none) and (pointer: coarse)`)
+
+## Accessibility
+- `#vw-overlay` gets `inert` when viewer is closed — prevents keyboard focus reaching hidden close button
+- `inert` not in React types; spread as `{...(!project ? { inert: '' } : {}) as React.HTMLAttributes<HTMLDivElement>}`
+
 ## Gotchas
 - Never create `v2/list.html` or `v2/contact.html` — Vite would serve them directly, bypassing React Router
 - New public assets may return `text/html` after Vite start — `servePublicAlways` plugin in config fixes this; restart server if it still happens
 - WebGL2 `EXT_color_buffer_float` is required; headless SwiftShader doesn't support it → canvas stays black in CI/headless screenshots
 - Reel videos and VFX campaign video were encoded from h264/MP4 sources (no ProRes on-server); user provides ProRes for future updates
-- E30 main video (`e30-cars-pressurized-main.mp4`) still MP4 — user will provide ProRes for AV1 re-encode
+- E30 main video still H.264 — user will provide ProRes for AV1 re-encode
 - VFX campaign (`skrtcobain-sohigh-online-v07-1080p-vp9.webm`) still VP9 — user to re-encode from ProRes locally
+- Lighthouse dev-mode performance scores are meaningless (unminified bundles); production score is 97

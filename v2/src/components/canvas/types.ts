@@ -9,8 +9,8 @@ export interface Engine {
   setWallTex?(tex: WebGLTexture): void;
   // Optional: camera tilt in radians (rx=pitch, ry=yaw) for 3D parallax.
   setTilt?(rx: number, ry: number): void;
-  // Optional: hovered node position (normalised [0,1]) for growth boost.
-  setHover?(x: number, y: number, active: boolean): void;
+  // Optional: hovered node — position (normalised [0,1]) + node index for ownership lookup.
+  setHover?(x: number, y: number, nodeIdx: number, active: boolean): void;
   // Optional: brightness multiplier — differs per colour scheme.
   setBrightness?(v: number): void;
   // Returns true once per cycle reset so the caller can flush effect accum buffers.

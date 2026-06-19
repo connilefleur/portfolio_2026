@@ -65,7 +65,7 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
   const onClickRef   = useRef(onNodeClick);
   const mouseTgtRef  = useRef<[number, number]>([0, 0]);   // raw normalised [-1,1]
   const mouseSmRef   = useRef<[number, number]>([0, 0]);   // smoothed
-  const hoverNodeRef = useRef<{ x: number; y: number } | null>(null);
+  const hoverNodeRef = useRef<{ x: number; y: number; idx: number } | null>(null);
   const onFrameRef   = useRef(onFrame);
   const isLightRef   = useRef(typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const engineRef    = useRef<EngineType>(engine);
@@ -114,7 +114,7 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.STENCIL_TEST);
 
-    const { vao, buf } = makeQuad(gl);
+    let { vao, buf } = makeQuad(gl);
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -138,11 +138,18 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
       const oc = document.createElement('canvas');
       oc.width = w; oc.height = h;
       const ctx = oc.getContext('2d')!;
-      // 30% larger than before: h * 0.050 (was h * 0.038)
-      const fontSize = Math.max(10, Math.round(h * 0.050));
-      ctx.font = `900 ${fontSize}px "JetBrains Mono","Arial Black",monospace`;
+      // Match CSS label: 11px × dpr, with same letter-spacing (0.16em)
+      const fontSize = Math.max(8, Math.round(11 * dpr));
+      ctx.font = `700 ${fontSize}px "JetBrains Mono",monospace`;
+      if ('letterSpacing' in ctx) (ctx as any).letterSpacing = `${(0.16 * fontSize).toFixed(1)}px`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      // text disabled
+      ctx.fillStyle = '#fff';
+      projects.forEach((p, i) => {
+        const pos = nodePosRef.current![p.id];
+        if (!pos) return;
+        // CSS canvas: y=0 at top; GL flip on upload makes pos.y=0 → v=0 (bottom). ✓
+        ctx.fillText(p.nm.toUpperCase(), pos.x * w, (1 - pos.y) * h);
+      });
       if (textTex) gl.deleteTexture(textTex);
       textTex = gl.createTexture()!;
       gl.bindTexture(gl.TEXTURE_2D, textTex);
@@ -261,10 +268,8 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
       sm[1] += (tgt[1] - sm[1]) * 0.04;
       currentEngine.setTilt?.(sm[1] * MAX_TILT, sm[0] * MAX_TILT);
       const hn = hoverNodeRef.current;
-      currentEngine.setHover?.(hn?.x ?? 0, hn?.y ?? 0, hn !== null);
+      currentEngine.setHover?.(hn?.x ?? 0, hn?.y ?? 0, hn?.idx ?? 0, hn !== null);
       // Light mode: veins must reach close to ink (dark) to read as black on light bg.
-      // Dark mode: keep dim so veins don't wash out the black background.
-      // Dark mode: inverted — bg is a faint grey (what growth *was*), ink = pure black (what bg *was*)
       currentEngine.setBrightness?.(isLightRef.current ? 0.88 : 1.00);
 
       const fieldTex = currentEngine.step(now);
@@ -272,13 +277,17 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
       if (!fieldTex || !textTex) return;
 
       const isLight = isLightRef.current;
-      const bg  = (isLight ? [0.925, 0.929, 0.945] : [0.07, 0.07, 0.07]) as [number,number,number];
-      const ink = (isLight ? [0.051, 0.055, 0.071] : [0.00, 0.00, 0.00]) as [number,number,number];
+      // Dark: match page --bg (#08090c) exactly; bright veins from --ink (#e4e8f2)
+      // Light: pale bg, dark veins (unchanged)
+      const bg  = (isLight ? [0.925, 0.929, 0.945] : [0.031, 0.035, 0.047]) as [number,number,number];
+      const ink = (isLight ? [0.051, 0.055, 0.071] : [0.894, 0.910, 0.949]) as [number,number,number];
+      // --hi: dark #4a9eff  light #1562d6
+      const hi  = (isLight ? [0.082, 0.384, 0.839] : [0.290, 0.620, 1.000]) as [number,number,number];
 
       const fx   = fxOnRef.current;
       const disp = dispOnRef.current;
       effects.render({
-        fieldTex, textTex, wallTex, bg, ink,
+        fieldTex, textTex, wallTex, bg, ink, hi,
         displace:  fx || disp,
         trailStr:  fx ? 0.35 : 0,
         vW: canvas.width, vH: canvas.height,
@@ -321,6 +330,35 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
       });
     };
 
+    // ── Context loss recovery ──────────────────────────────────────────────────
+    // GPU context can be lost when the tab is backgrounded under memory pressure.
+    // On loss we cancel the RAF; on restore we tear down all dead GL handles and
+    // rebuild from scratch — same sequence as first boot.
+    const rebuildGL = () => {
+      cancelAnimationFrame(rafId); rafId = 0;
+      currentEngine?.destroy(); currentEngine = null;
+      effects.destroy();
+      gl.deleteVertexArray(vao); gl.deleteBuffer(buf);
+      if (textTex) { gl.deleteTexture(textTex); textTex = null; }
+      if (wallTex) { gl.deleteTexture(wallTex); wallTex = null; }
+      ({ vao, buf } = makeQuad(gl));
+      effects = createEffectStack(gl, vao, TW, TH);
+      setCanvasSize();
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        measureLabels(); calcSize();
+        buildWallTex(); buildTextTex();
+        buildEngine(desiredEngineRef.current);
+        if (!pausedRef.current) rafId = requestAnimationFrame(frame);
+      });
+    };
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      cancelAnimationFrame(rafId); rafId = 0;
+    };
+    canvas.addEventListener('webglcontextlost',     onContextLost);
+    canvas.addEventListener('webglcontextrestored', rebuildGL);
+
     // ── Boot ───────────────────────────────────────────────────────────────────
     // `cancelled` prevents the async sequence from racing with StrictMode double-invocation:
     // cleanup fires before fonts.ready resolves, so we must check before starting any RAF.
@@ -350,6 +388,8 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
       if (controlRef) controlRef.current = null;
       window.removeEventListener('mousemove', onMouseMove);
       mq.removeEventListener('change', onMqChange);
+      canvas.removeEventListener('webglcontextlost',     onContextLost);
+      canvas.removeEventListener('webglcontextrestored', rebuildGL);
       cancelAnimationFrame(rafId);
       ro.disconnect();
       currentEngine?.destroy();
@@ -387,7 +427,7 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
                 pointerEvents:  'auto',
               }}
               onClick={() => { onClickRef.current(p.id); }}
-              onMouseEnter={() => { hoverNodeRef.current = pos; }}
+              onMouseEnter={() => { hoverNodeRef.current = { ...pos, idx: i }; }}
               onMouseLeave={() => { hoverNodeRef.current = null; }}
             >
               <div className="nlabel-row">
@@ -397,6 +437,7 @@ export default function CanvasView({ projects, onNodeClick, engine, paused, cont
           );
         })}
       </div>
+      <p className="canvas-hint">Physarum polycephalum — slime mould algorithm running as a custom WebGL2 shader</p>
     </div>
   );
 }

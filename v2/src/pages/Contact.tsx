@@ -11,7 +11,8 @@ export function Contact() {
     <Layout page="contact" contentClass="content--contact">
       <div className="col-label">
         <span className="label-kicker">Conrad Löffler</span>
-        <h1 className="label-heading">Pull up<br />or reach<br />out.<br />Already.</h1>
+        <h1 className="label-heading">Mails are<br />for words,<br />so drop<br />me one.</h1>
+        <p className="label-sub">Cat memes also accepted.</p>
       </div>
 
       <div className="col-fields">
@@ -50,11 +51,11 @@ export function Contact() {
           <div>
             <div className="field-label">Services</div>
             <div className="field-value is-mute">
-              Houdini simulation and procedural FX<br />
-              Lookdev, rendering and USD pipeline<br />
-              Product and industrial 3D<br />
+              Houdini FX and procedural simulation<br />
+              Lookdev, rendering, USD pipeline<br />
+              Product and industrial 3D visualization<br />
               VFX supervision and technical direction<br />
-              Web development and agentic tooling<br />
+              Web and agentic tooling<br />
               Color grading and delivery
             </div>
           </div>

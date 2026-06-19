@@ -13,12 +13,17 @@ export function mkShader(gl: WebGL2RenderingContext, type: number, src: string):
 }
 
 export function mkProg(gl: WebGL2RenderingContext, vs: string, fs: string): WebGLProgram {
-  const p = gl.createProgram()!;
-  gl.attachShader(p, mkShader(gl, gl.VERTEX_SHADER, vs));
-  gl.attachShader(p, mkShader(gl, gl.FRAGMENT_SHADER, fs));
+  const p   = gl.createProgram()!;
+  const vs_ = mkShader(gl, gl.VERTEX_SHADER,   vs);
+  const fs_ = mkShader(gl, gl.FRAGMENT_SHADER, fs);
+  gl.attachShader(p, vs_);
+  gl.attachShader(p, fs_);
   gl.linkProgram(p);
   if (!gl.getProgramParameter(p, gl.LINK_STATUS))
     throw new Error(gl.getProgramInfoLog(p) ?? 'link error');
+  // Shaders are baked into the program after linking — detach and free them.
+  gl.detachShader(p, vs_); gl.deleteShader(vs_);
+  gl.detachShader(p, fs_); gl.deleteShader(fs_);
   return p;
 }
 

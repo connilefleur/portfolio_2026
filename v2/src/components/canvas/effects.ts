@@ -17,12 +17,13 @@ void main() {
 
 const DISPLAY_FS = `#version 300 es
 precision highp float;
-uniform sampler2D uField;   // R32F [0,1] visual intensity from engine
+uniform sampler2D uField;   // R32F — R: visual intensity (trail + glow baked in)
 uniform sampler2D uAccum;   // R32F trail accumulation
 uniform sampler2D uText;    // RGBA text mask at display resolution
 uniform sampler2D uWall;    // R8  wall mask at sim resolution
 uniform vec3  uBg;
 uniform vec3  uInk;
+uniform vec3  uHi;          // accent colour for hover tint
 uniform int   uDisplace;    // 0=off 1=on
 uniform float uTrailStr;    // 0=off, >0 trail strength
 in vec2 vUv;
@@ -41,8 +42,7 @@ void main() {
     uv  = clamp(uv, 0.001, 0.999);
   }
 
-  // Re-apply wall mask at true screen position after displacement —
-  // displacement can pull non-zero trail from outside the wall into wall-covered pixels.
+  // Re-apply wall mask at true screen position after displacement.
   float wall  = step(0.5, texture(uWall, vUv).r);
   float eu    = texture(uField, uv).r * (1.0 - wall);
   float trail = uTrailStr > 0.0 ? texture(uAccum, vUv).r * uTrailStr * (1.0 - wall) : 0.0;
@@ -53,16 +53,7 @@ void main() {
   vec3 col = mix(uBg, uInk, eu * vig);
   col = min(vec3(1.0), col + uInk * trail * (1.0 - eu * 0.5));
 
-  // Text — always displaced by the live field so sim patterns warp through letterforms
-  vec2 tOff = 7.0 / vec2(textureSize(uField, 0));
-  float tdR = texture(uField, vUv + vec2(tOff.x, 0.0)).r;
-  float tdL = texture(uField, vUv - vec2(tOff.x, 0.0)).r;
-  float tdU = texture(uField, vUv + vec2(0.0, tOff.y)).r;
-  float tdD = texture(uField, vUv - vec2(0.0, tOff.y)).r;
-  vec2 textUv = clamp(vUv + vec2(tdR - tdL, tdU - tdD) * 0.020, 0.001, 0.999);
-
-  float text = texture(uText, textUv).r;
-  col = mix(col, vec3(0.0), text * 0.92);
+  // text sampler bound but not blended — glyph overlay reserved for future hover integration
 
   fragColor = vec4(col, 1.0);
 }`;
@@ -77,6 +68,7 @@ export interface EffectStack {
     wallTex:  WebGLTexture | null;
     bg:   readonly [number, number, number];
     ink:  readonly [number, number, number];
+    hi:   readonly [number, number, number];
     displace:  boolean;
     trailStr:  number;
     vW: number; vH: number;
@@ -106,6 +98,7 @@ export function createEffectStack(
     Wall:     gl.getUniformLocation(pDisplay, 'uWall'),
     Bg:       gl.getUniformLocation(pDisplay, 'uBg'),
     Ink:      gl.getUniformLocation(pDisplay, 'uInk'),
+    Hi:       gl.getUniformLocation(pDisplay, 'uHi'),
     Displace: gl.getUniformLocation(pDisplay, 'uDisplace'),
     TrailStr: gl.getUniformLocation(pDisplay, 'uTrailStr'),
   };
@@ -138,7 +131,7 @@ export function createEffectStack(
   buildAccum(TW, TH);
 
   return {
-    render({ fieldTex, textTex, wallTex, bg, ink, displace, trailStr, vW, vH }) {
+    render({ fieldTex, textTex, wallTex, bg, ink, hi, displace, trailStr, vW, vH }) {
       gl.bindVertexArray(vao);
 
       // Accumulation pass (optional — skipped if trailStr is 0)
@@ -162,6 +155,7 @@ export function createEffectStack(
       if (wallTex) bindTex(gl, 3, wallTex);
       gl.uniform3f(uDisp.Bg,  bg[0],  bg[1],  bg[2]);
       gl.uniform3f(uDisp.Ink, ink[0], ink[1], ink[2]);
+      gl.uniform3f(uDisp.Hi,  hi[0],  hi[1],  hi[2]);
       gl.uniform1i(uDisp.Displace, displace ? 1 : 0);
       gl.uniform1f(uDisp.TrailStr, trailStr);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
