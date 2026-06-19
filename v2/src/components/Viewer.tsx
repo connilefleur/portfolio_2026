@@ -178,21 +178,43 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
         const nextI = idx + delta;
 
         if (nextI >= 0 && nextI < n) {
-          const exitX  = dx < 0 ? -w : w;
-          const enterX = dx < 0 ?  w : -w;
+          const exitX    = dx < 0 ? -w : w;
+          const enterX   = dx < 0 ?  w : -w;
+          const nextItem = proj?.media[nextI];
 
           setSwipeAnimating(true);
           setSwipeOffset(exitX);
 
           setTimeout(() => {
+            const img = imgRef.current;
+
+            // Set next image src on the actual element now, while the slide
+            // sits off-screen at enterX, so decode runs during the gap.
+            // useEffect will also set the same URL after re-render — harmless.
+            if (img && nextItem?.type === 'image' && nextItem.url) {
+              img.src    = nextItem.url;
+              img.srcset = nextItem.srcSet ?? '';
+              img.style.display = 'block';
+            }
+
             setActiveIdx(nextI);
             setSwipeAnimating(false);
             setSwipeOffset(enterX);
-            // Two rAFs: paint the off-screen enter position before enabling transition
-            requestAnimationFrame(() => requestAnimationFrame(() => {
+
+            const slideIn = () => requestAnimationFrame(() => requestAnimationFrame(() => {
               setSwipeAnimating(true);
               setSwipeOffset(0);
             }));
+
+            if (img && nextItem?.type === 'image' && img.src && !img.complete) {
+              // Wait for decode; 400ms cap so slow connections don't stall
+              let fired = false;
+              const go = () => { if (!fired) { fired = true; slideIn(); } };
+              setTimeout(go, 400);
+              img.decode?.().then(go).catch(go);
+            } else {
+              slideIn();
+            }
           }, 200);
           return;
         }

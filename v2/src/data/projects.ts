@@ -28,7 +28,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'glasses',
     order: 2, idx: '002', yearShort: '25',
-    nm: 'Octane Glass Study', year: '2025', title: 'Octane Glass Study',
+    nm: 'Octane Refraction Studies', year: '2025', title: 'Octane Refraction Studies',
     category: 'CGI', axis: 'cgi', count: 4,
     client: 'Personal',
     info1h: 'Lookdev',
