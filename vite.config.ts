@@ -42,6 +42,23 @@ function servePublicAlways(): Plugin {
   };
 }
 
+// Strips // comments from inside GLSL template literals at build time.
+// JS/CSS comments are already stripped by esbuild; this targets shader strings.
+function stripShaderComments(): Plugin {
+  return {
+    name: "strip-shader-comments",
+    apply: "build",
+    transform(code, id) {
+      if (!id.endsWith(".ts") && !id.endsWith(".tsx")) return null;
+      if (!code.includes("`")) return null;
+      const cleaned = code.replace(/`[\s\S]*?`/g, (literal) =>
+        literal.replace(/(?<!:)\/\/[^\n]*/g, "")
+      );
+      return cleaned !== code ? { code: cleaned, map: null } : null;
+    },
+  };
+}
+
 export default defineConfig({
   root: path.resolve(__dirname, "v2"),
   publicDir: path.resolve(__dirname, "public"),
@@ -64,5 +81,5 @@ export default defineConfig({
     emptyOutDir: true,
   },
 
-  plugins: [react(), servePublicAlways()],
+  plugins: [react(), servePublicAlways(), stripShaderComments()],
 });
