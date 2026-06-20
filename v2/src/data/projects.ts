@@ -10,7 +10,7 @@ export const PROJECTS: Project[] = [
     info1h: 'Simulation Setup',
     info1: 'Vellum pressure simulation applied to a BMW E30 body shell. Each body panel was treated as a closed pressure volume — the solver inflates the geometry from within, creating organic membrane tension between panels. Pressure attributes, stiffness and damping were wedged across iterations to control the degree of inflation and surface crumpling at panel seams.',
     info2h: 'Outcome',
-    info2: 'A pressurized BMW E30 — classic car body transformed into an inflated, biomorphic object. The project proves Vellum solver understanding, pressure dynamics, constraint handling and Octane lookdev on complex deforming geometry.',
+    info2: 'A pressurized BMW E30 — a classic car body transformed into an inflated, biomorphic object. A self-directed study in controlled Vellum dynamics: pressure, stiffness and constraint handling resolved cleanly across heavily deforming geometry, with Octane lookdev on the final shells.',
     media: [
       { url: '/projects/e30/images/_responsive/cars-pressurized-rop-image1-0002-w2400.webp', srcSet: '/projects/e30/images/_responsive/cars-pressurized-rop-image1-0002-w480.webp 480w, /projects/e30/images/_responsive/cars-pressurized-rop-image1-0002-w960.webp 960w, /projects/e30/images/_responsive/cars-pressurized-rop-image1-0002-w1600.webp 1600w, /projects/e30/images/_responsive/cars-pressurized-rop-image1-0002-w2400.webp 2400w', type: 'image', label: 'Render 001' },
       { url: '/projects/e30/images/_responsive/cars-pressurized-rop-image1-0001-w2400.webp', srcSet: '/projects/e30/images/_responsive/cars-pressurized-rop-image1-0001-w480.webp 480w, /projects/e30/images/_responsive/cars-pressurized-rop-image1-0001-w960.webp 960w, /projects/e30/images/_responsive/cars-pressurized-rop-image1-0001-w1600.webp 1600w, /projects/e30/images/_responsive/cars-pressurized-rop-image1-0001-w2400.webp 2400w', type: 'image', label: 'Render 002' },
@@ -34,7 +34,7 @@ export const PROJECTS: Project[] = [
     info1h: 'Lookdev',
     info1: 'Glass material study in Octane — transmission, IOR, caustics and dispersion tuned across multiple glass types. Precision silhouette and backlit lighting rigs built to reveal internal refraction geometry. Shot-by-shot camera and lighting adjustments per form.',
     info2h: 'Outcome',
-    info2: 'Three-shot sequence demonstrating high-end glass rendering: full silhouette, animated camera pass, and tight hero composition. Proves Octane material control, render discipline and product-quality lookdev on optically complex geometry.',
+    info2: 'Three-shot sequence — full silhouette, animated camera pass and a tight hero composition. Product-grade glass rendering: clean caustics, controlled dispersion and render discipline on optically complex geometry, at the level a product or packaging campaign demands.',
     media: [
       { url: '/projects/glasses/videos/glasses-silhouettes-postprocess-video02.webm', poster: '/projects/glasses/videos/glasses-silhouettes-postprocess-video02-poster.jpg', type: 'video', label: 'Render — Hero' },
       { url: '/projects/glasses/images/_responsive/glasses-stills-0001-w1600.webp', srcSet: '/projects/glasses/images/_responsive/glasses-stills-0001-w480.webp 480w, /projects/glasses/images/_responsive/glasses-stills-0001-w960.webp 960w, /projects/glasses/images/_responsive/glasses-stills-0001-w1600.webp 1600w', type: 'image', label: 'Render 001' },
@@ -66,7 +66,7 @@ export const PROJECTS: Project[] = [
     category: 'CGI', axis: 'cgi', count: 5,
     client: 'Personal',
     info1h: 'Geospatial Pipeline',
-    info1: 'Open GeoTIFF datasets selected for geographic and visual relevance, then processed in QGIS: hexagonal tessellation generated over the map extent, cell centroids extracted, and each point sampled against the raster data. The point cloud was reprojected into Houdini-native XY space and exported as a flat CSV — one row per hex cell with all data fields as columns.',
+    info1: 'Turning open geospatial datasets into rendered, data-driven geometry. GeoTIFF sources were selected for geographic and visual relevance, then processed in QGIS: hexagonal tessellation generated over the map extent, cell centroids extracted, and each point sampled against the raster data. The point cloud was reprojected into Houdini-native XY space and exported as a flat CSV — one row per hex cell with all data fields as columns.',
     info2h: 'Houdini & Render',
     info2: 'A Python SOP ingests the CSV, places points by coordinate and promotes every column to a geometry attribute. Procedural hexagon geometry is built entirely from those attributes — extrusion, scale and shading driven by the data directly. Rendered in Octane Standalone via the Houdini plugin across a render network; final grade in Houdini Copernicus using the post-processing HDA available on this site.',
     media: [
@@ -141,7 +141,7 @@ export const PROJECTS: Project[] = [
     category: 'CGI', axis: 'cgi', count: 7,
     client: 'Personal',
     info1h: 'Range',
-    info1: 'Simulation and rendering experiments across Vellum cloth, FLIP fluid, volume VDB, COPs and AI-assisted look development via OTOY Canvas.',
+    info1: 'A working range across Vellum cloth, FLIP fluid, volume VDB, COP compositing and AI-assisted look development via OTOY Canvas — short studies covering the simulation and rendering toolset behind the commissioned work.',
     info2h: '',
     info2: '',
     media: [

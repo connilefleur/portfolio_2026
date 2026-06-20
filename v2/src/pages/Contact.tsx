@@ -21,7 +21,7 @@ export function Contact() {
           <div>
             <div className="field-label">Email</div>
             <div className="field-value">
-              <a href="mailto:connilefleur@protonmail.com">connilefleur@protonmail.com</a>
+              <a href="mailto:conrad@connilefleur.de">conrad@connilefleur.de</a>
             </div>
           </div>
         </div>
@@ -53,10 +53,10 @@ export function Contact() {
             <div className="field-value is-mute">
               Houdini FX and procedural simulation<br />
               Lookdev, rendering, USD pipeline<br />
+              Interactive web and WebGL — embeddable 3D components<br />
               Product and industrial 3D visualization<br />
               VFX supervision and technical direction<br />
-              Web and agentic tooling<br />
-              Color grading and delivery
+              Color grading, delivery and agentic tooling
             </div>
           </div>
         </div>

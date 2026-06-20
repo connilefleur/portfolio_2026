@@ -35,7 +35,7 @@ export function Imprint() {
           <div>
             <div className="field-label">Contact</div>
             <div className="field-value">
-              <a href="mailto:connilefleur@protonmail.com">connilefleur@protonmail.com</a>
+              <a href="mailto:conrad@connilefleur.de">conrad@connilefleur.de</a>
             </div>
           </div>
         </div>
