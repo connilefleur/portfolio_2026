@@ -188,7 +188,7 @@ void main(){
   vec4 ag = texelFetch(uAgents, ivec2(i % ${atw}, i / ${atw}), 0);
   vec2 uv = ag.xy / uTSz;
   gl_Position  = vec4(uv * 2.0 - 1.0, 0.0, 1.0);
-  gl_PointSize = 2.0;
+  gl_PointSize = 1.0;
   vWallUv = uv;
 }`;
 }
