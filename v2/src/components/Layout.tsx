@@ -38,7 +38,8 @@ export function Layout({ page, meta, children, shellClass = '', contentClass = '
     <div className={`shell ${shellClass}`}>
       <header className="bar-top">
         <div className="brand">
-          connilefleur
+          <span className="brand-name">conrad löffler</span>
+          <span className="brand-alt">connilefleur</span>
         </div>
         <div className="bar-meta" />
         <nav className="bar-nav">

@@ -42,17 +42,22 @@ function servePublicAlways(): Plugin {
   };
 }
 
-// Strips // comments from inside GLSL template literals at build time.
-// JS/CSS comments are already stripped by esbuild; this targets shader strings.
+// Strips // and /* */ comments from inside GLSL template literals at build time.
+// JS/CSS comments are already removed by esbuild minification, but shader source
+// lives inside string literals, so the minifier leaves it untouched. This targets
+// those strings in both our own source (.ts/.tsx) and bundled dependencies (.js,
+// e.g. three.js shader chunks), so nothing comment-related reaches the live bundle.
 function stripShaderComments(): Plugin {
   return {
     name: "strip-shader-comments",
     apply: "build",
     transform(code, id) {
-      if (!id.endsWith(".ts") && !id.endsWith(".tsx")) return null;
+      if (!/\.(ts|tsx|js|mjs|cjs)$/.test(id)) return null;
       if (!code.includes("`")) return null;
       const cleaned = code.replace(/`[\s\S]*?`/g, (literal) =>
-        literal.replace(/(?<!:)\/\/[^\n]*/g, "")
+        literal
+          .replace(/\/\*[\s\S]*?\*\//g, "") // block comments
+          .replace(/(?<!:)\/\/[^\n]*/g, "")  // line comments (skip URLs like https://)
       );
       return cleaned !== code ? { code: cleaned, map: null } : null;
     },

@@ -248,13 +248,16 @@ export function createPhysarumEngine(
 
   const rnd = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
   const P = {
-    sensorAngle:  rnd(38, 52) * Math.PI / 180,
-    sensorDist:   rnd(4.2, 6.2),
-    turnSpeed:    0.40,
+    // sensorAngle + sensorDist + turnSpeed are the macro-shape levers: widening
+    // their ranges (and randomising turnSpeed, formerly fixed) makes the emergent
+    // network read as a distinctly different shape on every page load.
+    sensorAngle:  rnd(30, 60) * Math.PI / 180,
+    sensorDist:   rnd(3.8, 7.4),
+    turnSpeed:    rnd(0.30, 0.56),
     moveSpeed:    rnd(0.13, 0.18),
     deposit:      0.003,
     decay:        rnd(0.9958, 0.9972),
-    diffuse:      0.002,
+    diffuse:      rnd(0.0016, 0.0026),
     trailCap:     0.22,
     nodeStrength: 0.0,
     nodeRadius:   22.0,

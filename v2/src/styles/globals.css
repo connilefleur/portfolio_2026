@@ -138,7 +138,13 @@ html, body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
+  cursor: default;
 }
+
+/* Default shows the name; hover swaps to the connilefleur handle. */
+.brand .brand-alt { display: none; }
+.brand:hover .brand-name { display: none; }
+.brand:hover .brand-alt { display: inline; }
 
 .brand .cursor {
   width: 6px; height: 11px;

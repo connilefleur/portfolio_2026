@@ -50,7 +50,7 @@ export function Work() {
 
   const [engine, setEngine]             = useState<EngineType>('physarum');
   const [fxOn,   setFxOn]               = useState(false);
-  const [dispOn, setDispOn]             = useState(true);
+  const [dispOn, setDispOn]             = useState(false);
   const [showControls, setShowControls] = useState(false);
 
   const [hoveredId,       setHoveredId]       = useState<string | null>(null);
