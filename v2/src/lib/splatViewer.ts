@@ -85,15 +85,16 @@ export function mountSplatViewer(
   //    their footprint — off, they render undersized.
   //  - gsplatMinPixelSize (engine default 2): discards splats below N screen px. The
   //    default culls the small gaussians on smooth surfaces → gaps; 0 keeps them.
-  const gsplatSettings = {
-    gsplatAntiAlias: opts.gsplatAntiAlias ?? true,
-    gsplatMinPixelSize: opts.gsplatMinPixelSize ?? 0,
-  };
-  try {
-    app.scene.applySettings({ render: gsplatSettings });
-    // eslint-disable-next-line no-console
-    console.log('[splat] applySettings render gsplat:', gsplatSettings, '· dpr', window.devicePixelRatio, '· maxPR', app.graphicsDevice.maxPixelRatio);
-  } catch (e) { console.warn('[splat] gsplat render settings not applied', e); }
+  // Set the params DIRECTLY on the scene's GSplatParams (app.scene.gsplat). NOT via
+  // scene.applySettings() — that needs a full settings blob (reads physics.gravity) and
+  // throws on a partial object, silently leaving the engine defaults (antiAlias=false,
+  // minPixelSize=2) in place.
+  const aa = opts.gsplatAntiAlias ?? true;
+  const minpx = opts.gsplatMinPixelSize ?? 0;
+  app.scene.gsplat.antiAlias = aa;
+  app.scene.gsplat.minPixelSize = minpx;
+  // eslint-disable-next-line no-console
+  console.log('[splat] gsplat params:', { antiAlias: aa, minPixelSize: minpx }, '· dpr', window.devicePixelRatio, '· maxPR', app.graphicsDevice.maxPixelRatio);
 
   // --- camera --------------------------------------------------------------
   const camera = new Entity('camera');
