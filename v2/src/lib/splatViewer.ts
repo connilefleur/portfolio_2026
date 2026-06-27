@@ -99,16 +99,20 @@ export function mountSplatViewer(
   //  - colorUpdateAngle 10 → 2 (finer view-dependent colour)
   //  - antiAlias true (Lichtfeld trains with AA; the viewer exposes this)
   // minPixelSize is left at the engine default (2) like the official viewer, unless overridden.
-  const gsParams = app.scene.gsplat;
   const aa = opts.gsplatAntiAlias ?? true;
-  gsParams.antiAlias = aa;
-  gsParams.alphaClip = 1 / 255;
-  gsParams.minContribution = 1;
-  gsParams.colorUpdateAngle = 2;
-  gsParams.radialSorting = true;
-  if (opts.gsplatMinPixelSize !== undefined) gsParams.minPixelSize = opts.gsplatMinPixelSize;
-  // eslint-disable-next-line no-console
-  console.log('[splat] gsplat params (supersplat-viewer match): antiAlias', aa, '· alphaClip 1/255 · minContribution 1 · colorUpdateAngle 2 · dpr', window.devicePixelRatio, '· maxPR', app.graphicsDevice.maxPixelRatio);
+  // These setters write to the unified-gsplat MATERIAL parameters, which only exist once
+  // a unified gsplat has been added to the scene — so this MUST be (re)applied AFTER the
+  // component loads, not just here at mount. Defined once, called in the load handler.
+  const applyGsplatParams = (): void => {
+    const gsParams = app.scene.gsplat;
+    gsParams.antiAlias = aa;
+    gsParams.alphaClip = 1 / 255;
+    gsParams.minContribution = 1;
+    gsParams.colorUpdateAngle = 2;
+    gsParams.radialSorting = true;
+    if (opts.gsplatMinPixelSize !== undefined) gsParams.minPixelSize = opts.gsplatMinPixelSize;
+  };
+  applyGsplatParams();
 
   // --- camera --------------------------------------------------------------
   const camera = new Entity('camera');
@@ -198,11 +202,17 @@ export function mountSplatViewer(
   const ready = new Promise<void>((resolve, reject) => {
     asset.once('load', () => {
       if (disposed) return resolve();
-      splatEntity.addComponent('gsplat', { asset });
+      splatEntity.addComponent('gsplat', { asset, unified: true });
       // Force the highest LOD only — never decimate splats on the product surface
       // (no-op for non-LOD .ply/.sog, but guarantees full detail for LOD assets).
       const gs = splatEntity.gsplat;
       if (gs) { gs.lodRangeMin = 0; gs.lodRangeMax = 1000; } // official viewer values
+      // RE-APPLY the scene gsplat params now that the unified material exists — applying
+      // them only at mount (before any gsplat) doesn't stick. THIS is why every value
+      // change appeared to do nothing.
+      applyGsplatParams();
+      // eslint-disable-next-line no-console
+      console.log('[splat] gsplat unified?', gs?.unified, '· antiAlias', app.scene.gsplat.antiAlias, '· alphaClip', app.scene.gsplat.alphaClip, '· minContribution', app.scene.gsplat.minContribution);
       camera.camera!.fov = scene.hero.fovVDeg;
 
       // Fit near/far to the splat bounds — same formula as the official supersplat-viewer:
