@@ -6,6 +6,8 @@
 import {
   Application, Asset, Entity, Color, Vec3, Quat,
   FILLMODE_NONE, RESOLUTION_AUTO,
+  CameraFrame, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F,
+  TONEMAP_NONE, TONEMAP_LINEAR,
 } from 'playcanvas';
 import type { SplatScene } from '../data/splatScenes';
 
@@ -36,6 +38,12 @@ export interface MountOptions {
   /** Unified gsplat rendering. Unified needs a CameraFrame pipeline to composite right;
    *  bare rendering may need non-unified. Default false (non-unified) for our bare setup. */
   unified?: boolean;
+  /**
+   * Tonemapping applied by the CameraFrame compose pass. SuperSplat's reference look
+   * is the editor default. 'linear' = TONEMAP_LINEAR (editor default per prior sessions),
+   * 'none' = TONEMAP_NONE (1:1 passthrough). Live A/B via /splat ?tonemap=. Default 'linear'.
+   */
+  toneMapping?: 'none' | 'linear';
   onFps?: (fps: number) => void;
   onStatus?: (status: string, ok: boolean | null) => void;
 }
@@ -126,6 +134,27 @@ export function mountSplatViewer(
     farClip: 1000,
   });
   app.root.addChild(camera);
+
+  // --- CameraFrame: render the gsplat through a high-precision FLOAT target ---------
+  // SuperSplat (same engine) accumulates many low-alpha gaussians into RGBA16F/32F and
+  // tonemaps/composes to screen. We previously rendered the gsplat BARE to the 8-bit
+  // backbuffer → quantized accumulation = the vertical banding/streaks + "thin/washed"
+  // look on smooth glossy surfaces. Float accumulation removes it. This is the one
+  // structural difference left after every gsplat param was already matched.
+  // All post-effects (bloom/ssao/grading/vignette/dof/taa) stay OFF — SuperSplat's plain
+  // look uses none. toneMapping is the single value we can't read from an export → knob.
+  // The CameraFrame constructor auto-enables (builds its render pass). We then set our
+  // rendering options and call update() to apply them — update() re-reads rendering and
+  // pushes formats/toneMapping into the existing pass. Do NOT call enable() again: it is
+  // not idempotent (it rebuilds + overwrites the pass, orphaning the constructor's one).
+  // Force RGBA16F/32F explicitly: the engine default prefers 111110F first, which has NO
+  // alpha channel — wrong for the gsplat's alpha-blended accumulation.
+  const toneMap = (opts.toneMapping ?? 'linear') === 'none' ? TONEMAP_NONE : TONEMAP_LINEAR;
+  const cameraFrame = new CameraFrame(app, camera.camera!);
+  cameraFrame.rendering.renderFormats = [PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F];
+  cameraFrame.rendering.toneMapping = toneMap;
+  cameraFrame.rendering.samples = 1;            // SuperSplat default; no MSAA (splats don't benefit)
+  cameraFrame.update();                          // apply the rendering changes above
 
   // --- splat ---------------------------------------------------------------
   const splatEntity = new Entity('splat');
@@ -268,6 +297,7 @@ export function mountSplatViewer(
       box.removeEventListener('pointermove', onMove);
       box.removeEventListener('pointerleave', onLeave);
       box.removeEventListener('wheel', onWheel);
+      try { cameraFrame.destroy(); } catch { /* ignore */ }
       try { app.destroy(); } catch { /* ignore */ }
       if (canvas.parentNode === box) box.removeChild(canvas);
     },
