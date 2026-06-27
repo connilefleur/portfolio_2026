@@ -29,6 +29,10 @@ export interface MountOptions {
   gsplatAntiAlias?: boolean;
   /** Discard splats below this screen-px size (engine default 2). Default 0 = keep all. */
   gsplatMinPixelSize?: number;
+  /** Override camera near clip (default: auto-fit to splat bounds). */
+  near?: number;
+  /** Override camera far clip (default: auto-fit to splat bounds). */
+  far?: number;
   onFps?: (fps: number) => void;
   onStatus?: (status: string, ok: boolean | null) => void;
 }
@@ -190,6 +194,30 @@ export function mountSplatViewer(
       const gs = splatEntity.gsplat;
       if (gs) { gs.lodRangeMin = 0; gs.lodRangeMax = 0; }
       camera.camera!.fov = scene.hero.fovVDeg;
+
+      // Fit near/far TIGHTLY to the splat bounds (SuperSplat does this). The fixed
+      // 0.01/1000 we used = ~100000:1 range = almost no depth precision at the product
+      // distance (~2 units) → gsplat depth/blend degrades = the see-through / not-smooth
+      // look. Tightening to dist ± boundRadius restores precision.
+      const res = asset.resource as unknown as
+        { aabb?: { center: { x: number; y: number; z: number }; halfExtents: { x: number; y: number; z: number } } } | null;
+      let near = opts.near, far = opts.far;
+      if (near === undefined || far === undefined) {
+        const wp = scene.hero.worldPosition;
+        if (res?.aabb?.center && res.aabb.halfExtents) {
+          const c = res.aabb.center, h = res.aabb.halfExtents;
+          const r = Math.hypot(h.x, h.y, h.z);
+          const dist = Math.hypot(wp[0] - c.x, wp[1] - c.y, wp[2] - c.z);
+          near = near ?? Math.max(1e-3, dist - r);
+          far = far ?? dist + r;
+        } else {
+          near = near ?? Math.max(0.05, scene.hero.orbitRadius * 0.3);
+          far = far ?? scene.hero.orbitRadius * 25;
+        }
+      }
+      camera.camera!.nearClip = near; camera.camera!.farClip = far;
+      // eslint-disable-next-line no-console
+      console.log('[splat] nearClip', near, '· farClip', far, '· aabb?', !!res?.aabb);
       loaded = true;
       warm = 0; fpsT = performance.now(); frames = 0;
       app.autoRender = renderEnabled;
