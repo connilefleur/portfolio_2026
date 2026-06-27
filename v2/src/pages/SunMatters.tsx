@@ -62,8 +62,8 @@ export function SunMatters() {
     const decelWindow = Math.max(0.15, +(sp.get('decel') ?? '') || DECEL_WINDOW);
     const minRate = Math.min(1, Math.max(RATE_MIN, +(sp.get('minrate') ?? '') || MIN_RATE));
     const warmAt = Math.max(WARM_LEAD, decelWindow);
-    // ?splateuler=x,y,z — extra splat orientation (deg) to reconcile Spark's PLY
-    // convention with the mkkellogg-tuned hero poses; dial in-browser then bake.
+    // ?splateuler=x,y,z — debug splat orientation (deg) to verify the splat frame
+    // against the COLMAP hero poses in-browser, then bake the winning value.
     const splatEuler = ((): [number, number, number] | undefined => {
       const s = sp.get('splateuler'); if (!s) return undefined;
       const a = s.split(',').map(Number);
