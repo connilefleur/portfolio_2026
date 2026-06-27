@@ -203,7 +203,7 @@ export function mountSplatViewer(
         { aabb?: { center: { x: number; y: number; z: number }; halfExtents: { x: number; y: number; z: number } } } | null;
       let near = opts.near, far = opts.far;
       if (near === undefined || far === undefined) {
-        const wp = scene.hero.worldPosition;
+        const wp = scene.hero.worldPosition, rad = scene.hero.orbitRadius;
         if (res?.aabb?.center && res.aabb.halfExtents) {
           const c = res.aabb.center, h = res.aabb.halfExtents;
           const r = Math.hypot(h.x, h.y, h.z);
@@ -211,9 +211,13 @@ export function mountSplatViewer(
           near = near ?? Math.max(1e-3, dist - r);
           far = far ?? dist + r;
         } else {
-          near = near ?? Math.max(0.05, scene.hero.orbitRadius * 0.3);
-          far = far ?? scene.hero.orbitRadius * 25;
+          near = near ?? Math.max(0.05, rad * 0.3);
+          far = far ?? rad * 25;
         }
+        // A large background set inflates the scene AABB and clamps `near` toward zero,
+        // wasting depth precision at the product. Keep `near` close to the product (40%
+        // of the orbit distance — still well in front of it) unless explicitly overridden.
+        if (opts.near === undefined) near = Math.max(near, rad * 0.4);
       }
       camera.camera!.nearClip = near; camera.camera!.farClip = far;
       // eslint-disable-next-line no-console
