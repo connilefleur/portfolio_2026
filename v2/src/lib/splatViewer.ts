@@ -194,6 +194,15 @@ export function mountSplatViewer(
       warm = 0; fpsT = performance.now(); frames = 0;
       app.autoRender = renderEnabled;
       opts.onStatus?.('loaded', true);
+      // One delayed render-stats line (after the canvas has settled) — paste this to
+      // diagnose resolution / fov / splat-count vs SuperSplat.
+      setTimeout(() => {
+        if (disposed) return;
+        const gd = app.graphicsDevice as unknown as { width: number; height: number; maxPixelRatio: number };
+        const res = asset.resource as unknown as { numSplats?: number } | null;
+        // eslint-disable-next-line no-console
+        console.log(`[splat] RENDER ${gd.width}x${gd.height} backbuffer · dpr ${window.devicePixelRatio} · maxPR ${gd.maxPixelRatio} · box ${box.clientWidth}x${box.clientHeight} · fov ${camera.camera?.fov}° · splats ${res?.numSplats ?? '?'}`);
+      }, 1500);
       resolve();
     });
     asset.once('error', (err: string) => {
