@@ -89,16 +89,26 @@ export function mountSplatViewer(
   //    their footprint — off, they render undersized.
   //  - gsplatMinPixelSize (engine default 2): discards splats below N screen px. The
   //    default culls the small gaussians on smooth surfaces → gaps; 0 keeps them.
-  // Set the params DIRECTLY on the scene's GSplatParams (app.scene.gsplat). NOT via
-  // scene.applySettings() — that needs a full settings blob (reads physics.gravity) and
-  // throws on a partial object, silently leaving the engine defaults (antiAlias=false,
-  // minPixelSize=2) in place.
+  // Match the OFFICIAL @playcanvas/supersplat-viewer gsplat params (the standalone viewer
+  // that renders splats exactly like SuperSplat). Set DIRECTLY on the scene's GSplatParams
+  // (app.scene.gsplat) — NOT scene.applySettings(), which needs a full settings blob (reads
+  // physics.gravity) and throws on a partial object. Engine defaults differ exactly where
+  // our see-through/coverage look came from:
+  //  - alphaClip 0.3 → 1/255  (0.3 under-covers the surface in the prepass = see-through)
+  //  - minContribution 3 → 1  (3 drops faint splats → gaps/transparency)
+  //  - colorUpdateAngle 10 → 2 (finer view-dependent colour)
+  //  - antiAlias true (Lichtfeld trains with AA; the viewer exposes this)
+  // minPixelSize is left at the engine default (2) like the official viewer, unless overridden.
+  const gsParams = app.scene.gsplat;
   const aa = opts.gsplatAntiAlias ?? true;
-  const minpx = opts.gsplatMinPixelSize ?? 0;
-  app.scene.gsplat.antiAlias = aa;
-  app.scene.gsplat.minPixelSize = minpx;
+  gsParams.antiAlias = aa;
+  gsParams.alphaClip = 1 / 255;
+  gsParams.minContribution = 1;
+  gsParams.colorUpdateAngle = 2;
+  gsParams.radialSorting = true;
+  if (opts.gsplatMinPixelSize !== undefined) gsParams.minPixelSize = opts.gsplatMinPixelSize;
   // eslint-disable-next-line no-console
-  console.log('[splat] gsplat params:', { antiAlias: aa, minPixelSize: minpx }, '· dpr', window.devicePixelRatio, '· maxPR', app.graphicsDevice.maxPixelRatio);
+  console.log('[splat] gsplat params (supersplat-viewer match): antiAlias', aa, '· alphaClip 1/255 · minContribution 1 · colorUpdateAngle 2 · dpr', window.devicePixelRatio, '· maxPR', app.graphicsDevice.maxPixelRatio);
 
   // --- camera --------------------------------------------------------------
   const camera = new Entity('camera');
@@ -192,32 +202,26 @@ export function mountSplatViewer(
       // Force the highest LOD only — never decimate splats on the product surface
       // (no-op for non-LOD .ply/.sog, but guarantees full detail for LOD assets).
       const gs = splatEntity.gsplat;
-      if (gs) { gs.lodRangeMin = 0; gs.lodRangeMax = 0; }
+      if (gs) { gs.lodRangeMin = 0; gs.lodRangeMax = 1000; } // official viewer values
       camera.camera!.fov = scene.hero.fovVDeg;
 
-      // Fit near/far TIGHTLY to the splat bounds (SuperSplat does this). The fixed
-      // 0.01/1000 we used = ~100000:1 range = almost no depth precision at the product
-      // distance (~2 units) → gsplat depth/blend degrades = the see-through / not-smooth
-      // look. Tightening to dist ± boundRadius restores precision.
+      // Fit near/far to the splat bounds — same formula as the official supersplat-viewer:
+      //   far  = max(dist + boundRadius, 1e-2)
+      //   near = max(dist - boundRadius, far / (1024 * 16))
       const res = asset.resource as unknown as
         { aabb?: { center: { x: number; y: number; z: number }; halfExtents: { x: number; y: number; z: number } } } | null;
       let near = opts.near, far = opts.far;
       if (near === undefined || far === undefined) {
         const wp = scene.hero.worldPosition, rad = scene.hero.orbitRadius;
+        let dist = rad, r = rad; // fallback if the AABB can't be read
         if (res?.aabb?.center && res.aabb.halfExtents) {
           const c = res.aabb.center, h = res.aabb.halfExtents;
-          const r = Math.hypot(h.x, h.y, h.z);
-          const dist = Math.hypot(wp[0] - c.x, wp[1] - c.y, wp[2] - c.z);
-          near = near ?? Math.max(1e-3, dist - r);
-          far = far ?? dist + r;
-        } else {
-          near = near ?? Math.max(0.05, rad * 0.3);
-          far = far ?? rad * 25;
+          r = Math.hypot(h.x, h.y, h.z);
+          dist = Math.hypot(wp[0] - c.x, wp[1] - c.y, wp[2] - c.z);
         }
-        // A large background set inflates the scene AABB and clamps `near` toward zero,
-        // wasting depth precision at the product. Keep `near` close to the product (40%
-        // of the orbit distance — still well in front of it) unless explicitly overridden.
-        if (opts.near === undefined) near = Math.max(near, rad * 0.4);
+        const f = Math.max(dist + r, 1e-2);
+        far = far ?? f;
+        near = near ?? Math.max(dist - r, f / (1024 * 16));
       }
       camera.camera!.nearClip = near; camera.camera!.farClip = far;
       // eslint-disable-next-line no-console
