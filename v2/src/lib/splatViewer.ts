@@ -1,0 +1,192 @@
+// Shared Gaussian-splat viewer — PlayCanvas engine (matches SuperSplat, which is
+// the PlayCanvas gsplat renderer). Swapped from @sparkjsdev/spark on 2026-06-27
+// because Spark mis-rendered these scenes (washed out + background holes) despite a
+// canonical setup. Consumed by the Sun Matters video↔splat experience and the
+// /splat-view diagnostic harness via the SplatViewerController interface below.
+import {
+  Application, Asset, Entity, Color, Vec3, Quat,
+  FILLMODE_NONE, RESOLUTION_AUTO,
+} from 'playcanvas';
+import type { SplatScene } from '../data/splatScenes';
+
+const MAX_AZ = 5, MAX_EL = 5, DAMP = 0.07; // parallax: ±5° az/el, spring damping
+
+export interface MountOptions {
+  /** Start rendering once loaded (default true). False = preload silently (no GL). */
+  renderEnabled?: boolean;
+  /** Debug splat orientation as XYZ Euler degrees — verification knob. Default identity. */
+  splatEuler?: [number, number, number];
+  /** devicePixelRatio cap. Default 2. */
+  dprCap?: number;
+  onFps?: (fps: number) => void;
+  onStatus?: (status: string, ok: boolean | null) => void;
+}
+
+export interface SplatViewerController {
+  /** Resolves once the splat is loaded and rendering. */
+  ready: Promise<void>;
+  canvas: HTMLCanvasElement;
+  /** Start/stop drawing — off while the experience is closed (no GL draws). */
+  setRenderEnabled: (enabled: boolean) => void;
+  /** When false, parallax eases back to the hero pose and pointer input is ignored. */
+  setInputEnabled: (enabled: boolean) => void;
+  /** True once the camera has settled within eps of the exact hero pose. */
+  atHero: (eps?: number) => boolean;
+  /** Frames rendered since the loop was last (re)enabled — gate crossfades on warmth. */
+  warmFrames: () => number;
+  /** Crossfade helper — sets the splat canvas opacity (0..1). */
+  setOpacity: (o: number) => void;
+  dispose: () => void;
+}
+
+export function mountSplatViewer(
+  box: HTMLElement,
+  scene: SplatScene,
+  opts: MountOptions = {},
+): SplatViewerController {
+  const pr = Math.min(window.devicePixelRatio, opts.dprCap ?? 2);
+
+  // Opaque black canvas: gaussian edges have alpha < 1, so a transparent canvas
+  // would let the video behind bleed through. The video↔splat crossfade is done
+  // via CSS opacity on this element.
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText =
+    'position:absolute;inset:0;width:100%;height:100%;z-index:1';
+  box.appendChild(canvas);
+
+  // antialias off — no benefit for splats, costs perf (PlayCanvas + Spark both advise).
+  const app = new Application(canvas, { graphicsDeviceOptions: { antialias: false } });
+  app.setCanvasFillMode(FILLMODE_NONE);    // we live in a fixed 16:9 box, not the window
+  app.setCanvasResolution(RESOLUTION_AUTO);
+  app.graphicsDevice.maxPixelRatio = pr;
+  app.autoRender = false;                  // render-gating: we toggle this on/off
+
+  // --- camera --------------------------------------------------------------
+  const camera = new Entity('camera');
+  camera.addComponent('camera', {
+    clearColor: new Color(0, 0, 0, 1),
+    fov: scene.hero.fovVDeg,               // vertical fov (horizontalFov defaults false)
+    nearClip: 0.01,
+    farClip: 1000,
+  });
+  app.root.addChild(camera);
+
+  // --- splat ---------------------------------------------------------------
+  const splatEntity = new Entity('splat');
+  const eu = opts.splatEuler ?? [0, 0, 0];
+  splatEntity.setLocalEulerAngles(eu[0], eu[1], eu[2]);
+  app.root.addChild(splatEntity);
+
+  const asset = new Asset(scene.id, 'gsplat', { url: scene.splatUrl });
+  app.assets.add(asset);
+
+  // --- parallax + spring zoom (pivot = orbitCenter, locked radius) ----------
+  const center = new Vec3(scene.hero.orbitCenter[0], scene.hero.orbitCenter[1], scene.hero.orbitCenter[2]);
+  const baseOffset = new Vec3(scene.hero.worldPosition[0], scene.hero.worldPosition[1], scene.hero.worldPosition[2]).sub(center);
+  const up = new Vec3(0, 1, 0);
+  let tgtAz = 0, tgtEl = 0, curAz = 0, curEl = 0, tgtZoom = 0, curZoom = 0;
+  let inputEnabled = true;
+
+  const qAz = new Quat(), qEl = new Quat();
+  const offset = new Vec3(), right = new Vec3();
+
+  const positionCamera = (): void => {
+    curAz += (tgtAz - curAz) * DAMP; curEl += (tgtEl - curEl) * DAMP;
+    tgtZoom *= 0.86; curZoom += (tgtZoom - curZoom) * 0.18;
+    // az about world up, then el about the resulting right axis (degrees — pc convention)
+    qAz.setFromAxisAngle(up, curAz);
+    qAz.transformVector(baseOffset, offset);
+    right.cross(up, offset).normalize();
+    qEl.setFromAxisAngle(right, curEl);
+    qEl.transformVector(offset, offset);
+    offset.mulScalar(1 - curZoom);
+    camera.setPosition(center.x + offset.x, center.y + offset.y, center.z + offset.z);
+    camera.lookAt(center.x, center.y, center.z);
+  };
+
+  const onMove = (e: PointerEvent): void => {
+    if (!inputEnabled) return;
+    const r = box.getBoundingClientRect();
+    tgtAz = -(((e.clientX - r.left) / r.width) * 2 - 1) * MAX_AZ;
+    tgtEl = -(((e.clientY - r.top) / r.height) * 2 - 1) * MAX_EL;
+  };
+  const onLeave = (): void => { tgtAz = 0; tgtEl = 0; };
+  const onWheel = (e: WheelEvent): void => {
+    if (!inputEnabled) return;
+    e.preventDefault();
+    tgtZoom = Math.max(-0.1, Math.min(0.32, tgtZoom - e.deltaY * 0.0009));
+  };
+  box.addEventListener('pointermove', onMove);
+  box.addEventListener('pointerleave', onLeave);
+  box.addEventListener('wheel', onWheel, { passive: false });
+
+  // --- render gating + warmth ----------------------------------------------
+  let disposed = false, loaded = false, warm = 0, frames = 0, fpsT = performance.now();
+  let renderEnabled = opts.renderEnabled ?? true;
+
+  // size sync each update (box may resize); cheap no-op when unchanged
+  const syncSize = (): void => {
+    const w = box.clientWidth, h = box.clientHeight;
+    if (w && h && (canvas.width !== Math.round(w * pr) || canvas.height !== Math.round(h * pr))) {
+      app.resizeCanvas(w, h);
+    }
+  };
+
+  app.on('update', () => {
+    if (disposed) return;
+    syncSize();
+    positionCamera();
+  });
+  app.on('postrender', () => {
+    warm++; frames++;
+    const now = performance.now();
+    if (now - fpsT >= 500) { opts.onFps?.(Math.round((frames * 1000) / (now - fpsT))); frames = 0; fpsT = now; }
+  });
+
+  app.start();                 // initialises the device + tick (update fires every frame)
+  // autoRender was set false above and stays false until the asset loads (ready()).
+
+  const ready = new Promise<void>((resolve, reject) => {
+    asset.once('load', () => {
+      if (disposed) return resolve();
+      splatEntity.addComponent('gsplat', { asset });
+      camera.camera!.fov = scene.hero.fovVDeg;
+      loaded = true;
+      warm = 0; fpsT = performance.now(); frames = 0;
+      app.autoRender = renderEnabled;
+      opts.onStatus?.('loaded', true);
+      resolve();
+    });
+    asset.once('error', (err: string) => {
+      if (!disposed) { opts.onStatus?.('load error', null); console.error('[splat] load failed', err); }
+      reject(new Error(err));
+    });
+    app.assets.load(asset);
+  });
+
+  return {
+    ready,
+    canvas,
+    setRenderEnabled: (enabled) => {
+      renderEnabled = enabled;
+      app.autoRender = enabled && loaded;
+      if (enabled) { warm = 0; fpsT = performance.now(); frames = 0; }
+    },
+    setInputEnabled: (enabled) => {
+      inputEnabled = enabled;
+      if (!enabled) { tgtAz = 0; tgtEl = 0; tgtZoom = 0; } // ease back to hero
+    },
+    atHero: (eps = 0.002) =>
+      Math.abs(curAz) < eps && Math.abs(curEl) < eps && Math.abs(curZoom) < eps,
+    warmFrames: () => warm,
+    setOpacity: (o) => { canvas.style.opacity = String(o); },
+    dispose: () => {
+      disposed = true;
+      box.removeEventListener('pointermove', onMove);
+      box.removeEventListener('pointerleave', onLeave);
+      box.removeEventListener('wheel', onWheel);
+      try { app.destroy(); } catch { /* ignore */ }
+      if (canvas.parentNode === box) box.removeChild(canvas);
+    },
+  };
+}
