@@ -214,37 +214,19 @@ export function mountSplatViewer(
       // GSplatParams (alphaClip/minContribution/etc.) only affect the UNIFIED path, and
       // its material doesn't exist until a unified gsplat is added — so (re)apply here.
       if (unified) applyGsplatParams();
-      // eslint-disable-next-line no-console
-      console.log('[splat] gsplat unified?', gs?.unified, '· antiAlias', app.scene.gsplat.antiAlias, '· alphaClip', app.scene.gsplat.alphaClip);
       camera.camera!.fov = scene.hero.fovVDeg;
 
       // Tight near/far around the PRODUCT (camera sits orbitRadius from it). The splat's
-      // own AABB is useless here — stray floater splats inflate it to radius ~58, which
-      // (a) forces near≈0 = no depth precision at the product → see-through, and (b) lets
-      // close floaters haze over it. A product-tight window restores precision AND clips
-      // the floaters. Override with ?near=/?far=.
-      const res = asset.resource as unknown as { aabb?: { halfExtents: { x: number; y: number; z: number } } } | null;
+      // own AABB is useless here — stray floater splats inflate it, which forces near≈0
+      // (no depth precision at the product) and lets close floaters haze over it. A
+      // product-tight window restores precision. Override with opts.near/opts.far.
       const rad = scene.hero.orbitRadius;
-      const near = opts.near ?? rad * 0.5;
-      const far = opts.far ?? rad * 10;
-      camera.camera!.nearClip = near; camera.camera!.farClip = far;
-      const r = res?.aabb?.halfExtents
-        ? Math.hypot(res.aabb.halfExtents.x, res.aabb.halfExtents.y, res.aabb.halfExtents.z) : -1;
-      // eslint-disable-next-line no-console
-      console.log('[splat] nearClip', near, '· farClip', far, '· splat AABB radius', r.toFixed(1), '(huge = floaters)');
+      camera.camera!.nearClip = opts.near ?? rad * 0.5;
+      camera.camera!.farClip = opts.far ?? rad * 10;
       loaded = true;
       warm = 0; fpsT = performance.now(); frames = 0;
       app.autoRender = renderEnabled;
       opts.onStatus?.('loaded', true);
-      // One delayed render-stats line (after the canvas has settled) — paste this to
-      // diagnose resolution / fov / splat-count vs SuperSplat.
-      setTimeout(() => {
-        if (disposed) return;
-        const gd = app.graphicsDevice as unknown as { width: number; height: number; maxPixelRatio: number };
-        const res = asset.resource as unknown as { numSplats?: number } | null;
-        // eslint-disable-next-line no-console
-        console.log(`[splat] RENDER ${gd.width}x${gd.height} backbuffer · dpr ${window.devicePixelRatio} · maxPR ${gd.maxPixelRatio} · box ${box.clientWidth}x${box.clientHeight} · fov ${camera.camera?.fov}° · splats ${res?.numSplats ?? '?'}`);
-      }, 1500);
       resolve();
     });
     asset.once('error', (err: string) => {
