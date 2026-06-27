@@ -36,6 +36,7 @@ export function SplatView() {
       gsplatMinPixelSize: num('minpx'),
       near: num('near'),
       far: num('far'),
+      unified: bool('unified'),
       dprCap: num('dpr'),
       onFps: setFps,
       onStatus: (s) => setStatus(s),

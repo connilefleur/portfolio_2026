@@ -33,6 +33,9 @@ export interface MountOptions {
   near?: number;
   /** Override camera far clip (default: auto-fit to splat bounds). */
   far?: number;
+  /** Unified gsplat rendering. Unified needs a CameraFrame pipeline to composite right;
+   *  bare rendering may need non-unified. Default false (non-unified) for our bare setup. */
+  unified?: boolean;
   onFps?: (fps: number) => void;
   onStatus?: (status: string, ok: boolean | null) => void;
 }
@@ -202,17 +205,17 @@ export function mountSplatViewer(
   const ready = new Promise<void>((resolve, reject) => {
     asset.once('load', () => {
       if (disposed) return resolve();
-      splatEntity.addComponent('gsplat', { asset, unified: true });
+      const unified = opts.unified ?? false;
+      splatEntity.addComponent('gsplat', { asset, unified });
       // Force the highest LOD only — never decimate splats on the product surface
       // (no-op for non-LOD .ply/.sog, but guarantees full detail for LOD assets).
       const gs = splatEntity.gsplat;
       if (gs) { gs.lodRangeMin = 0; gs.lodRangeMax = 1000; } // official viewer values
-      // RE-APPLY the scene gsplat params now that the unified material exists — applying
-      // them only at mount (before any gsplat) doesn't stick. THIS is why every value
-      // change appeared to do nothing.
-      applyGsplatParams();
+      // GSplatParams (alphaClip/minContribution/etc.) only affect the UNIFIED path, and
+      // its material doesn't exist until a unified gsplat is added — so (re)apply here.
+      if (unified) applyGsplatParams();
       // eslint-disable-next-line no-console
-      console.log('[splat] gsplat unified?', gs?.unified, '· antiAlias', app.scene.gsplat.antiAlias, '· alphaClip', app.scene.gsplat.alphaClip, '· minContribution', app.scene.gsplat.minContribution);
+      console.log('[splat] gsplat unified?', gs?.unified, '· antiAlias', app.scene.gsplat.antiAlias, '· alphaClip', app.scene.gsplat.alphaClip);
       camera.camera!.fov = scene.hero.fovVDeg;
 
       // Tight near/far around the PRODUCT (camera sits orbitRadius from it). The splat's
