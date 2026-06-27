@@ -215,27 +215,20 @@ export function mountSplatViewer(
       console.log('[splat] gsplat unified?', gs?.unified, '· antiAlias', app.scene.gsplat.antiAlias, '· alphaClip', app.scene.gsplat.alphaClip, '· minContribution', app.scene.gsplat.minContribution);
       camera.camera!.fov = scene.hero.fovVDeg;
 
-      // Fit near/far to the splat bounds — same formula as the official supersplat-viewer:
-      //   far  = max(dist + boundRadius, 1e-2)
-      //   near = max(dist - boundRadius, far / (1024 * 16))
-      const res = asset.resource as unknown as
-        { aabb?: { center: { x: number; y: number; z: number }; halfExtents: { x: number; y: number; z: number } } } | null;
-      let near = opts.near, far = opts.far;
-      if (near === undefined || far === undefined) {
-        const wp = scene.hero.worldPosition, rad = scene.hero.orbitRadius;
-        let dist = rad, r = rad; // fallback if the AABB can't be read
-        if (res?.aabb?.center && res.aabb.halfExtents) {
-          const c = res.aabb.center, h = res.aabb.halfExtents;
-          r = Math.hypot(h.x, h.y, h.z);
-          dist = Math.hypot(wp[0] - c.x, wp[1] - c.y, wp[2] - c.z);
-        }
-        const f = Math.max(dist + r, 1e-2);
-        far = far ?? f;
-        near = near ?? Math.max(dist - r, f / (1024 * 16));
-      }
+      // Tight near/far around the PRODUCT (camera sits orbitRadius from it). The splat's
+      // own AABB is useless here — stray floater splats inflate it to radius ~58, which
+      // (a) forces near≈0 = no depth precision at the product → see-through, and (b) lets
+      // close floaters haze over it. A product-tight window restores precision AND clips
+      // the floaters. Override with ?near=/?far=.
+      const res = asset.resource as unknown as { aabb?: { halfExtents: { x: number; y: number; z: number } } } | null;
+      const rad = scene.hero.orbitRadius;
+      const near = opts.near ?? rad * 0.5;
+      const far = opts.far ?? rad * 10;
       camera.camera!.nearClip = near; camera.camera!.farClip = far;
+      const r = res?.aabb?.halfExtents
+        ? Math.hypot(res.aabb.halfExtents.x, res.aabb.halfExtents.y, res.aabb.halfExtents.z) : -1;
       // eslint-disable-next-line no-console
-      console.log('[splat] nearClip', near, '· farClip', far, '· aabb?', !!res?.aabb);
+      console.log('[splat] nearClip', near, '· farClip', far, '· splat AABB radius', r.toFixed(1), '(huge = floaters)');
       loaded = true;
       warm = 0; fpsT = performance.now(); frames = 0;
       app.autoRender = renderEnabled;
