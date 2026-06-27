@@ -44,14 +44,15 @@ function servePublicAlways(): Plugin {
 
 // Strips // and /* */ comments from inside GLSL template literals at build time.
 // JS/CSS comments are already removed by esbuild minification, but shader source
-// lives inside string literals, so the minifier leaves it untouched. This targets
-// those strings in both our own source (.ts/.tsx) and bundled dependencies (.js,
-// e.g. three.js shader chunks), so nothing comment-related reaches the live bundle.
+// lives inside string literals, so the minifier leaves it untouched. Only applied
+// to project source files (not node_modules) — dependencies like PlayCanvas use
+// `//` inside template literals as URL protocol strings, not GLSL comments.
 function stripShaderComments(): Plugin {
   return {
     name: "strip-shader-comments",
     apply: "build",
     transform(code, id) {
+      if (id.includes("node_modules")) return null;
       if (!/\.(ts|tsx|js|mjs|cjs)$/.test(id)) return null;
       if (!code.includes("`")) return null;
       const cleaned = code.replace(/`[\s\S]*?`/g, (literal) =>
