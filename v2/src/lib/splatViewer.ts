@@ -47,6 +47,8 @@ export interface SplatViewerController {
   warmFrames: () => number;
   /** Crossfade helper — sets the splat canvas opacity (0..1). */
   setOpacity: (o: number) => void;
+  /** Debug: live render numbers (actual backbuffer px, dpr, maxPixelRatio, fov, splats). */
+  stats: () => { bbW: number; bbH: number; dpr: number; maxPR: number; fov: number; splats: number };
   dispose: () => void;
 }
 
@@ -83,13 +85,14 @@ export function mountSplatViewer(
   //    their footprint — off, they render undersized.
   //  - gsplatMinPixelSize (engine default 2): discards splats below N screen px. The
   //    default culls the small gaussians on smooth surfaces → gaps; 0 keeps them.
+  const gsplatSettings = {
+    gsplatAntiAlias: opts.gsplatAntiAlias ?? true,
+    gsplatMinPixelSize: opts.gsplatMinPixelSize ?? 0,
+  };
   try {
-    app.scene.applySettings({
-      render: {
-        gsplatAntiAlias: opts.gsplatAntiAlias ?? true,
-        gsplatMinPixelSize: opts.gsplatMinPixelSize ?? 0,
-      },
-    });
+    app.scene.applySettings({ render: gsplatSettings });
+    // eslint-disable-next-line no-console
+    console.log('[splat] applySettings render gsplat:', gsplatSettings, '· dpr', window.devicePixelRatio, '· maxPR', app.graphicsDevice.maxPixelRatio);
   } catch (e) { console.warn('[splat] gsplat render settings not applied', e); }
 
   // --- camera --------------------------------------------------------------
@@ -215,6 +218,17 @@ export function mountSplatViewer(
       Math.abs(curAz) < eps && Math.abs(curEl) < eps && Math.abs(curZoom) < eps,
     warmFrames: () => warm,
     setOpacity: (o) => { canvas.style.opacity = String(o); },
+    stats: () => {
+      const gd = app.graphicsDevice as unknown as { width: number; height: number; maxPixelRatio: number };
+      const res = asset.resource as unknown as { numSplats?: number } | null;
+      return {
+        bbW: gd.width, bbH: gd.height,
+        dpr: Math.round((window.devicePixelRatio || 1) * 100) / 100,
+        maxPR: gd.maxPixelRatio,
+        fov: camera.camera ? Math.round(camera.camera.fov * 100) / 100 : 0,
+        splats: res?.numSplats ?? 0,
+      };
+    },
     dispose: () => {
       disposed = true;
       box.removeEventListener('pointermove', onMove);

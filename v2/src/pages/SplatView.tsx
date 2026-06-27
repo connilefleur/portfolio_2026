@@ -14,6 +14,7 @@ export function SplatView() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [fps, setFps] = useState(0);
   const [status, setStatus] = useState('loading…');
+  const [stats, setStats] = useState('');
 
   const sp = new URLSearchParams(location.search);
   const scene = sp.get('scene') ?? 'stick';
@@ -37,7 +38,11 @@ export function SplatView() {
       onFps: setFps,
       onStatus: (s) => setStatus(s),
     });
-    return () => ctrl.dispose();
+    const iv = setInterval(() => {
+      const s = ctrl.stats();
+      setStats(`${s.bbW}×${s.bbH} bb · dpr ${s.dpr} · maxPR ${s.maxPR} · fov ${s.fov}° · ${s.splats.toLocaleString()} splats`);
+    }, 300);
+    return () => { clearInterval(iv); ctrl.dispose(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -47,6 +52,7 @@ export function SplatView() {
       <div ref={boxRef} style={{ position: 'relative', width: 'min(100vw, calc(100vh * 16 / 9))', aspectRatio: '16 / 9', background: '#000', overflow: 'hidden' }} />
       <div style={{ position: 'absolute', top: 8, left: 8, padding: '5px 9px', background: 'rgba(0,0,0,.6)', color: '#9fe', font: '11px/1.4 monospace', borderRadius: 4, pointerEvents: 'none' }}>
         {scene} · {status} · {fps} fps{splatEuler ? ` · eul ${splatEuler.join(',')}` : ''}
+        {stats ? <><br />{stats}</> : null}
       </div>
     </div>
   );
