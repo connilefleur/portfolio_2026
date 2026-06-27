@@ -5,7 +5,9 @@ import { mountSplatViewer } from '../lib/splatViewer';
 // Dev-only standalone splat viewer — NO video, NO compositing. Just the splat on
 // black, with parallax, for diagnosing quality (sharpness / colour / orientation)
 // in isolation.
-// Route: /splat-view?scene=stick|serum&splateuler=x,y,z&dpr=2
+// Route: /splat-view?scene=stick|serum&splateuler=x,y,z&ss=2&dpr=3
+//   ss  = supersample factor (×DPR) — higher smooths glossy specular (costs GPU)
+//   dpr = hard render-scale cap (default 3)
 export function SplatView() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [fps, setFps] = useState(0);
@@ -25,6 +27,7 @@ export function SplatView() {
     if (!box || !SPLAT_SCENES[scene]) { setStatus(`unknown scene "${scene}"`); return; }
     const ctrl = mountSplatViewer(box, SPLAT_SCENES[scene], {
       renderEnabled: true, splatEuler,
+      superSample: num('ss'),
       dprCap: num('dpr'),
       onFps: setFps,
       onStatus: (s) => setStatus(s),

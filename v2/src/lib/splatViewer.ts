@@ -16,8 +16,14 @@ export interface MountOptions {
   renderEnabled?: boolean;
   /** Debug splat orientation as XYZ Euler degrees — verification knob. Default identity. */
   splatEuler?: [number, number, number];
-  /** devicePixelRatio cap. Default 2. */
+  /** Hard cap on render scale (supersampling ceiling). Default 3. */
   dprCap?: number;
+  /**
+   * Supersample factor applied on top of the display DPR for the internal render
+   * resolution. >1 renders larger then downsamples to the CSS box — the main lever
+   * for smoothing high-frequency specular aliasing on glossy surfaces. Default 2.
+   */
+  superSample?: number;
   onFps?: (fps: number) => void;
   onStatus?: (status: string, ok: boolean | null) => void;
 }
@@ -44,7 +50,11 @@ export function mountSplatViewer(
   scene: SplatScene,
   opts: MountOptions = {},
 ): SplatViewerController {
-  const pr = Math.min(window.devicePixelRatio, opts.dprCap ?? 2);
+  // Supersample: render at (display DPR × superSample), capped, then downsample to
+  // the CSS box. This is the main lever for smoothing the view-dependent specular
+  // on glossy surfaces (anti-aliases the highlight). On a 1× display the old
+  // `min(dpr, …)` rendered at native 1× and the gloss aliased; a 2× floor fixes that.
+  const pr = Math.min((window.devicePixelRatio || 1) * (opts.superSample ?? 2), opts.dprCap ?? 3);
 
   // Opaque black canvas: gaussian edges have alpha < 1, so a transparent canvas
   // would let the video behind bleed through. The video↔splat crossfade is done
@@ -150,6 +160,10 @@ export function mountSplatViewer(
     asset.once('load', () => {
       if (disposed) return resolve();
       splatEntity.addComponent('gsplat', { asset });
+      // Force the highest LOD only — never decimate splats on the product surface
+      // (no-op for non-LOD .ply/.sog, but guarantees full detail for LOD assets).
+      const gs = splatEntity.gsplat;
+      if (gs) { gs.lodRangeMin = 0; gs.lodRangeMax = 0; }
       camera.camera!.fov = scene.hero.fovVDeg;
       loaded = true;
       warm = 0; fpsT = performance.now(); frames = 0;
