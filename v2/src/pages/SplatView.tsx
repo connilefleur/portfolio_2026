@@ -11,12 +11,15 @@ export function SplatView() {
   const [status, setStatus] = useState('loading…');
 
   const scene = new URLSearchParams(location.search).get('scene') ?? 'stick';
+  const tm = new URLSearchParams(location.search).get('tonemap');
+  const toneMapping = tm === 'none' ? 'none' : tm === 'linear' ? 'linear' : undefined;
 
   useEffect(() => {
     const box = boxRef.current;
     if (!box || !SPLAT_SCENES[scene]) { setStatus(`unknown scene "${scene}"`); return; }
     const ctrl = mountSplatViewer(box, SPLAT_SCENES[scene], {
       renderEnabled: true,
+      toneMapping,
       onFps: setFps,
       onStatus: (s) => setStatus(s),
     });
