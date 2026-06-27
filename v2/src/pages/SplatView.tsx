@@ -5,9 +5,11 @@ import { mountSplatViewer } from '../lib/splatViewer';
 // Dev-only standalone splat viewer — NO video, NO compositing. Just the splat on
 // black, with parallax, for diagnosing quality (sharpness / colour / orientation)
 // in isolation.
-// Route: /splat-view?scene=stick|serum&splateuler=x,y,z&ss=2&dpr=3
-//   ss  = supersample factor (×DPR) — higher smooths glossy specular (costs GPU)
-//   dpr = hard render-scale cap (default 3)
+// Route: /splat-view?scene=stick|serum&splateuler=x,y,z&aa=1&minpx=0&ss=1&dpr=3
+//   aa    = gsplat AA compensation 0|1 (default 1 — fixes undersized/sparse splats)
+//   minpx = discard splats below N screen-px (default 0 = keep all; engine default 2)
+//   ss    = supersample factor (×DPR, default 1 = native / SuperSplat pixelScale)
+//   dpr   = hard render-scale cap (default 3)
 export function SplatView() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [fps, setFps] = useState(0);
@@ -21,6 +23,7 @@ export function SplatView() {
     return a.length === 3 && a.every((n) => !Number.isNaN(n)) ? [a[0], a[1], a[2]] : undefined;
   })();
   const num = (k: string): number | undefined => { const v = sp.get(k); if (v === null) return undefined; const n = +v; return Number.isNaN(n) ? undefined : n; };
+  const bool = (k: string): boolean | undefined => { const v = sp.get(k); return v === null ? undefined : v !== '0' && v !== 'false'; };
 
   useEffect(() => {
     const box = boxRef.current;
@@ -28,6 +31,8 @@ export function SplatView() {
     const ctrl = mountSplatViewer(box, SPLAT_SCENES[scene], {
       renderEnabled: true, splatEuler,
       superSample: num('ss'),
+      gsplatAntiAlias: bool('aa'),
+      gsplatMinPixelSize: num('minpx'),
       dprCap: num('dpr'),
       onFps: setFps,
       onStatus: (s) => setStatus(s),

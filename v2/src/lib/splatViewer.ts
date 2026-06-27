@@ -20,10 +20,15 @@ export interface MountOptions {
   dprCap?: number;
   /**
    * Supersample factor applied on top of the display DPR for the internal render
-   * resolution. >1 renders larger then downsamples to the CSS box — the main lever
-   * for smoothing high-frequency specular aliasing on glossy surfaces. Default 2.
+   * resolution. >1 renders larger then downsamples. Default 1 (native, = SuperSplat
+   * pixelScale). Raising it shrinks gaussians vs the discard threshold, so prefer the
+   * gsplat settings below for density.
    */
   superSample?: number;
+  /** PlayCanvas gsplat AA compensation (for AA/Mip-trained splats). Default true. */
+  gsplatAntiAlias?: boolean;
+  /** Discard splats below this screen-px size (engine default 2). Default 0 = keep all. */
+  gsplatMinPixelSize?: number;
   onFps?: (fps: number) => void;
   onStatus?: (status: string, ok: boolean | null) => void;
 }
@@ -50,11 +55,11 @@ export function mountSplatViewer(
   scene: SplatScene,
   opts: MountOptions = {},
 ): SplatViewerController {
-  // Supersample: render at (display DPR × superSample), capped, then downsample to
-  // the CSS box. This is the main lever for smoothing the view-dependent specular
-  // on glossy surfaces (anti-aliases the highlight). On a 1× display the old
-  // `min(dpr, …)` rendered at native 1× and the gloss aliased; a 2× floor fixes that.
-  const pr = Math.min((window.devicePixelRatio || 1) * (opts.superSample ?? 2), opts.dprCap ?? 3);
+  // Render scale = display DPR × superSample (default 1 = native, matching SuperSplat's
+  // pixelScale:1), capped. Supersampling >1 smooths specular but shrinks each gaussian
+  // relative to the fixed-pixel discard threshold → use the gsplat settings below, not
+  // raw supersampling, to fix undersized/sparse splats.
+  const pr = Math.min((window.devicePixelRatio || 1) * (opts.superSample ?? 1), opts.dprCap ?? 3);
 
   // Opaque black canvas: gaussian edges have alpha < 1, so a transparent canvas
   // would let the video behind bleed through. The video↔splat crossfade is done
@@ -70,6 +75,22 @@ export function mountSplatViewer(
   app.setCanvasResolution(RESOLUTION_AUTO);
   app.graphicsDevice.maxPixelRatio = pr;
   app.autoRender = false;                  // render-gating: we toggle this on/off
+
+  // Match SuperSplat's gsplat rendering. These are the fix for "gaussians too small →
+  // gaps/artifacts on smooth surfaces":
+  //  - gsplatAntiAlias (engine default FALSE): AA compensation. Lichtfeld trains with
+  //    anti-aliasing, so gaussians are stored smaller and the renderer must restore
+  //    their footprint — off, they render undersized.
+  //  - gsplatMinPixelSize (engine default 2): discards splats below N screen px. The
+  //    default culls the small gaussians on smooth surfaces → gaps; 0 keeps them.
+  try {
+    app.scene.applySettings({
+      render: {
+        gsplatAntiAlias: opts.gsplatAntiAlias ?? true,
+        gsplatMinPixelSize: opts.gsplatMinPixelSize ?? 0,
+      },
+    });
+  } catch (e) { console.warn('[splat] gsplat render settings not applied', e); }
 
   // --- camera --------------------------------------------------------------
   const camera = new Entity('camera');
