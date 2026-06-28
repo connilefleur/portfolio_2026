@@ -6,14 +6,14 @@ import { Imprint } from './pages/Imprint';
 import { Tools }   from './pages/Tools';
 import './styles/globals.css';
 
-// Dev-only: Sun Matters splat experience, lazy-loaded so its three.js/splat deps
+// Dev-only: Sun Matters splat experience, lazy-loaded so its playcanvas/splat deps
 // stay out of the main bundle. Route is only registered in dev.
 const SunMatters = lazy(() =>
   import('./pages/SunMatters').then((m) => ({ default: m.SunMatters })),
 );
-// Dev-only standalone splat viewer (no video) for quality diagnosis.
-const SplatView = lazy(() =>
-  import('./pages/SplatView').then((m) => ({ default: m.SplatView })),
+// Dev-only splat-only debug harness with a live render-param panel (no video).
+const SplatDebug = lazy(() =>
+  import('./pages/SplatDebug').then((m) => ({ default: m.SplatDebug })),
 );
 
 export function App() {
@@ -33,7 +33,7 @@ export function App() {
         {import.meta.env.DEV && (
           <Route
             path="/splat"
-            element={<Suspense fallback={null}><SplatView /></Suspense>}
+            element={<Suspense fallback={null}><SplatDebug /></Suspense>}
           />
         )}
       </Routes>

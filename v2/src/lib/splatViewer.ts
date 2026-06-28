@@ -1,17 +1,68 @@
 // Shared Gaussian-splat viewer — PlayCanvas engine (matches SuperSplat, which is
-// the PlayCanvas gsplat renderer). Swapped from @sparkjsdev/spark on 2026-06-27
-// because Spark mis-rendered these scenes (washed out + background holes) despite a
-// canonical setup. Consumed by the Sun Matters video↔splat experience and the
-// /splat-view diagnostic harness via the SplatViewerController interface below.
+// the PlayCanvas gsplat renderer). The splat is rendered through a CameraFrame into a
+// float (RGBA16F/32F) target — matching SuperSplat — so many low-alpha gaussians
+// accumulate without the 8-bit quantization that caused the see-through/streaky look.
+// Consumed by the Sun Matters video↔splat experience via the SplatViewerController below.
 import {
   Application, Asset, Entity, Color, Vec3, Quat,
-  FILLMODE_NONE, RESOLUTION_AUTO,
-  CameraFrame, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F,
-  TONEMAP_NONE, TONEMAP_LINEAR,
+  FILLMODE_NONE, RESOLUTION_FIXED,
+  CameraFrame, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA8,
+  TONEMAP_NONE, TONEMAP_LINEAR, TONEMAP_FILMIC, TONEMAP_HEJL,
+  TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_NEUTRAL,
 } from 'playcanvas';
 import type { SplatScene } from '../data/splatScenes';
 
 const MAX_AZ = 5, MAX_EL = 5, DAMP = 0.07; // parallax: ±5° az/el, spring damping
+
+/** Tonemap name → engine constant, for the debug panel + toneMapping mount opt. */
+const TONEMAPS: Record<string, number> = {
+  none: TONEMAP_NONE, linear: TONEMAP_LINEAR, filmic: TONEMAP_FILMIC,
+  hejl: TONEMAP_HEJL, aces: TONEMAP_ACES, aces2: TONEMAP_ACES2, neutral: TONEMAP_NEUTRAL,
+};
+
+/**
+ * Every live-tunable render parameter, for the /splat debug panel. Generous on purpose —
+ * includes unlikely culprits so the cause can be dialed/ruled out in-browser. Each maps to
+ * a live PlayCanvas setter (no remount / no ply reload). Scene-dependent fov/near/far/euler
+ * have no fixed default (derived from the scene) so they're separate from the defaults below.
+ */
+export interface SplatDebugParams {
+  /** Internal render scale ×DPR. <1 renders lower (bigger Mip floor → hides needles), >1 supersamples. */
+  renderScale: number;
+  toneMapping: 'none' | 'linear' | 'filmic' | 'hejl' | 'aces' | 'aces2' | 'neutral';
+  /** CameraFrame MSAA samples 1–4 (1 = off). */
+  samples: number;
+  /** CameraFrame post sharpen 0–1 (0 = none). */
+  sharpness: number;
+  /** CameraFrame render-target scale 0.1–1 (downscale-then-upscale). */
+  renderTargetScale: number;
+  /** Float (RGBA16F/32F) vs 8-bit (RGBA8) accumulation buffer. */
+  hdr: boolean;
+  /** Temporal AA (jittered multi-frame accumulation) — clean stills if camera idle. */
+  taa: boolean;
+  taaJitter: number;
+  /** gsplat Mip alpha compensation (footprint dilation is always on; this scales alpha). */
+  antiAlias: boolean;
+  alphaClip: number;
+  minContribution: number;
+  minPixelSize: number;
+  colorUpdateAngle: number;
+  radialSorting: boolean;
+  /** vertical FOV deg — controls on-screen magnification of the gaussians. */
+  fov: number;
+  near: number;
+  far: number;
+  /** splat orientation XYZ euler deg. */
+  euler: [number, number, number];
+}
+
+/** Defaults the viewer applies at mount (scene-independent subset). The panel seeds from these. */
+export const SPLAT_DEBUG_DEFAULTS: Omit<SplatDebugParams, 'fov' | 'near' | 'far' | 'euler'> = {
+  renderScale: 1, toneMapping: 'linear', samples: 1, sharpness: 0, renderTargetScale: 1,
+  hdr: true, taa: false, taaJitter: 1,
+  antiAlias: true, alphaClip: 1 / 255, minContribution: 1, minPixelSize: 2,
+  colorUpdateAngle: 2, radialSorting: true,
+};
 
 export interface MountOptions {
   /** Start rendering once loaded (default true). False = preload silently (no GL). */
@@ -35,8 +86,11 @@ export interface MountOptions {
   near?: number;
   /** Override camera far clip (default: auto-fit to splat bounds). */
   far?: number;
-  /** Unified gsplat rendering. Unified needs a CameraFrame pipeline to composite right;
-   *  bare rendering may need non-unified. Default false (non-unified) for our bare setup. */
+  /** Unified gsplat rendering. The gsplat quality params (antiAlias/alphaClip/
+   *  minContribution/radialSorting) ONLY exist on the unified path and are what the
+   *  official SuperSplat viewer uses; non-unified silently ignores them (no antiAlias =
+   *  oversharpened/aliased). Unified needs the CameraFrame pipeline to composite right,
+   *  which we now have — so default TRUE to match SuperSplat. */
   unified?: boolean;
   /**
    * Tonemapping applied by the CameraFrame compose pass. SuperSplat's reference look
@@ -64,6 +118,8 @@ export interface SplatViewerController {
   setOpacity: (o: number) => void;
   /** Debug: live render numbers (actual backbuffer px, dpr, maxPixelRatio, fov, splats). */
   stats: () => { bbW: number; bbH: number; dpr: number; maxPR: number; fov: number; splats: number };
+  /** Live-apply any subset of debug params (no remount / no ply reload). Used by /splat panel. */
+  setDebug: (p: Partial<SplatDebugParams>) => void;
   dispose: () => void;
 }
 
@@ -72,11 +128,13 @@ export function mountSplatViewer(
   scene: SplatScene,
   opts: MountOptions = {},
 ): SplatViewerController {
-  // Render scale = display DPR × superSample (default 1 = native, matching SuperSplat's
-  // pixelScale:1), capped. Supersampling >1 smooths specular but shrinks each gaussian
-  // relative to the fixed-pixel discard threshold → use the gsplat settings below, not
-  // raw supersampling, to fix undersized/sparse splats.
-  const pr = Math.min((window.devicePixelRatio || 1) * (opts.superSample ?? 1), opts.dprCap ?? 3);
+  // Render scale = display DPR × userScale (default 1 = native, = SuperSplat pixelScale:1),
+  // capped by dprCap. userScale is live-tunable from the debug panel: <1 renders lower (the
+  // fixed Mip 0.3px floor then covers relatively MORE of each gaussian → hides thin needles),
+  // >1 supersamples (floor covers less → reveals needles). curPr() is read fresh in syncSize.
+  const dprCap = opts.dprCap ?? 3;
+  let userScale = opts.superSample ?? 1;
+  const curPr = (): number => Math.min((window.devicePixelRatio || 1) * userScale, dprCap);
 
   // Opaque black canvas: gaussian edges have alpha < 1, so a transparent canvas
   // would let the video behind bleed through. The video↔splat crossfade is done
@@ -89,8 +147,12 @@ export function mountSplatViewer(
   // antialias off — no benefit for splats, costs perf (PlayCanvas + Spark both advise).
   const app = new Application(canvas, { graphicsDeviceOptions: { antialias: false } });
   app.setCanvasFillMode(FILLMODE_NONE);    // we live in a fixed 16:9 box, not the window
-  app.setCanvasResolution(RESOLUTION_AUTO);
-  app.graphicsDevice.maxPixelRatio = pr;
+  // FIXED resolution (not AUTO): with AUTO the backbuffer = clientSize × min(DPR,
+  // maxPixelRatio) — maxPixelRatio only CAPS, so it can NEVER supersample above the
+  // display DPR (this is why a past raw-supersample attempt did nothing). We set the
+  // backbuffer explicitly to clientSize × pr (pr = DPR × superSample) in syncSize and let
+  // CSS (width/height:100%) downscale it — that is real supersampling when superSample > 1.
+  app.setCanvasResolution(RESOLUTION_FIXED, 1, 1); // real size set in syncSize once laid out
   app.autoRender = false;                  // render-gating: we toggle this on/off
 
   // Match SuperSplat's gsplat rendering. These are the fix for "gaussians too small →
@@ -212,8 +274,10 @@ export function mountSplatViewer(
   // size sync each update (box may resize); cheap no-op when unchanged
   const syncSize = (): void => {
     const w = box.clientWidth, h = box.clientHeight;
-    if (w && h && (canvas.width !== Math.round(w * pr) || canvas.height !== Math.round(h * pr))) {
-      app.resizeCanvas(w, h);
+    const pr = curPr();
+    const bw = Math.round(w * pr), bh = Math.round(h * pr);
+    if (w && h && (canvas.width !== bw || canvas.height !== bh)) {
+      app.setCanvasResolution(RESOLUTION_FIXED, bw, bh); // backbuffer = clientSize × pr
     }
   };
 
@@ -234,7 +298,7 @@ export function mountSplatViewer(
   const ready = new Promise<void>((resolve, reject) => {
     asset.once('load', () => {
       if (disposed) return resolve();
-      const unified = opts.unified ?? false;
+      const unified = opts.unified ?? true;
       splatEntity.addComponent('gsplat', { asset, unified });
       // Force the highest LOD only — never decimate splats on the product surface
       // (no-op for non-LOD .ply/.sog, but guarantees full detail for LOD assets).
@@ -281,6 +345,29 @@ export function mountSplatViewer(
       Math.abs(curAz) < eps && Math.abs(curEl) < eps && Math.abs(curZoom) < eps,
     warmFrames: () => warm,
     setOpacity: (o) => { canvas.style.opacity = String(o); },
+    setDebug: (p) => {
+      let cf = false; // any CameraFrame.rendering/taa change needs cameraFrame.update()
+      const r = cameraFrame.rendering, t = cameraFrame.taa, g = app.scene.gsplat, cam = camera.camera!;
+      if (p.renderScale !== undefined) userScale = p.renderScale; // syncSize resizes next frame
+      if (p.toneMapping !== undefined) { r.toneMapping = TONEMAPS[p.toneMapping] ?? TONEMAP_LINEAR; cf = true; }
+      if (p.samples !== undefined) { r.samples = p.samples; cf = true; }
+      if (p.sharpness !== undefined) { r.sharpness = p.sharpness; cf = true; }
+      if (p.renderTargetScale !== undefined) { r.renderTargetScale = p.renderTargetScale; cf = true; }
+      if (p.hdr !== undefined) { r.renderFormats = p.hdr ? [PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F] : [PIXELFORMAT_RGBA8]; cf = true; }
+      if (p.taa !== undefined) { t.enabled = p.taa; cf = true; }
+      if (p.taaJitter !== undefined) { t.jitter = p.taaJitter; cf = true; }
+      if (p.antiAlias !== undefined) g.antiAlias = p.antiAlias;
+      if (p.alphaClip !== undefined) g.alphaClip = p.alphaClip;
+      if (p.minContribution !== undefined) g.minContribution = p.minContribution;
+      if (p.minPixelSize !== undefined) g.minPixelSize = p.minPixelSize;
+      if (p.colorUpdateAngle !== undefined) g.colorUpdateAngle = p.colorUpdateAngle;
+      if (p.radialSorting !== undefined) g.radialSorting = p.radialSorting;
+      if (p.fov !== undefined) cam.fov = p.fov;
+      if (p.near !== undefined) cam.nearClip = p.near;
+      if (p.far !== undefined) cam.farClip = p.far;
+      if (p.euler !== undefined) splatEntity.setLocalEulerAngles(p.euler[0], p.euler[1], p.euler[2]);
+      if (cf) cameraFrame.update();
+    },
     stats: () => {
       const gd = app.graphicsDevice as unknown as { width: number; height: number; maxPixelRatio: number };
       const res = asset.resource as unknown as { numSplats?: number } | null;

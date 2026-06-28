@@ -69,6 +69,20 @@ export function SunMatters() {
       const a = s.split(',').map(Number);
       return a.length === 3 && a.every((n) => !Number.isNaN(n)) ? [a[0], a[1], a[2]] : undefined;
     })();
+    // Render-quality A/B knobs (diagnosing fine-detail aliasing on edges/texture/font):
+    //   ?ss=2        supersample — render NxN then downscale (spatial AA test, #2)
+    //   ?aa=0|1      gsplat antiAlias (Mip footprint low-pass, #3)
+    //   ?tonemap=    none|linear  (highlight clipping test, #4)
+    //   ?mps=0       gsplat minPixelSize — 0 keeps all small splats (culling test, #5)
+    const ss = +(sp.get('ss') ?? '') || undefined;
+    const dprCap = ss && ss > 1 ? Math.ceil((window.devicePixelRatio || 1) * ss) : undefined;
+    const aaParam = sp.get('aa');
+    const gsplatAntiAlias = aaParam === '0' ? false : aaParam === '1' ? true : undefined;
+    const tmParam = sp.get('tonemap');
+    const toneMapping = tmParam === 'none' ? 'none' : tmParam === 'linear' ? 'linear' : undefined;
+    const mpsParam = sp.get('mps');
+    const gsplatMinPixelSize =
+      mpsParam !== null && mpsParam !== '' && !Number.isNaN(+mpsParam) ? +mpsParam : undefined;
     let disposed = false;
     let raf = 0;
     let cur = vidA, nxt = vidB;
@@ -138,7 +152,10 @@ export function SunMatters() {
     const ensureSplat = (sceneId: string): void => {
       if (splatScene === sceneId && splat) return;
       splat?.dispose();
-      splat = mountSplatViewer(splatBox, SPLAT_SCENES[sceneId], { renderEnabled: false, splatEuler });
+      splat = mountSplatViewer(splatBox, SPLAT_SCENES[sceneId], {
+        renderEnabled: false, splatEuler,
+        superSample: ss, dprCap, gsplatAntiAlias, toneMapping, gsplatMinPixelSize,
+      });
       splat.canvas.style.zIndex = '3';      // above both videos
       splat.setInputEnabled(false);
       splat.setOpacity(0);
