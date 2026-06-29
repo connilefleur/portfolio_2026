@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SPLAT_SCENES } from '../data/splatScenes';
 import { TIMELINE } from '../data/sunMattersTimeline';
-import { HERO_VIDEO_FULL, basename } from '../data/sunMattersAssets';
+import { HERO_VIDEO_FULL, basename, videoSrc } from '../data/sunMattersAssets';
 import { mountSplatViewer, type SplatViewerController } from '../lib/splatViewer';
 
 // Sun Matters interactive experience (segment-based), extracted so it can run BOTH as the
@@ -40,6 +40,8 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
   const vidBRef = useRef<HTMLVideoElement>(null);
   const continueRef = useRef<(() => void) | null>(null);
 
+  // hover:none → touch device: only changes the look-around hint wording (not the run gate)
+  const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches);
   const [from] = useState(() => Math.max(0, +(new URLSearchParams(location.search).get('from') ?? 0) || 0));
   const [debug] = useState(() => new URLSearchParams(location.search).has('debug'));
   const [phase, setPhase] = useState<Phase>('playing');
@@ -48,6 +50,8 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
 
   // resolve an original URL to its preloaded blob (or the original if not preloaded)
   const R = (u: string): string => assets[u] ?? u;
+  // resolve a base .webm clip to this browser's codec, then to its preloaded blob
+  const V = (u: string): string => R(videoSrc(u));
 
   useEffect(() => {
     if (!splatOk) return; // fallback path renders a plain video, no orchestration
@@ -191,7 +195,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       if (disposed || index >= TIMELINE.length) { go('done'); return; }
       const clip = TIMELINE[index];
 
-      await loadClip(cur, R(clip.src));
+      await loadClip(cur, V(clip.src));
       if (disposed) return;
       setFront(cur);
       go('playing');
@@ -226,7 +230,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       // HANDOFF: pre-seek the next clip to its first frame (== held frame) and bring it up
       // behind the splat, then fade the splat out.
       const next = index + 1;
-      if (next < TIMELINE.length) await loadClip(nxt, R(TIMELINE[next].src));
+      if (next < TIMELINE.length) await loadClip(nxt, V(TIMELINE[next].src));
       if (disposed) return;
       setFront(nxt);                // nxt shows frame-N == held frame → invisible swap
       await tween(1, 0);            // splat fades out → reveals nxt's first frame
@@ -256,7 +260,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
     return (
       <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <video
-          src={R(HERO_VIDEO_FULL)}
+          src={V(HERO_VIDEO_FULL)}
           muted autoPlay playsInline preload="auto"
           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         />
@@ -271,7 +275,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       <video ref={vidARef} muted playsInline preload="auto" style={{ ...videoStyle, zIndex: 1 }} />
       <video ref={vidBRef} muted playsInline preload="auto" style={{ ...videoStyle, zIndex: 1 }} />
       {/* splat canvas mounts here (zIndex set to 3 by the effect), above both videos */}
-      <div ref={splatBoxRef} style={{ position: 'absolute', inset: 0 }} />
+      <div ref={splatBoxRef} style={{ position: 'absolute', inset: 0, touchAction: 'none' }} />
 
       {(err || (debug && dbg)) && (
         <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 6, padding: '5px 9px', background: 'rgba(0,0,0,.66)', color: err ? '#f99' : '#9fe', font: '11px/1.4 monospace', borderRadius: 4, pointerEvents: 'none', whiteSpace: 'nowrap' }}>{err ? `⚠ ${err}` : dbg}</div>
@@ -285,7 +289,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
           color: '#fff', textShadow: '0 1px 8px rgba(0,0,0,.6)',
         }}>
           <div style={{ opacity: phase === 'interact' ? 0.85 : 1, transition: 'opacity .3s' }}>
-            {phase === 'holding' ? 'Take a look around' : 'Move your cursor to look around the product'}
+            {phase === 'holding' ? 'Take a look around' : isTouch ? 'Drag to look around the product' : 'Move your cursor to look around the product'}
           </div>
           {phase === 'interact' && (
             <button

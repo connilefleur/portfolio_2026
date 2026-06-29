@@ -176,8 +176,10 @@ export function mountSplatViewer(
   // would let the video behind bleed through. The video↔splat crossfade is done
   // via CSS opacity on this element.
   const canvas = document.createElement('canvas');
+  // touch-action:none → finger-drag drives the parallax (pointermove) instead of scrolling
+  // the page, so the look-around works identically on touch and mouse.
   canvas.style.cssText =
-    'position:absolute;inset:0;width:100%;height:100%;z-index:1';
+    'position:absolute;inset:0;width:100%;height:100%;z-index:1;touch-action:none';
   box.appendChild(canvas);
 
   // antialias off — no benefit for splats, costs perf (PlayCanvas + Spark both advise).
