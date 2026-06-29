@@ -22,6 +22,7 @@ const RATE_MIN = 0.0625;    // browser hard minimum (Chrome throws below this)
 const RESUME_RAMP_MS = 140; // playbackRate MIN→1 at the start of a resumed clip (short = minimal speed-up)
 const FADE_MS = 420;        // splat crossfade duration
 const WARM_MIN = 6;         // splat frames rendered before we dare reveal
+const WARM_TIMEOUT = 8000;  // ms to reach WARM_MIN before we give up and fall back to full video
 
 const ease = (x: number): number => x * x * x * (x * (x * 6 - 15) + 10); // smootherstep
 
@@ -47,6 +48,10 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
   const [phase, setPhase] = useState<Phase>('playing');
   const [dbg, setDbg] = useState('');
   const [err, setErr] = useState('');
+  // Runtime fallback: the splat passed the capability probe but never actually painted
+  // (warm frames stalled) or threw → drop the segment orchestration and play the full,
+  // uncut hero video instead. Guarantees mobile is never stuck on a blank splat.
+  const [degraded, setDegraded] = useState(false);
 
   // resolve an original URL to its preloaded blob (or the original if not preloaded)
   const R = (u: string): string => assets[u] ?? u;
@@ -54,7 +59,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
   const V = (u: string): string => R(videoSrc(u));
 
   useEffect(() => {
-    if (!splatOk) return; // fallback path renders a plain video, no orchestration
+    if (!splatOk || degraded) return; // fallback path renders a plain video, no orchestration
     const splatBox = splatBoxRef.current;
     const vidA = vidARef.current, vidB = vidBRef.current;
     if (!splatBox || !vidA || !vidB) return;
@@ -176,8 +181,15 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
         };
         step();
       });
-    const waitWarm = async (): Promise<void> => {
-      while (!disposed && (splat?.warmFrames() ?? 0) < WARM_MIN) await nextFrame();
+    // resolves true once the splat has painted WARM_MIN frames; false if it never does within
+    // WARM_TIMEOUT (the device can't actually render the splat → caller degrades to video).
+    const waitWarm = async (): Promise<boolean> => {
+      const t0 = performance.now();
+      while (!disposed && (splat?.warmFrames() ?? 0) < WARM_MIN) {
+        if (performance.now() - t0 > WARM_TIMEOUT) return false;
+        await nextFrame();
+      }
+      return true;
     };
     const waitAtHero = (): Promise<void> =>
       new Promise((res) => {
@@ -213,8 +225,9 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
 
       // HOLD: cur is paused on its last frame (= hero frame). Reveal the splat.
       go('holding');
-      await waitWarm();
+      const warmed = await waitWarm();
       if (disposed) return;
+      if (!warmed) { setDegraded(true); return; } // splat won't paint → full-video fallback
       await tween(0, 1);            // splat fades in (sharp) over the held frame
       if (disposed) return;
       splat?.setInputEnabled(true);
@@ -242,7 +255,11 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
     };
 
     const start = (i: number, resumed: boolean): void => {
-      runClip(i, resumed).catch((e: unknown) => { if (!disposed) setErr(String(e instanceof Error ? e.message : e)); });
+      runClip(i, resumed).catch((e: unknown) => {
+        if (disposed) return;
+        if (debug) setErr(String(e instanceof Error ? e.message : e));
+        setDegraded(true); // any orchestration/splat failure → full-video fallback
+      });
     };
     [vidA, vidB].forEach((v) => { v.muted = true; });
     start(from, false);
@@ -254,9 +271,9 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       splat?.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from, splatOk]);
+  }, [from, splatOk, degraded]);
 
-  if (!splatOk) {
+  if (!splatOk || degraded) {
     return (
       <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <video

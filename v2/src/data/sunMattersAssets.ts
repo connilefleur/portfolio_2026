@@ -23,9 +23,28 @@ export const basename = (url: string): string => url.split('/').pop() ?? url;
  */
 export function canRunSplat(): boolean {
   if (typeof window === 'undefined') return false;
+  let gl: WebGL2RenderingContext | null = null;
   try {
-    const gl = document.createElement('canvas').getContext('webgl2');
-    return !!gl && !!gl.getExtension('EXT_color_buffer_float');
+    gl = document.createElement('canvas').getContext('webgl2');
+  } catch {
+    return false;
+  }
+  // The extension FLAG isn't enough: iOS Safari / some mobile GPUs advertise
+  // EXT_color_buffer_float but can't actually render to the RGBA16F float target the splat
+  // composites through (CameraFrame) — which shows up as a blank splat. So build the real
+  // thing and check the framebuffer is COMPLETE; if not, the caller falls back to plain video.
+  if (!gl || !gl.getExtension('EXT_color_buffer_float')) return false;
+  try {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 1, 1, 0, gl.RGBA, gl.HALF_FLOAT, null);
+    const fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    const complete = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+    gl.deleteFramebuffer(fbo);
+    gl.deleteTexture(tex);
+    return complete;
   } catch {
     return false;
   }

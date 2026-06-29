@@ -318,19 +318,45 @@ export function mountSplatViewer(
     camera.lookAt(center.x, center.y, center.z);
   };
 
+  const clamp = (v: number, m: number): number => Math.max(-m, Math.min(m, v));
+  // Touch has no hover, so the mouse's absolute "cursor position → angle" mapping would snap
+  // the view to wherever the finger lands. Instead, drag = RELATIVE orbit from the angle at
+  // touch-down, clamped to the SAME ±MAX_AZ/EL limits as the mouse. A full box-width drag
+  // sweeps the full range — identical sensitivity to the mouse. Mouse keeps hover-to-turn.
+  let dragging = false, dragX = 0, dragY = 0, dragAz = 0, dragEl = 0;
+
+  const onDown = (e: PointerEvent): void => {
+    if (e.pointerType !== 'touch' || !inputEnabled) return;
+    dragging = true; dragX = e.clientX; dragY = e.clientY; dragAz = tgtAz; dragEl = tgtEl;
+    try { box.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+  };
   const onMove = (e: PointerEvent): void => {
     if (!inputEnabled) return;
     const r = box.getBoundingClientRect();
-    tgtAz = -(((e.clientX - r.left) / r.width) * 2 - 1) * MAX_AZ;
+    if (e.pointerType === 'touch') {
+      if (!dragging) return;                       // no hover-to-turn on touch — drag only
+      tgtAz = clamp(dragAz - ((e.clientX - dragX) / r.width) * 2 * MAX_AZ, MAX_AZ);
+      tgtEl = clamp(dragEl - ((e.clientY - dragY) / r.height) * 2 * MAX_EL, MAX_EL);
+      return;
+    }
+    tgtAz = -(((e.clientX - r.left) / r.width) * 2 - 1) * MAX_AZ;   // mouse: absolute hover
     tgtEl = -(((e.clientY - r.top) / r.height) * 2 - 1) * MAX_EL;
   };
-  const onLeave = (): void => { tgtAz = 0; tgtEl = 0; };
+  const onUp = (e: PointerEvent): void => {
+    if (e.pointerType !== 'touch') return;
+    dragging = false; tgtAz = 0; tgtEl = 0;        // release → ease back to hero (= mouse leave)
+    try { box.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+  };
+  const onLeave = (): void => { if (!dragging) { tgtAz = 0; tgtEl = 0; } };
   const onWheel = (e: WheelEvent): void => {
     if (!inputEnabled) return;
     e.preventDefault();
     tgtZoom = Math.max(-0.1, Math.min(0.32, tgtZoom - e.deltaY * 0.0009));
   };
+  box.addEventListener('pointerdown', onDown);
   box.addEventListener('pointermove', onMove);
+  box.addEventListener('pointerup', onUp);
+  box.addEventListener('pointercancel', onUp);
   box.addEventListener('pointerleave', onLeave);
   box.addEventListener('wheel', onWheel, { passive: false });
 
@@ -466,7 +492,10 @@ export function mountSplatViewer(
     },
     dispose: () => {
       disposed = true;
+      box.removeEventListener('pointerdown', onDown);
       box.removeEventListener('pointermove', onMove);
+      box.removeEventListener('pointerup', onUp);
+      box.removeEventListener('pointercancel', onUp);
       box.removeEventListener('pointerleave', onLeave);
       box.removeEventListener('wheel', onWheel);
       try { cameraFrame?.destroy(); } catch { /* ignore */ }
