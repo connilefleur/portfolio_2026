@@ -24,8 +24,6 @@ const FADE_MS = 420;        // splat crossfade duration
 const WARM_MIN = 6;         // splat frames rendered before we dare reveal
 const WARM_TIMEOUT = 8000;  // ms to reach WARM_MIN before we give up and fall back to full video
 
-const ease = (x: number): number => x * x * x * (x * (x * 6 - 15) + 10); // smootherstep
-
 type Phase = 'playing' | 'holding' | 'interact' | 'returning' | 'done';
 
 interface Props {
@@ -39,7 +37,11 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
   const splatBoxRef = useRef<HTMLDivElement>(null);
   const vidARef = useRef<HTMLVideoElement>(null);
   const vidBRef = useRef<HTMLVideoElement>(null);
+  const fallbackRef = useRef<HTMLVideoElement>(null);
   const continueRef = useRef<(() => void) | null>(null);
+  // the video whose play() was blocked by autoplay policy (iOS Low Power Mode blocks even
+  // muted autoplay) — a tap on the play button resumes THIS element within a user gesture.
+  const pendingPlayRef = useRef<HTMLVideoElement | null>(null);
 
   // hover:none → touch device: only changes the look-around hint wording (not the run gate)
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches);
@@ -52,6 +54,8 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
   // (warm frames stalled) or threw → drop the segment orchestration and play the full,
   // uncut hero video instead. Guarantees mobile is never stuck on a blank splat.
   const [degraded, setDegraded] = useState(false);
+  // autoplay was blocked → show a play button (else stays hidden; desktop autoplays as before)
+  const [needsGesture, setNeedsGesture] = useState(false);
 
   // resolve an original URL to its preloaded blob (or the original if not preloaded)
   const R = (u: string): string => assets[u] ?? u;
@@ -105,7 +109,8 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
     // ---- video helpers ----------------------------------------------------
     const setFront = (v: HTMLVideoElement): void => {
       v.style.zIndex = '2'; v.style.opacity = '1';
-      (v === cur ? nxt : cur).style.zIndex = '1';
+      const back = v === cur ? nxt : cur;
+      back.style.zIndex = '1'; back.style.opacity = '0'; // hide the back layer — no stale flash
     };
     // load src, seek to first frame, hold paused — ready to reveal
     const loadClip = (v: HTMLVideoElement, src: string): Promise<void> =>
@@ -152,7 +157,9 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
           if (debug && ++dbgN % 8 === 0) setDbg(`${cur === v ? 'cur' : 'nxt'} play · t=${v.currentTime.toFixed(2)}/${(v.duration || 0).toFixed(2)} · rate=${rate.toFixed(2)} · warm=${splat?.warmFrames() ?? 0}`);
         };
         v.playbackRate = rampUp ? minRate : 1;
-        v.play().catch(() => { /* gesture/interrupt */ });
+        // autoplay may be blocked (iOS Low Power Mode) → surface a play button bound to this
+        // element. The RAF loop keeps running; once the tap resumes playback it advances to end.
+        v.play().catch(() => { pendingPlayRef.current = v; setNeedsGesture(true); });
         raf = requestAnimationFrame(loop);
       });
 
@@ -170,16 +177,26 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       splatScene = sceneId;
     };
     const nextFrame = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
-    const tween = (fromO: number, to: number): Promise<void> =>
+    // Crossfade the splat via a COMPOSITOR-driven CSS opacity transition, not a main-thread
+    // RAF tween. At the video→splat moment the main thread is busiest (video ending + splat
+    // settling), so an RAF tween stalls and the opacity jumps ("splat appears all of a
+    // sudden"). A CSS transition runs on the compositor — smooth regardless of main-thread jank.
+    const tween = (to: number): Promise<void> =>
       new Promise((res) => {
-        const t0 = performance.now();
-        const step = (): void => {
-          if (disposed) return res();
-          const k = Math.min(1, (performance.now() - t0) / FADE_MS);
-          splat?.setOpacity(fromO + (to - fromO) * ease(k));
-          if (k < 1) requestAnimationFrame(step); else res();
+        const cv = splat?.canvas;
+        if (!cv || disposed) return res();
+        cv.style.transition = `opacity ${FADE_MS}ms cubic-bezier(.33,0,.2,1)`;
+        void cv.offsetWidth;                       // commit current opacity before changing it
+        cv.style.opacity = String(to);
+        let done = false;
+        const finish = (): void => {
+          if (done) return; done = true;
+          cv.removeEventListener('transitionend', finish);
+          cv.style.transition = '';                // clear so later setOpacity(0) is instant
+          res();
         };
-        step();
+        cv.addEventListener('transitionend', finish);
+        window.setTimeout(finish, FADE_MS + 120);  // safety: transitionend can be dropped
       });
     // resolves true once the splat has painted WARM_MIN frames; false if it never does within
     // WARM_TIMEOUT (the device can't actually render the splat → caller degrades to video).
@@ -212,13 +229,15 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       setFront(cur);
       go('playing');
 
-      // Preload this stop's splat NOW (silent, no GL). Already in memory (blob) so this is
-      // an instant decode rather than a network fetch. Clips without a stop drop any held splat.
-      if (clip.stopSceneId) ensureSplat(clip.stopSceneId);
+      // Mount AND warm this stop's splat NOW (hidden at opacity 0), as the clip starts — not
+      // at the decel window. The blob is already in memory, but the GPU cold start (upload +
+      // first sorts of ~400k splats) can exceed the 1.2s decel lead on mobile, landing the
+      // reveal late. Warming over the full clip means it's render-ready (and idle, on-demand)
+      // well before the hero frame, so the crossfade is instant. Clips without a stop drop it.
+      if (clip.stopSceneId) { ensureSplat(clip.stopSceneId); splat?.setRenderEnabled(true); }
       else { splat?.dispose(); splat = null; splatScene = ''; }
 
-      // warm the splat (start GL) only as we enter the decel window
-      await playWithDecel(cur, resumed, () => { splat?.setRenderEnabled(true); });
+      await playWithDecel(cur, resumed, () => {});
       if (disposed) return;
 
       if (!clip.stopSceneId) { go('done'); return; } // final clip — just hold the end
@@ -228,7 +247,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       const warmed = await waitWarm();
       if (disposed) return;
       if (!warmed) { setDegraded(true); return; } // splat won't paint → full-video fallback
-      await tween(0, 1);            // splat fades in (sharp) over the held frame
+      await tween(1);               // splat fades in (sharp) over the held frame
       if (disposed) return;
       splat?.setInputEnabled(true);
       go('interact');
@@ -246,7 +265,7 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       if (next < TIMELINE.length) await loadClip(nxt, V(TIMELINE[next].src));
       if (disposed) return;
       setFront(nxt);                // nxt shows frame-N == held frame → invisible swap
-      await tween(1, 0);            // splat fades out → reveals nxt's first frame
+      await tween(0);               // splat fades out → reveals nxt's first frame
       if (disposed) return;
       splat?.setRenderEnabled(false);
 
@@ -273,14 +292,37 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, splatOk, degraded]);
 
+  // Resume the autoplay-blocked clip within a user gesture, and unlock the other orchestrated
+  // element so the rest of the experience plays through without another tap.
+  const onPlayTap = (): void => {
+    setNeedsGesture(false);
+    const v = pendingPlayRef.current;
+    v?.play().catch(() => {});
+    [vidARef.current, vidBRef.current].forEach((el) => {
+      if (el && el !== v) el.play().then(() => el.pause()).catch(() => {});
+    });
+  };
+  const playButton = needsGesture ? (
+    <button onClick={onPlayTap} aria-label="Play" style={{
+      position: 'absolute', inset: 0, margin: 'auto', zIndex: 7,
+      width: 76, height: 76, borderRadius: 999, cursor: 'pointer',
+      border: '1px solid rgba(255,255,255,.6)', background: 'rgba(0,0,0,.5)',
+      color: '#fff', font: '26px/1 system-ui, sans-serif', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', paddingLeft: 5,
+    }}>▶</button>
+  ) : null;
+
   if (!splatOk || degraded) {
     return (
       <div style={{ position: 'absolute', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <video
+          ref={fallbackRef}
           src={V(HERO_VIDEO_FULL)}
           muted autoPlay playsInline preload="auto"
+          onLoadedData={() => { fallbackRef.current?.play().catch(() => { pendingPlayRef.current = fallbackRef.current; setNeedsGesture(true); }); }}
           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         />
+        {playButton}
       </div>
     );
   }
@@ -297,6 +339,8 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
       {(err || (debug && dbg)) && (
         <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 6, padding: '5px 9px', background: 'rgba(0,0,0,.66)', color: err ? '#f99' : '#9fe', font: '11px/1.4 monospace', borderRadius: 4, pointerEvents: 'none', whiteSpace: 'nowrap' }}>{err ? `⚠ ${err}` : dbg}</div>
       )}
+
+      {playButton}
 
       {showHint && (
         <div style={{
