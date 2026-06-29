@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { SPLAT_SCENES } from '../data/splatScenes';
+import { SPLAT_SCENES, VIDEO_FPS } from '../data/splatScenes';
 import { TIMELINE } from '../data/sunMattersTimeline';
 import { HERO_VIDEO_FULL, basename, videoSrc } from '../data/sunMattersAssets';
 import { mountSplatViewer, type SplatViewerController } from '../lib/splatViewer';
@@ -136,20 +136,32 @@ export function SunMattersExperience({ assets, splatOk }: Props) {
         if (v.readyState >= 2) onCanPlay();
       });
 
-    // play a clip with start ramp-up (resumed clips) + decel to its end;
-    // fires onApproach once when entering the decel window; resolves on 'ended'.
+    // play a clip with start ramp-up (resumed clips) + decel to its end, then PIN the hero
+    // (last) frame as a PAUSED frame. We deliberately stop ~1 frame short and seek-pin instead
+    // of letting the video reach 'ended': iOS Safari does NOT reliably hold an ended video's
+    // last frame (it flickers / jumps back a few frames before the splat reveal), but it holds
+    // a paused+seeked frame rock-solid. fires onApproach once when entering the decel window.
     const playWithDecel = (v: HTMLVideoElement, rampUp: boolean, onApproach: () => void): Promise<void> =>
       new Promise((resolve) => {
-        let approached = false, dbgN = 0;
+        let approached = false, finished = false, dbgN = 0;
         const t0 = performance.now();
-        const onEnded = (): void => { cancelAnimationFrame(raf); resolve(); };
-        v.addEventListener('ended', onEnded, { once: true });
+        const stop = (): void => {
+          if (finished) return; finished = true;
+          cancelAnimationFrame(raf);
+          v.removeEventListener('ended', stop);
+          v.pause();
+          // pin onto the last frame (~half a frame inside duration) so iOS displays it stably
+          try { v.currentTime = Math.max(0, (v.duration || 0) - 0.5 / VIDEO_FPS); } catch { /* ignore */ }
+          resolve();
+        };
+        v.addEventListener('ended', stop, { once: true });
         const loop = (): void => {
-          if (disposed) { v.removeEventListener('ended', onEnded); return resolve(); }
+          if (disposed) { v.removeEventListener('ended', stop); return resolve(); }
           raf = requestAnimationFrame(loop);
           const dur = v.duration || Infinity;
           const remaining = dur - v.currentTime;
           if (!approached && remaining <= warmAt) { approached = true; onApproach(); }
+          if (remaining <= 1 / VIDEO_FPS) { stop(); return; } // pin the last frame, skip 'ended'
           let rate = 1;
           if (rampUp) rate = minRate + (1 - minRate) * Math.min(1, (performance.now() - t0) / RESUME_RAMP_MS);
           if (!hardStop && remaining <= decelWindow) rate = Math.min(rate, minRate + (1 - minRate) * (remaining / decelWindow));
