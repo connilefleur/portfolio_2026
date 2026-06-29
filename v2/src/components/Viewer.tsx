@@ -1,18 +1,21 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PROJECTS_BY_ID } from '../data/projects';
-import type { Project } from '../data/types';
+import type { MediaItem, Project } from '../data/types';
+import { InteractiveStage } from './InteractiveStage';
 
-function mediaLabel(type: 'image' | 'video' | 'compare', typeIdx: number, label?: string): string {
+function mediaLabel(type: MediaItem['type'], typeIdx: number, label?: string): string {
   if (label) return label;
-  if (type === 'video')   return `Video ${String(typeIdx + 1).padStart(3, '0')}`;
-  if (type === 'compare') return `Compare ${String(typeIdx + 1).padStart(3, '0')}`;
+  if (type === 'video')       return `Video ${String(typeIdx + 1).padStart(3, '0')}`;
+  if (type === 'compare')     return `Compare ${String(typeIdx + 1).padStart(3, '0')}`;
+  if (type === 'interactive') return 'Interactive Experience';
   return `Image ${String(typeIdx + 1).padStart(3, '0')}`;
 }
 
-function typeTag(type: 'image' | 'video' | 'compare') {
-  if (type === 'video')   return 'vid';
-  if (type === 'compare') return 'cmp';
+function typeTag(type: MediaItem['type']) {
+  if (type === 'video')       return 'vid';
+  if (type === 'compare')     return 'cmp';
+  if (type === 'interactive') return 'exp';
   return 'img';
 }
 
@@ -244,7 +247,7 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
     const img = imgRef.current;
     if (!vid || !img) return;
     const item = project.media[activeIdx];
-    if (!item || item.type === 'compare' || !item.url) {
+    if (!item || item.type === 'compare' || item.type === 'interactive' || !item.url) {
       vid.pause(); vid.removeAttribute('src'); vid.style.display = 'none';
       img.style.display = 'none';
       return;
@@ -407,6 +410,9 @@ export const Viewer = forwardRef<HTMLDivElement, ViewerProps>(function Viewer(
           )}
           {activeItem?.type === 'compare' && activeItem.compareUrl && (
             <CompareSlider key={activeIdx} url={activeItem.url} compareUrl={activeItem.compareUrl} />
+          )}
+          {activeItem?.type === 'interactive' && (
+            <InteractiveStage key={activeIdx} poster={activeItem.poster} />
           )}
         </div>
       </div>

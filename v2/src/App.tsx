@@ -11,7 +11,7 @@ import './styles/globals.css';
 const SunMatters = lazy(() =>
   import('./pages/SunMatters').then((m) => ({ default: m.SunMatters })),
 );
-// Dev-only splat-only debug harness with a live render-param panel (no video).
+// Dev-only splat-only perf/debug harness (no video).
 const SplatDebug = lazy(() =>
   import('./pages/SplatDebug').then((m) => ({ default: m.SplatDebug })),
 );

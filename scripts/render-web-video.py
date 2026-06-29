@@ -22,7 +22,25 @@ def ffprobe_json(input_path: Path):
 
 
 def scale_filter(max_edge: int) -> str:
-    return f"scale=w={max_edge}:h={max_edge}:force_original_aspect_ratio=decrease:force_divisible_by=2"
+    # out_range=full: source pipeline is full-range (0-255), keep it full so the
+    # browser doesn't expand a limited signal. Paired with -color_range pc below.
+    return (
+        f"scale=w={max_edge}:h={max_edge}:force_original_aspect_ratio=decrease"
+        f":force_divisible_by=2:out_range=full"
+    )
+
+
+# Source is full-range, sRGB display (Houdini ACES SDR → sRGB display, baked the
+# same way for the PNG sequence and the ProRes). Signal sRGB + full range so the
+# <video> is shown on the same curve as the sRGB WebGL canvas — otherwise the
+# default bt709 (~2.4) vs sRGB (~2.2) transfer split makes them look mismatched.
+# bt709 primaries == sRGB primaries; iec61966-2-1 == the sRGB transfer.
+COLOR_FLAGS = [
+    "-color_primaries", "bt709",
+    "-color_trc", "iec61966-2-1",
+    "-colorspace", "bt709",
+    "-color_range", "pc",
+]
 
 
 
@@ -80,6 +98,7 @@ def main():
         "-vf",
         scale_filter(args.video_max_edge),
         *codec_flags,
+        *COLOR_FLAGS,
     ]
     if has_audio:
         encode_cmd += [

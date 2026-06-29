@@ -2,8 +2,14 @@ import type { HeroCamera } from '../lib/colmapCamera';
 
 export interface SplatScene {
   id: string;
-  /** Served path to the trained splat (.ply for now, .ksplat for prod). */
+  /** Served path to the trained splat (.sog — compressed, primary; raw .ply still on disk for A/B). */
   splatUrl: string;
+  /**
+   * Optional filename hint for the gsplat loader when `splatUrl` is an extension-less URL
+   * (e.g. a blob: URL from the preloader). PlayCanvas picks the parser by extension, so a
+   * blob URL must carry the real name ('serum.sog') here.
+   */
+  splatFilename?: string;
   /** Video frame this splat is matched to (0-indexed). */
   videoFrame: number;
   /** Dev-only reference still extracted from that frame, for alignment. */
@@ -22,7 +28,7 @@ export const VIDEO_FPS = 30;
 export const SPLAT_SCENES: Record<string, SplatScene> = {
   serum: {
     id: 'serum',
-    splatUrl: '/projects/sun-matters/splat/serum.ply',
+    splatUrl: '/projects/sun-matters/splat/serum.sog',
     videoFrame: 300,
     refFrameUrl: '/projects/sun-matters/splat/_ref/frame_300.png',
     hero: {
@@ -38,7 +44,7 @@ export const SPLAT_SCENES: Record<string, SplatScene> = {
   },
   stick: {
     id: 'stick',
-    splatUrl: '/projects/sun-matters/splat/stick.ply',
+    splatUrl: '/projects/sun-matters/splat/stick.sog',
     videoFrame: 700,
     refFrameUrl: '/projects/sun-matters/splat/_ref/frame_700.png',
     hero: {

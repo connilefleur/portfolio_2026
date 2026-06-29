@@ -4,7 +4,8 @@ export interface MediaItem {
   url: string;
   srcSet?: string;
   poster?: string;
-  type: 'image' | 'video' | 'compare';
+  // 'interactive' = the Sun Matters video↔splat experience, hosted in the Viewer stage.
+  type: 'image' | 'video' | 'compare' | 'interactive';
   compareUrl?: string;
   link?: { label: string; url: string };  // overrides project link when this item is active
   label?: string;
